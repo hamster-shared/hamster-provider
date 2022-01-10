@@ -6,6 +6,7 @@ import (
 	"github.com/hamster-shared/hamster-provider/core/modules/config"
 	"github.com/hamster-shared/hamster-provider/core/modules/p2p"
 	"github.com/hamster-shared/hamster-provider/core/modules/pk"
+	"github.com/hamster-shared/hamster-provider/core/modules/utils"
 	"github.com/hamster-shared/hamster-provider/core/modules/vm"
 )
 
@@ -17,6 +18,7 @@ type CoreContext struct {
 	PkManager    *pk.Manager
 	ReportClient chain.ReportClient
 	SubstrateApi *gsrpc.SubstrateAPI
+	TimerService *utils.TimerService
 }
 
 func (c *CoreContext) GetConfig() *config.Config {

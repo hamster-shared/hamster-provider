@@ -23,5 +23,4 @@ import (
 func main() {
 	golog.SetAllLoggers(golog.LevelInfo) // Change to INFO for extra info
 	cmd.Execute()
-	//p2p.Main()
 }

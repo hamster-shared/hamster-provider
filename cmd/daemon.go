@@ -24,6 +24,7 @@ import (
 	"github.com/hamster-shared/hamster-provider/core/modules/config"
 	"github.com/hamster-shared/hamster-provider/core/modules/p2p"
 	"github.com/hamster-shared/hamster-provider/core/modules/pk"
+	"github.com/hamster-shared/hamster-provider/core/modules/utils"
 	vm2 "github.com/hamster-shared/hamster-provider/core/modules/vm"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -43,50 +44,63 @@ to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("daemon called")
 
-		cm := config.NewConfigManager()
-		pkManager := pk.NewManager(cm)
-		config, err := cm.GetConfig()
-		if err != nil {
-			logrus.Error(err)
-			return
-		}
-		p2pClient, err := p2p.NewP2pClient(34001, config.Identity.PrivKey, config.Identity.SwarmKey, config.Bootstraps)
-		if err != nil {
-			logrus.Error(err)
-			return
-		}
-		var vmManager vm2.Manager
-		if "docker" == config.Vm.Type {
-			vmManager, err = vm2.NewDockerManager()
-		} else {
-			vmManager, err = vm2.NewVirtManager()
-		}
-		if err != nil {
-			logrus.Error(err)
-			return
-		}
-
-		substrateApi, err := gsrpc.NewSubstrateAPI(config.ChainApi)
-		if err != nil {
-			logrus.Error(err)
-			os.Exit(1)
-		}
-		reportClient, err := chain2.NewChainClient(cm, substrateApi)
-		if err != nil {
-			logrus.Error(err)
-			return
-		}
-		context := context2.CoreContext{
-			P2pClient:    p2pClient,
-			VmManager:    vmManager,
-			Cm:           cm,
-			PkManager:    pkManager,
-			ReportClient: reportClient,
-			SubstrateApi: substrateApi,
-		}
+		context := NewContext()
 		server := core.NewServer(context)
 		server.Run()
 	},
+}
+
+func NewContext() context2.CoreContext {
+	cm := config.NewConfigManager()
+	pkManager := pk.NewManager(cm)
+	cfg, err := cm.GetConfig()
+	if err != nil {
+		logrus.Error(err)
+		return context2.CoreContext{}
+	}
+	p2pClient, err := p2p.NewP2pClient(34001, cfg.Identity.PrivKey, cfg.Identity.SwarmKey, cfg.Bootstraps)
+	if err != nil {
+		logrus.Error(err)
+		return context2.CoreContext{}
+	}
+	var vmManager vm2.Manager
+	// set vm template
+	template := vm2.Template{
+		Cpu:    cfg.Vm.Cpu,
+		Memory: cfg.Vm.Mem,
+		System: cfg.Vm.System,
+		Image:  cfg.Vm.Image,
+	}
+	if "docker" == cfg.Vm.Type {
+		vmManager, err = vm2.NewDockerManager(template)
+	} else {
+		vmManager, err = vm2.NewVirtManager(template)
+	}
+	if err != nil {
+		logrus.Error(err)
+		return context2.CoreContext{}
+	}
+
+	substrateApi, err := gsrpc.NewSubstrateAPI(cfg.ChainApi)
+	if err != nil {
+		logrus.Error(err)
+		os.Exit(1)
+	}
+	reportClient, err := chain2.NewChainClient(cm, substrateApi)
+	if err != nil {
+		logrus.Error(err)
+		return context2.CoreContext{}
+	}
+	context := context2.CoreContext{
+		P2pClient:    p2pClient,
+		VmManager:    vmManager,
+		Cm:           cm,
+		PkManager:    pkManager,
+		ReportClient: reportClient,
+		SubstrateApi: substrateApi,
+		TimerService: utils.NewTimerService(),
+	}
+	return context
 }
 
 func init() {

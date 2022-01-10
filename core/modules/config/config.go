@@ -21,17 +21,35 @@ const (
 	SWARM_KEY               = "/key/swarm/psk/1.0.0/\n/base16/\n55158d9b6b7e5a8e41aa8b34dd057ff1880e38348613d27ae194ad7c5b9670d7"
 )
 
-// Config  config参数
+// Config  config parameter
 type Config struct {
-	ApiPort      int          // API port number
-	Identity     Identity     // p2p id
-	Keys         []PublicKey  // public key list
-	Bootstraps   []string     // local nodes's bootstrap peer addresses
-	LinkApi      string       // centralized reporting address
-	ChainApi     string       // blockchain address
-	SeedOrPhrase string       // blockchain account seed or mnemonic
-	Vm           VmOption     // theoretical environment config
-	ChainRegInfo ChainRegInfo // chain registration information
+	ApiPort      int          `json:"apiPort"`      // API port number
+	Identity     Identity     `json:"identity"`     // p2p id
+	Keys         []PublicKey  `json:"keys"`         // public key list
+	Bootstraps   []string     `json:"bootstraps"`   // local nodes's bootstrap peer addresses
+	LinkApi      string       `json:"linkApi"`      // centralized reporting address
+	ChainApi     string       `json:"chainApi"`     // blockchain address
+	SeedOrPhrase string       `json:"seedOrPhrase"` // blockchain account seed or mnemonic
+	Vm           VmOption     `json:"vm"`           // theoretical environment config
+	ChainRegInfo ChainRegInfo `json:"chainRegInfo"` // chain registration information
+	ConfigFlag   ConfigFlag   `json:"configFlag"`
+}
+
+type ConfigFlag string
+
+const DONE ConfigFlag = "done"
+const NONE ConfigFlag = "none"
+
+// VmOption vm configuration information
+type VmOption struct {
+	Cpu        uint64 `json:"cpu"`
+	Mem        uint64 `json:"mem"`
+	Disk       uint64 `json:"disk"`
+	System     string `json:"system"`
+	Image      string `json:"image"`
+	AccessPort int    `json:"accessPort"`
+	// virtualization type,docker/kvm
+	Type string `json:"type"`
 }
 
 // Identity p2p identity token structure
@@ -43,7 +61,7 @@ type Identity struct {
 
 // PublicKey public key information
 type PublicKey struct {
-	Key string
+	Key string `json:"key"`
 }
 
 type ConfigManager struct {
@@ -51,10 +69,11 @@ type ConfigManager struct {
 }
 
 type ChainRegInfo struct {
-	ResourceIndex   uint64
-	OrderIndex      uint64
-	AgreementIndex  uint64
-	RenewOrderIndex uint64
+	ResourceIndex   uint64 `json:"resourceIndex"`
+	OrderIndex      uint64 `json:"orderIndex"`
+	AgreementIndex  uint64 `json:"agreementIndex"`
+	RenewOrderIndex uint64 `json:"renewOrderIndex"`
+	Working         string
 }
 
 func NewConfigManager() *ConfigManager {

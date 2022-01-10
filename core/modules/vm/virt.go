@@ -28,13 +28,15 @@ type VirtManager struct {
 }
 
 // NewVirtManager create virtManager
-func NewVirtManager() (*VirtManager, error) {
+func NewVirtManager(t Template) (*VirtManager, error) {
 	conn, err := libvirt.NewConnect("qemu:///system")
 	homedir, err := os.UserHomeDir()
-	return &VirtManager{
+	manager := &VirtManager{
 		conn: conn,
 		home: homedir + "/.ttchain-compute-provider",
-	}, err
+	}
+	manager.SetTemplate(t)
+	return manager, err
 }
 
 func (v *VirtManager) SetTemplate(t Template) {
@@ -64,16 +66,6 @@ func (v *VirtManager) SetTemplate(t Template) {
 		}
 	}
 
-	if _, err := os.Stat(v.getCopyDiskFile()); errors.Is(err, os.ErrNotExist) {
-		_ = os.MkdirAll(path.Dir(v.getCopyDiskFile()), os.ModePerm)
-
-		fmt.Println("cp", v.getBaseImagePath(), v.getCopyDiskFile())
-		cmd := exec.Command("cp", v.getBaseImagePath(), v.getCopyDiskFile())
-		err := cmd.Run()
-		if err != nil {
-			fmt.Println("Execute Command failed:" + err.Error())
-		}
-	}
 }
 
 //func (v *VirtManager) newXml() (string, error) {
@@ -84,7 +76,7 @@ func (v *VirtManager) SetTemplate(t Template) {
 //
 //	domcfg := &libvirtxml.Domain{
 //		Type: "kvm",
-//		Name: v.template.Name,
+//		Name: name,
 //		Memory: &libvirtxml.DomainMemory{
 //			Unit:  "GiB",
 //			Value: uint(v.template.Memory),
@@ -353,8 +345,8 @@ func (v *VirtManager) SetTemplate(t Template) {
 //	return xml, nil
 //}
 
-func (v *VirtManager) getCopyDiskFile() string {
-	return fmt.Sprintf("%s/orders/%s_%s", v.home, v.template.Name, v.getBaseImageName())
+func (v *VirtManager) getCopyDiskFile(name string) string {
+	return fmt.Sprintf("%s/orders/%s_%s", v.home, name, v.getBaseImageName())
 }
 
 func (v *VirtManager) getBaseImageName() string {
@@ -369,8 +361,8 @@ func (v *VirtManager) getBaseImagePath() string {
 	return v.home + "/" + v.getBaseImageName()
 }
 
-// Create 创建
-func (v *VirtManager) Create() error {
+// Create create
+func (v *VirtManager) Create(name string) error {
 	log.Info("start the virtual machine")
 	//xml, err := v.newXml()
 	//if err != nil {
@@ -380,8 +372,19 @@ func (v *VirtManager) Create() error {
 	//domain, err := v.conn.DomainDefineXML(xml)
 	//defer domain.Free()
 
-	fmt.Println("virt-install", "--virt-type", "kvm", "--name", v.template.Name, "--vcpus", fmt.Sprintf("%d", v.template.Cpu), "--ram", fmt.Sprintf("%d", v.template.Memory<<10), "--disk", fmt.Sprintf("path=%s", v.getCopyDiskFile()), "--network", "network=default", "--graphics", "vnc,listen=0.0.0.0", "--noautoconsole", "--boot", "hd")
-	cmd := exec.Command("virt-install", "--virt-type", "kvm", "--name", v.template.Name, "--vcpus", fmt.Sprintf("%d", v.template.Cpu), "--ram", fmt.Sprintf("%d", v.template.Memory<<10), "--disk", fmt.Sprintf("path=%s", v.getCopyDiskFile()), "--network", "network=default", "--graphics", "vnc,listen=0.0.0.0", "--noautoconsole", "--boot", "hd")
+	if _, err := os.Stat(v.getCopyDiskFile(name)); errors.Is(err, os.ErrNotExist) {
+		_ = os.MkdirAll(path.Dir(v.getCopyDiskFile(name)), os.ModePerm)
+
+		fmt.Println("cp", v.getBaseImagePath(), v.getCopyDiskFile(name))
+		cmd := exec.Command("cp", v.getBaseImagePath(), v.getCopyDiskFile(name))
+		err := cmd.Run()
+		if err != nil {
+			fmt.Println("Execute Command failed:" + err.Error())
+		}
+	}
+
+	fmt.Println("virt-install", "--virt-type", "kvm", "--name", name, "--vcpus", fmt.Sprintf("%d", v.template.Cpu), "--ram", fmt.Sprintf("%d", v.template.Memory<<10), "--disk", fmt.Sprintf("path=%s", v.getCopyDiskFile(name)), "--network", "network=default", "--graphics", "vnc,listen=0.0.0.0", "--noautoconsole", "--boot", "hd")
+	cmd := exec.Command("virt-install", "--virt-type", "kvm", "--name", name, "--vcpus", fmt.Sprintf("%d", v.template.Cpu), "--ram", fmt.Sprintf("%d", v.template.Memory<<10), "--disk", fmt.Sprintf("path=%s", v.getCopyDiskFile(name)), "--network", "network=default", "--graphics", "vnc,listen=0.0.0.0", "--noautoconsole", "--boot", "hd")
 
 	err := cmd.Run()
 	if err != nil {
@@ -391,9 +394,9 @@ func (v *VirtManager) Create() error {
 }
 
 // Start start the virtual machine
-func (v *VirtManager) Start() error {
+func (v *VirtManager) Start(name string) error {
 
-	d, err := v.conn.LookupDomainByName(v.template.Name)
+	d, err := v.conn.LookupDomainByName(name)
 	defer func(dom *libvirt.Domain) {
 		err := dom.Free()
 		if err != nil {
@@ -413,33 +416,33 @@ func (v *VirtManager) Start() error {
 }
 
 // CreateAndStart create and start
-func (v *VirtManager) CreateAndStart() error {
+func (v *VirtManager) CreateAndStart(name string) error {
 
-	err := v.Create()
+	err := v.Create(name)
 	if err != nil {
 		return err
 	}
 
-	return v.Start()
+	return v.Start(name)
 }
 
-func (v *VirtManager) CreateAndStartAndInjectionPublicKey(publicKey string) error {
+func (v *VirtManager) CreateAndStartAndInjectionPublicKey(name, publicKey string) error {
 
 	// injection public key
-	err := v.InjectionPublicKey(publicKey)
+	err := v.InjectionPublicKey(name, publicKey)
 	if err != nil {
 		return err
 	}
 
 	// create a virtual machine
-	err = v.CreateAndStart()
+	err = v.CreateAndStart(name)
 	if err != nil {
 		return err
 	}
 
 	// wait for the virtual machine to start successfully
 	for {
-		status, err := v.Status()
+		status, err := v.Status(name)
 		if err != nil {
 			return err
 		}
@@ -453,9 +456,9 @@ func (v *VirtManager) CreateAndStartAndInjectionPublicKey(publicKey string) erro
 	return nil
 }
 
-// Stop shut down the virtual machine
-func (v *VirtManager) Stop() error {
-	d, err := v.conn.LookupDomainByName(v.template.Name)
+// Stop shutdown the virtual machine
+func (v *VirtManager) Stop(name string) error {
+	d, err := v.conn.LookupDomainByName(name)
 	if err != nil {
 		return err
 	}
@@ -470,8 +473,8 @@ func (v *VirtManager) Stop() error {
 }
 
 // Reboot restart the virtual machine
-func (v *VirtManager) Reboot() error {
-	d, err := v.conn.LookupDomainByName(v.template.Name)
+func (v *VirtManager) Reboot(name string) error {
+	d, err := v.conn.LookupDomainByName(name)
 	if err != nil {
 		return err
 	}
@@ -485,9 +488,9 @@ func (v *VirtManager) Reboot() error {
 	return d.Reboot(libvirt.DOMAIN_REBOOT_DEFAULT)
 }
 
-// Shutdown shut down the virtual machine
-func (v *VirtManager) Shutdown() error {
-	d, err := v.conn.LookupDomainByName(v.template.Name)
+// Shutdown shutdown the virtual machine
+func (v *VirtManager) Shutdown(name string) error {
+	d, err := v.conn.LookupDomainByName(name)
 	if err != nil {
 		return err
 	}
@@ -502,8 +505,8 @@ func (v *VirtManager) Shutdown() error {
 }
 
 // Destroy destroy the virtual machine
-func (v *VirtManager) Destroy() error {
-	d, err := v.conn.LookupDomainByName(v.template.Name)
+func (v *VirtManager) Destroy(name string) error {
+	d, err := v.conn.LookupDomainByName(name)
 	if err != nil {
 		return err
 	}
@@ -517,7 +520,7 @@ func (v *VirtManager) Destroy() error {
 }
 
 // InjectionPublicKey injection publickey (The timing of vm implementation and docker implementation are different)
-func (v *VirtManager) InjectionPublicKey(publicKey string) error {
+func (v *VirtManager) InjectionPublicKey(name, publicKey string) error {
 
 	publicKeyFileName := fmt.Sprintf("/tmp/%s.pub", utils.GetRandomString(10))
 
@@ -534,8 +537,8 @@ func (v *VirtManager) InjectionPublicKey(publicKey string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println("virt-customize", "-a", v.getCopyDiskFile(), "--ssh-inject", fmt.Sprintf("root:file:%s", publicKeyFileName))
-	cmd := exec.Command("virt-customize", "-a", v.getCopyDiskFile(), "--ssh-inject", fmt.Sprintf("root:file:%s", publicKeyFileName))
+	fmt.Println("virt-customize", "-a", v.getCopyDiskFile(name), "--ssh-inject", fmt.Sprintf("root:file:%s", publicKeyFileName))
+	cmd := exec.Command("virt-customize", "-a", v.getCopyDiskFile(name), "--ssh-inject", fmt.Sprintf("root:file:%s", publicKeyFileName))
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		fmt.Println("Execute Command failed:" + err.Error())
@@ -549,8 +552,8 @@ func (v *VirtManager) InjectionPublicKey(publicKey string) error {
 }
 
 // Status View status
-func (v *VirtManager) Status() (*Status, error) {
-	dom, err := v.conn.LookupDomainByName(v.template.Name)
+func (v *VirtManager) Status(name string) (*Status, error) {
+	dom, err := v.conn.LookupDomainByName(name)
 	if err != nil {
 		fmt.Println("err", err)
 		return nil, nil
@@ -607,8 +610,8 @@ func (v *VirtManager) Status() (*Status, error) {
 }
 
 // GetIp get runtime ip
-func (v *VirtManager) GetIp() (string, error) {
-	d, err := v.conn.LookupDomainByName(v.template.Name)
+func (v *VirtManager) GetIp(name string) (string, error) {
+	d, err := v.conn.LookupDomainByName(name)
 	if err != nil {
 		return "", err
 	}
@@ -643,7 +646,7 @@ func (v *VirtManager) GetIp() (string, error) {
 }
 
 // GetAccessPort get runtime port
-func (v *VirtManager) GetAccessPort() int {
+func (v *VirtManager) GetAccessPort(name string) int {
 	return v.accessPort
 }
 

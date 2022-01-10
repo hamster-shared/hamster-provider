@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"github.com/hamster-shared/hamster-provider/core/modules/config"
 	"github.com/hamster-shared/hamster-provider/core/modules/p2p"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"os"
 	"path/filepath"
@@ -31,6 +31,7 @@ var initCmd = &cobra.Command{
 	Short: "init  config",
 
 	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Printf("init ttchain provider")
 
 		path := config.DefaultConfigPath()
 
@@ -38,23 +39,22 @@ var initCmd = &cobra.Command{
 
 		err := os.MkdirAll(filepath.Dir(path), os.ModeDir)
 		if err != nil {
-			logrus.Fatal(err)
+			log.Fatal(err)
 		}
 
 		err = os.Chmod(filepath.Dir(path), os.ModePerm)
 		if err != nil {
-			logrus.Fatal(err)
+			log.Fatal(err)
 		}
 
 		// init config
-		logrus.Info("init context")
+		log.Info("init context")
 		err = config.NewConfigManagerWithPath(path).Save(&cfg)
 		if err != nil {
-			logrus.Error(err)
+			log.Error(err)
 			return
 		}
 
-		fmt.Printf("init config")
 	},
 }
 
@@ -76,36 +76,44 @@ func getDefaultConfig() config.Config {
 	identity, err := config.CreateIdentity()
 
 	if err != nil {
-		logrus.Error("create identity error")
+		log.Error("create identity error")
 		os.Exit(0)
 	}
 
 	return config.Config{
-		ApiPort:    10771,
-		Identity:   identity,
-		Bootstraps: p2p.DEFAULT_IPFS_PEERS,
-		Keys:       []config.PublicKey{},
-		LinkApi:    CONFIG_DEFAULT_LINK_API,
-		ChainApi:   CONFIG_DEFAULT_CHAIN_API,
-		Vm: config.VmOption{
-			Cpu:        1,
-			Mem:        1,
-			Disk:       50,
-			System:     "Centos 7",
-			Image:      "https://s3.ttchain.tntlinking.com/compute/CentOS7.qcow2.tar.gz",
-			AccessPort: 22,
-			Type:       "kvm",
-		},
-		//Vm: config.VmOption{
-		//	Cpu:        1,
-		//	Mem:        1,
-		//	Disk:       50,
-		//	System:     "Ubuntu 18",
-		//	Image:      "rastasheep/ubuntu-sshd:18.04",
-		//	AccessPort: 22,
-		//	Type:       "docker",
-		//},
+		ApiPort:      10771,
+		Identity:     identity,
+		Bootstraps:   p2p.DEFAULT_IPFS_PEERS,
+		Keys:         []config.PublicKey{},
+		LinkApi:      CONFIG_DEFAULT_LINK_API,
+		ChainApi:     CONFIG_DEFAULT_CHAIN_API,
+		Vm:           getDockerDefaultConfig(),
 		SeedOrPhrase: "betray extend distance category chimney globe employ scrap armor success kiss forum",
 		ChainRegInfo: config.ChainRegInfo{},
+		ConfigFlag:   config.NONE,
+	}
+}
+
+func getKvmDefaultConfig() config.VmOption {
+	return config.VmOption{
+		Cpu:        1,
+		Mem:        1,
+		Disk:       50,
+		System:     "Centos 7",
+		Image:      "https://s3.ttchain.tntlinking.com/compute/CentOS7.qcow2.tar.gz",
+		AccessPort: 22,
+		Type:       "kvm",
+	}
+}
+
+func getDockerDefaultConfig() config.VmOption {
+	return config.VmOption{
+		Cpu:        1,
+		Mem:        1,
+		Disk:       50,
+		System:     "Ubuntu 18",
+		Image:      "rastasheep/ubuntu-sshd:18.04",
+		AccessPort: 22,
+		Type:       "docker",
 	}
 }

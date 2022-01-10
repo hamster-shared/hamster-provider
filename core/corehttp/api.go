@@ -2,6 +2,7 @@ package corehttp
 
 import (
 	"fmt"
+	"github.com/gin-contrib/static"
 	"github.com/hamster-shared/hamster-provider/core/context"
 )
 
@@ -10,7 +11,14 @@ func StartApi(ctx *context.CoreContext) error {
 	// router
 	v1 := r.Group("/api/v1")
 	{
-		// container
+
+		// basic configuration
+		config := v1.Group("/config")
+		{
+			config.GET("/settting", getConfig)
+			config.POST("/settting", setConfig)
+		}
+		// container routing
 		container := v1.Group("/container")
 		{
 			container.GET("/start", startContainer)
@@ -30,7 +38,7 @@ func StartApi(ctx *context.CoreContext) error {
 		{
 			p2p.POST("/listen", listenP2p)
 			p2p.POST("/forward", forwardP2p)
-			p2p.POST("/ls", lsP2p)
+			p2p.GET("/ls", lsP2p)
 			p2p.POST("/close", closeP2p)
 			p2p.POST("/check", checkP2p)
 		}
@@ -46,6 +54,7 @@ func StartApi(ctx *context.CoreContext) error {
 	}
 	//r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
+	r.Use(static.Serve("/", static.LocalFile("./frontend/dist", false)))
 	// listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 	port := ctx.GetConfig().ApiPort
 	return r.Run(fmt.Sprintf("0.0.0.0:%d", port))

@@ -20,45 +20,41 @@ import (
 
 type DockerManager struct {
 	template *Template
-	//访问端口
+	//access port
 	accessPort int
-	// docker 客户端
+	// docker client
 	cli *client.Client
 	// context
 	ctx context.Context
 
-	// ContainerName
-	containerName string
 	// image
 	image string
-
-	nodePort int
 }
 
-func NewDockerManager() (*DockerManager, error) {
+func NewDockerManager(t Template) (*DockerManager, error) {
 	cli, err := client.NewClientWithOpts(client.WithVersion("1.38"))
 	if err != nil {
 		log.Error(err)
 		return nil, err
 	}
-	return &DockerManager{
+	manager := &DockerManager{
 		cli: cli,
 		ctx: context.Background(),
-	}, nil
+	}
+	manager.SetTemplate(t)
+	return manager, err
 }
 
 func (d *DockerManager) SetTemplate(t Template) {
 	d.template = &t
 	d.image = t.Image
-	d.containerName = t.Name
 	d.accessPort = 22
-	d.nodePort = utils.RandomPort()
 }
 
-func (d *DockerManager) Status() (*Status, error) {
+func (d *DockerManager) Status(name string) (*Status, error) {
 	containers, err := d.cli.ContainerList(d.ctx, types.ContainerListOptions{
 		All:     true,
-		Filters: filters.NewArgs(filters.Arg("name", d.containerName)),
+		Filters: filters.NewArgs(filters.Arg("name", name)),
 	})
 	if err != nil {
 		return nil, err
@@ -67,7 +63,7 @@ func (d *DockerManager) Status() (*Status, error) {
 		return &Status{}, errors.New("container not exists")
 	}
 
-	// status 状态 0: 关闭,1: 启动 , 2：暂停, 3, other
+	// status Status 0: Off, 1: On, 2: Paused, 3, other
 	var status int
 
 	switch containers[0].State {
@@ -99,7 +95,7 @@ func (d *DockerManager) Status() (*Status, error) {
 }
 
 // query container ip address
-func (d *DockerManager) GetIp() (string, error) {
+func (d *DockerManager) GetIp(name string) (string, error) {
 	//status, err := d.Status()
 	//
 	//if err != nil {
@@ -120,11 +116,22 @@ func (d *DockerManager) GetIp() (string, error) {
 	return "127.0.0.1", nil
 }
 
-func (d *DockerManager) GetAccessPort() int {
-	return d.nodePort
+func (d *DockerManager) GetAccessPort(name string) int {
+	inspect, err := d.cli.ContainerInspect(d.ctx, name)
+	if err != nil {
+		return 0
+	}
+	portMap := inspect.NetworkSettings.Ports
+	port, _ := nat.NewPort("tcp", strconv.Itoa(d.accessPort))
+	arrays := portMap[port]
+	if len(arrays) > 0 {
+		hostPort, _ := strconv.Atoi(arrays[0].HostPort)
+		return hostPort
+	}
+	return 0
 }
 
-func (d *DockerManager) Create() error {
+func (d *DockerManager) Create(name string) error {
 
 	// view all images
 	imageLists, err := d.cli.ImageList(d.ctx, types.ImageListOptions{
@@ -149,7 +156,7 @@ func (d *DockerManager) Create() error {
 	}
 
 	// determine whether there is a repeated start
-	status, err := d.Status()
+	status, err := d.Status(name)
 	if err != nil {
 		log.Info(err.Error())
 	}
@@ -170,7 +177,7 @@ func (d *DockerManager) Create() error {
 		//Cmd:        []string{cmd},
 		//WorkingDir: workDir,
 		ExposedPorts: nat.PortSet{
-			port: struct{}{},
+			port: struct{}{}, //docker container open port
 		},
 	},
 		&container.HostConfig{
@@ -182,11 +189,11 @@ func (d *DockerManager) Create() error {
 			PortBindings: nat.PortMap{
 				port: []nat.PortBinding{
 					{
-						HostPort: strconv.Itoa(d.nodePort),
+						HostPort: strconv.Itoa(utils.RandomPort()),
 					},
 				},
 			},
-		}, nil, nil, d.containerName)
+		}, nil, nil, name)
 
 	if err != nil {
 		log.Println(err)
@@ -199,8 +206,8 @@ func (d *DockerManager) Create() error {
 }
 
 // StartContainer running containers in the background
-func (d *DockerManager) Start() error {
-	status, err := d.Status()
+func (d *DockerManager) Start(name string) error {
+	status, err := d.Status(name)
 	if err != nil {
 		return err
 	}
@@ -216,23 +223,23 @@ func (d *DockerManager) Start() error {
 
 }
 
-func (d *DockerManager) CreateAndStart() error {
-	err := d.Create()
+func (d *DockerManager) CreateAndStart(name string) error {
+	err := d.Create(name)
 	if err != nil {
 		return err
 	}
-	return d.Start()
+	return d.Start(name)
 }
 
-func (d *DockerManager) CreateAndStartAndInjectionPublicKey(publicKey string) error {
+func (d *DockerManager) CreateAndStartAndInjectionPublicKey(name, publicKey string) error {
 	// create a virtual machine
-	err := d.CreateAndStart()
+	err := d.CreateAndStart(name)
 	if err != nil {
 		return err
 	}
 	// wait for the virtual machine to start successfully
 	for {
-		status, err := d.Status()
+		status, err := d.Status(name)
 		if err != nil {
 			return err
 		}
@@ -241,11 +248,11 @@ func (d *DockerManager) CreateAndStartAndInjectionPublicKey(publicKey string) er
 		}
 		time.Sleep(time.Second * 3)
 	}
-	return d.InjectionPublicKey(publicKey)
+	return d.InjectionPublicKey(name, publicKey)
 }
 
-func (d *DockerManager) Stop() error {
-	status, err := d.Status()
+func (d *DockerManager) Stop(name string) error {
+	status, err := d.Status(name)
 	if status.status != 1 {
 		return errors.New("invalid container status")
 	}
@@ -262,8 +269,8 @@ func (d *DockerManager) Stop() error {
 	}
 }
 
-func (d *DockerManager) Reboot() error {
-	status, err := d.Status()
+func (d *DockerManager) Reboot(name string) error {
+	status, err := d.Status(name)
 	if err != nil {
 		return err
 	}
@@ -277,8 +284,8 @@ func (d *DockerManager) Reboot() error {
 	}
 }
 
-func (d *DockerManager) Shutdown() error {
-	status, err := d.Status()
+func (d *DockerManager) Shutdown(name string) error {
+	status, err := d.Status(name)
 	if status.status != 1 {
 		return errors.New("invalid container status")
 	}
@@ -295,8 +302,8 @@ func (d *DockerManager) Shutdown() error {
 }
 
 // Destroy delete container
-func (d *DockerManager) Destroy() error {
-	status, err := d.Status()
+func (d *DockerManager) Destroy(name string) error {
+	status, err := d.Status(name)
 	if err != nil {
 		return err
 	}
@@ -310,9 +317,9 @@ func (d *DockerManager) Destroy() error {
 }
 
 // InjectionPublicKey add the public key to the container
-func (d *DockerManager) InjectionPublicKey(publicKey string) error {
+func (d *DockerManager) InjectionPublicKey(name, publicKey string) error {
 
-	status, err := d.Status()
+	status, err := d.Status(name)
 	if !status.IsRunning() {
 		return errors.New("invalid container status")
 	}

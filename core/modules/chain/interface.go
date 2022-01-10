@@ -26,5 +26,7 @@ type ReportClient interface {
 
 	LoadKeyFromChain() ([]string, error)
 
-	CalculateInstanceOverdue(agreementIndex uint64) time.Duration
+	CalculateInstanceOverdue(orderIndex uint64) time.Duration
+
+	GetAgreementIndex(orderIndex uint64) (uint64, error)
 }

@@ -4,19 +4,7 @@ import (
 	"github.com/hamster-shared/hamster-provider/core/modules/utils"
 )
 
-// VmOption vm configin formation
-type VmOption struct {
-	Cpu        uint64
-	Mem        uint64
-	Disk       uint64
-	System     string
-	Image      string
-	AccessPort int
-	// virtualization type,docker/kvm
-	Type string
-}
-
-// ConfigVM  config
+// ConfigVM Configure
 func (cm *ConfigManager) ConfigVM(vmOption VmOption) error {
 
 	config, err := cm.GetConfig()

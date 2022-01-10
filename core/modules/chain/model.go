@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// ResourceInfo resource information
+// ResourceInfo 资源信息
 type ResourceInfo struct {
 	PeerId     string    `json:"peerId"`
 	Cpu        uint64    `json:"cpu"`

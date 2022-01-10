@@ -17,51 +17,50 @@ func init() {
 	log.SetLevel(log.WarnLevel)
 }
 
-// Manager virtualized interface
+// Manager 虚拟化接口
 type Manager interface {
-	// SetTemplate  config template
+	// SetTemplate 配置模板
 	SetTemplate(t Template)
-	// Create create the virtual machine
-	Create() error
-	// Start start the virtual machine
-	Start() error
-	// CreateAndStart create and start
-	CreateAndStart() error
-	// CreateAndStartAndInjectionPublicKey start and inject public key
-	CreateAndStartAndInjectionPublicKey(publicKey string) error
-	// Stop shut down the virtual machine
-	Stop() error
-	// Reboot restart the virtual machine
-	Reboot() error
-	// Shutdown shut down the virtual machine
-	Shutdown() error
-	// Destroy destroy the virtual machine
-	Destroy() error
-	// InjectionPublicKey Inject publicKey (vm implementation and docker implementation timing are different)
-	InjectionPublicKey(publicKey string) error
-	// Status view status
-	Status() (*Status, error)
+	// Create 创建
+	Create(name string) error
+	// Start 启动虚拟机
+	Start(name string) error
+	// CreateAndStart 创建并启动
+	CreateAndStart(name string) error
+	// 启动并注入公钥
+	CreateAndStartAndInjectionPublicKey(name string, publicKey string) error
+	// Stop 关闭虚拟机
+	Stop(name string) error
+	// Reboot 重启虚拟机
+	Reboot(name string) error
+	// Shutdown 关闭虚拟机
+	Shutdown(name string) error
+	// Destroy 销毁虚拟机
+	Destroy(name string) error
+	// InjectionPublicKey 注入公玥 (vm实现和docker实现时机不同)
+	InjectionPublicKey(name string, publicKey string) error
+	// Status 查看状态
+	Status(name string) (*Status, error)
 
-	// GetIp get runtime ip
-	GetIp() (string, error)
-	// GetAccessPort get runtime port
-	GetAccessPort() int
+	// GetIp 获取运行时ip
+	GetIp(name string) (string, error)
+	// GetAccessPort 获取运行时端口
+	GetAccessPort(name string) int
 }
 
 type Status struct {
 	id string
-	// status status 0 off 1 running 2 other
+	// status 状态 0: 关闭,1: running , 2：其他
 	status int
 }
 
-// IsRunning is it running
+// IsRunning 是否正在运行
 func (s *Status) IsRunning() bool {
 	return s.status == 1
 }
 
 type Template struct {
 	Cpu, Memory, Dist uint64
-	Name              string
 	System            string
 	PublicKey         string
 	Image             string

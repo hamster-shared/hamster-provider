@@ -6,23 +6,24 @@ import (
 	context2 "github.com/hamster-shared/hamster-provider/core/context"
 	"github.com/hamster-shared/hamster-provider/core/corehttp"
 	chain2 "github.com/hamster-shared/hamster-provider/core/modules/chain"
-	"github.com/hamster-shared/hamster-provider/core/modules/events"
+	"github.com/hamster-shared/hamster-provider/core/modules/config"
+	"github.com/hamster-shared/hamster-provider/core/modules/event"
 	"github.com/hamster-shared/hamster-provider/core/modules/utils"
-	vm2 "github.com/hamster-shared/hamster-provider/core/modules/vm"
 	"github.com/sirupsen/logrus"
 	"os"
-	"strconv"
 	"time"
 )
 
 type Server struct {
 	ctx           context2.CoreContext
 	instanceTimer *time.Timer
+	eventService  event.IEventService
 }
 
 func NewServer(ctx context2.CoreContext) *Server {
 	return &Server{
-		ctx: ctx,
+		ctx:          ctx,
+		eventService: event.NewEventService(ctx),
 	}
 }
 
@@ -31,12 +32,6 @@ func (s *Server) Run() {
 	cfg := s.ctx.GetConfig()
 
 	// 1: start api
-	go func() {
-		err := corehttp.StartApi(&s.ctx)
-		if err != nil {
-			os.Exit(1)
-		}
-	}()
 
 	peerId := cfg.Identity.PeerID
 	if peerId == "" {
@@ -51,52 +46,66 @@ func (s *Server) Run() {
 
 	cpuModel := utils.GetCpuModel()
 
-	resource := chain2.ResourceInfo{
-		PeerId:     peerId,
-		Cpu:        cfg.Vm.Cpu,
-		Memory:     cfg.Vm.Mem,
-		System:     cfg.Vm.System,
-		CpuModel:   cpuModel,
-		Price:      1000,
-		ExpireTime: time.Now().AddDate(0, 0, 10),
-	}
-	// 2: blockchain registration
-	for {
-		err := s.ctx.ReportClient.RegisterResource(resource)
-		if err != nil {
-			logrus.Errorf("Blockchain registration failed, the reason for the failure： %s", err.Error())
-			time.Sleep(time.Second * 30)
-		} else {
-			break
+	// determine if registration is required
+	if cfg.ConfigFlag == config.DONE {
+
+		resource := chain2.ResourceInfo{
+			PeerId:     peerId,
+			Cpu:        cfg.Vm.Cpu,
+			Memory:     cfg.Vm.Mem,
+			System:     cfg.Vm.System,
+			CpuModel:   cpuModel,
+			Price:      1000,
+			ExpireTime: time.Now().AddDate(0, 0, 10),
 		}
-	}
-
-	if s.ctx.GetConfig().ChainRegInfo.OrderIndex > 0 {
-		s.ctx.VmManager.SetTemplate(vm2.Template{
-			Cpu:    cfg.Vm.Cpu,
-			Memory: cfg.Vm.Mem,
-			Name:   "order_" + strconv.FormatUint(uint64(cfg.ChainRegInfo.OrderIndex), 10),
-			System: cfg.Vm.System,
-			Image:  cfg.Vm.Image,
-		})
-
-		// calculate instance expiration time
-		isOverdue := s.dealOverdueOrder()
-
-		// not expired
-		if !isOverdue {
-			// rebuild p2p link
-			err := s.forwardSSHToP2p()
+		// 2: blockchain registration
+		for {
+			err := s.ctx.ReportClient.RegisterResource(resource)
 			if err != nil {
-				fmt.Println(err)
-				return
+				logrus.Errorf("Blockchain registration failed, the reason for the failure： %s", err.Error())
+				time.Sleep(time.Second * 30)
+			} else {
+				break
 			}
 		}
+
+		status := "running"
+
+		// TODO ... init working vm
+		if cfg.ChainRegInfo.Working == status {
+			// calculate instance expiration time
+			duration := s.ctx.ReportClient.CalculateInstanceOverdue(cfg.ChainRegInfo.OrderIndex)
+
+			// not expired
+			if duration > 0 {
+				// rebuild p2p link
+				req := &event.VmRequest{
+					Tag:     event.OPRecoverVM,
+					Cpu:     cfg.Vm.Cpu,
+					Mem:     cfg.Vm.Mem,
+					Disk:    cfg.Vm.Disk,
+					OrderNo: uint64(cfg.ChainRegInfo.OrderIndex),
+					System:  cfg.Vm.System,
+					Image:   cfg.Vm.Image,
+				}
+				s.eventService.Recover(req)
+			}
+		}
+
+		// set state
+		cfg = s.ctx.GetConfig()
+		cfg.ChainRegInfo.Working = status
+
+		_ = s.ctx.Cm.Save(cfg)
+
+		// event listener
+		go s.WatchEvent()
 	}
 
-	// eventListener
-	s.WatchEvent()
-
+	err := corehttp.StartApi(&s.ctx)
+	if err != nil {
+		os.Exit(1)
+	}
 }
 
 // WatchEvent chain event listener
@@ -158,40 +167,8 @@ func (s *Server) WatchEvent() {
 	}
 }
 
-func (s *Server) successDealOrder() {
-	err := s.forwardSSHToP2p()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	// notify vm is ready
-	err = s.ctx.ReportClient.OrderExec(s.ctx.GetConfig().ChainRegInfo.OrderIndex)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	// report heartbeat
-	agreementIndex := s.ctx.GetConfig().ChainRegInfo.AgreementIndex
-	_ = s.ctx.ReportClient.Heartbeat(agreementIndex)
-
-	// send timed heartbeats
-	go func() {
-		ticker := time.NewTicker(time.Minute * 5)
-		for {
-			<-ticker.C
-			// report heartbeat
-			agreementIndex := s.ctx.GetConfig().ChainRegInfo.AgreementIndex
-			_ = s.ctx.ReportClient.Heartbeat(agreementIndex)
-		}
-	}()
-
-	s.dealOverdueOrder()
-}
-
 func (s *Server) dealCreateOrderSuccess(e chain2.EventResourceOrderCreateOrderSuccess) {
 	cm := s.ctx.Cm
-	vmManager := s.ctx.VmManager
 	cfg, err := cm.GetConfig()
 	if err != nil {
 		panic(err)
@@ -204,21 +181,17 @@ func (s *Server) dealCreateOrderSuccess(e chain2.EventResourceOrderCreateOrderSu
 		// record the id of the processed order
 		cfg.ChainRegInfo.OrderIndex = uint64(e.OrderIndex)
 		_ = cm.Save(cfg)
-		evt := &events.StartVm{
+		evt := &event.VmRequest{
+			Tag:       event.OPCreatedVm,
 			Cpu:       cfg.Vm.Cpu,
-			Memory:    cfg.Vm.Mem,
+			Mem:       cfg.Vm.Mem,
 			Disk:      cfg.Vm.Disk,
-			Name:      "order_" + strconv.FormatUint(uint64(e.OrderIndex), 10),
+			OrderNo:   uint64(e.OrderIndex),
 			System:    cfg.Vm.System,
 			PublicKey: e.PublicKey,
 			Image:     cfg.Vm.Image,
 		}
-		evt.SetVmManager(vmManager)
-		evt.AddCompleteCallback(s.successDealOrder)
-		err = evt.Hook()
-		if err != nil {
-			logrus.Error(err)
-		}
+		s.eventService.Create(evt)
 
 	} else {
 		fmt.Println("resourceIndex is not equals ")
@@ -227,82 +200,35 @@ func (s *Server) dealCreateOrderSuccess(e chain2.EventResourceOrderCreateOrderSu
 
 func (s *Server) dealReNewOrderSuccess(e chain2.EventResourceOrderReNewOrderSuccess) {
 	cm := s.ctx.Cm
-	vmManager := s.ctx.VmManager
 	cfg, err := cm.GetConfig()
 	if err != nil {
 		panic(err)
 	}
 	if e.ResourceIndex == types.NewU64(cfg.ChainRegInfo.ResourceIndex) {
-		cfg.ChainRegInfo.RenewOrderIndex = uint64(e.OrderIndex)
-		_ = cm.Save(cfg)
-		evt := &events.RenewVM{}
-		evt.SetVmManager(vmManager)
-		overdue := s.ctx.ReportClient.CalculateInstanceOverdue(s.ctx.GetConfig().ChainRegInfo.AgreementIndex)
-		s.instanceTimer.Reset(overdue)
-		orderIndex := s.ctx.GetConfig().ChainRegInfo.RenewOrderIndex
-		err = s.ctx.ReportClient.OrderExec(orderIndex)
-		err = evt.Hook()
-		if err != nil {
-			logrus.Error(err)
+		evt := &event.VmRequest{
+			Tag:     event.OPRenewVM,
+			OrderNo: uint64(e.OrderIndex),
 		}
+		s.eventService.Renew(evt)
 	}
 }
 
 func (s *Server) dealCancelOrderSuccess(e chain2.EventResourceOrderWithdrawLockedOrderPriceSuccess) {
 	cm := s.ctx.Cm
-	vmManager := s.ctx.VmManager
 	cfg, err := cm.GetConfig()
 	if err != nil {
 		panic(err)
 	}
 	if e.OrderIndex == types.NewU64(cfg.ChainRegInfo.OrderIndex) {
-		evt := &events.CancelVM{}
-		evt.SetVmManager(vmManager)
-		err = evt.Hook()
-		if err != nil {
-			logrus.Error(err)
+		evt := &event.VmRequest{
+			Tag:     event.OPDestroyVm,
+			Cpu:     cfg.Vm.Cpu,
+			Mem:     cfg.Vm.Mem,
+			Disk:    cfg.Vm.Disk,
+			OrderNo: uint64(e.OrderIndex),
+			System:  cfg.Vm.System,
+			Image:   cfg.Vm.Image,
 		}
+		s.eventService.Destroy(evt)
 	}
-}
-
-func (s *Server) dealOverdueOrder() bool {
-	// calculate instance expiration time
-	overdue := s.ctx.ReportClient.CalculateInstanceOverdue(s.ctx.GetConfig().ChainRegInfo.OrderIndex)
-	s.instanceTimer = time.NewTimer(overdue)
-
-	go func(t *time.Timer) {
-		<-t.C
-		cfg := s.ctx.GetConfig()
-
-		// expires triggers close
-		_ = s.ctx.VmManager.Stop()
-		_ = s.ctx.VmManager.Destroy()
-		// modify the resource status on the chain to unused
-		_ = s.ctx.ReportClient.ChangeResourceStatus(s.ctx.GetConfig().ChainRegInfo.ResourceIndex)
-		// delete agreement number
-		cfg.ChainRegInfo.OrderIndex = 0
-		cfg.ChainRegInfo.AgreementIndex = 0
-		cfg.ChainRegInfo.RenewOrderIndex = 0
-		_ = s.ctx.Cm.Save(cfg)
-	}(s.instanceTimer)
-
-	return overdue < 0
-}
-
-func (s *Server) forwardSSHToP2p() error {
-	// P2P listen port exposure
-	ip, err := s.ctx.VmManager.GetIp()
-	if err != nil {
-		logrus.Error(err)
-		return err
-	}
-
-	targetOpt := fmt.Sprintf("/ip4/%s/tcp/%d", ip, s.ctx.VmManager.GetAccessPort())
-	err = s.ctx.P2pClient.Listen(targetOpt)
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-
-	return nil
 }

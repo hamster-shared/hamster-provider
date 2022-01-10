@@ -16,38 +16,38 @@ func NewManager(cm *config.ConfigManager) *Manager {
 	}
 }
 
-// AddPublicKey add public key
+// AddPublicKey 新增公钥
 func (p *Manager) AddPublicKey(publicKey string) error {
 
-	// read config file
+	// 读取config文件
 	c, err := p.cm.GetConfig()
 	if err != nil {
 		logrus.Println(err)
 		return err
 	}
 
-	// add public key in keys
+	// 在Keys中添加公钥
 	keys := append(c.Keys, config.PublicKey{Key: publicKey})
 	c.Keys = keys
 
-	// the current public key is
-	logrus.Printf("the current public key is:%s", c.Keys)
+	// 现在的公钥为
+	logrus.Printf("现在的公钥为:%s", c.Keys)
 
-	// save config locally
+	// 本地保存config
 	err = p.cm.Save(c)
 	if err != nil {
 		logrus.Println(err)
 		return err
 	} else {
-		logrus.Printf("local config update public key successfully")
+		logrus.Printf("本地config更新公钥成功")
 	}
 
 	return nil
 }
 
-// DeletePublicKey delete public key
+// DeletePublicKey 删除公钥
 func (p *Manager) DeletePublicKey(publicKey string) error {
-	// read config file
+	// 读取config文件
 	c, err := p.cm.GetConfig()
 	if err != nil {
 		logrus.Println(err)
@@ -61,33 +61,33 @@ func (p *Manager) DeletePublicKey(publicKey string) error {
 		if k.Key != publicKey {
 			res = append(res, k)
 		} else {
-			logrus.Println("delete public key successfully")
+			logrus.Println("删除公钥成功")
 			ifExist = true
 		}
 	}
 
 	c.Keys = res
 	if ifExist == false {
-		logrus.Println("The public key to delete does not exist, please re-enter")
-		return errors.New("The public key to delete does not exist, please re-enter")
+		logrus.Println("要删除的公钥不存在,请重新输入")
+		return errors.New("要删除的公钥不存在,请重新输入")
 	}
 
-	// save config
+	// 保存config
 	err = p.cm.Save(c)
 	if err != nil {
 		logrus.Println(err)
 		return err
 	}
 
-	// the current public key is
-	logrus.Printf("the current public key is:%s", c.Keys)
+	// 现在的公钥为
+	logrus.Printf("现在的公钥为:%s", c.Keys)
 
 	return nil
 }
 
-// QueryPublicKey check if the public key exists
+// QueryPublicKey 查询公钥是否存在
 func (p *Manager) QueryPublicKey(publicKey string) (bool, error) {
-	// read config file
+	// 读取config文件
 	c, err := p.cm.GetConfig()
 	if err != nil {
 		logrus.Println(err)
@@ -102,22 +102,22 @@ func (p *Manager) QueryPublicKey(publicKey string) (bool, error) {
 	}
 
 	if ifExist {
-		logrus.Printf("the queried public key exists")
+		logrus.Printf("查询的公钥存在")
 		return true, nil
 	} else {
-		logrus.Printf("the queried public key does not exist")
+		logrus.Printf("查询的公钥不存在")
 		return false, nil
 	}
 
 }
 
-// ClearPublicKey clear public key list
+// ClearPublicKey 清空公钥列表
 func (p *Manager) ClearPublicKey() error {
 	var res []config.PublicKey
 	c, err := p.cm.GetConfig()
 	c.Keys = res
 
-	// save config
+	// 保存config
 	err = p.cm.Save(c)
 	if err != nil {
 		logrus.Println(err)

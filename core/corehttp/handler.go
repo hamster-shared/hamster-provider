@@ -2,7 +2,8 @@ package corehttp
 
 import (
 	"fmt"
-	"github.com/hamster-shared/hamster-provider/core/modules/vm"
+	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
+	"github.com/hamster-shared/hamster-provider/core/modules/config"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
@@ -22,7 +23,8 @@ type Keys struct {
 // @Router /container/start [get]
 func startContainer(c *MyContext) {
 
-	if err := c.CoreContext.VmManager.Start(); err != nil {
+	name := c.Query("name")
+	if err := c.CoreContext.VmManager.Start(name); err != nil {
 		c.String(http.StatusBadRequest, "err:%v", err)
 		return
 	}
@@ -38,7 +40,8 @@ func startContainer(c *MyContext) {
 // @Router /container/delete [get]
 func deleteContainer(c *MyContext) {
 
-	if err := c.CoreContext.VmManager.Destroy(); err != nil {
+	name := c.Query("name")
+	if err := c.CoreContext.VmManager.Destroy(name); err != nil {
 		c.String(http.StatusBadRequest, "err:%v", err)
 		return
 	}
@@ -55,6 +58,7 @@ func deleteContainer(c *MyContext) {
 // @Router /pk/grantKey [POST]
 func grantKey(gin *MyContext) {
 
+	name := gin.Query("name")
 	json := Keys{}
 	if err := gin.BindJSON(&json); err != nil {
 		gin.String(http.StatusBadRequest, "err:%v", err)
@@ -66,7 +70,7 @@ func grantKey(gin *MyContext) {
 		return
 	}
 
-	if err := gin.CoreContext.VmManager.InjectionPublicKey(json.PublicKey); err != nil {
+	if err := gin.CoreContext.VmManager.InjectionPublicKey(name, json.PublicKey); err != nil {
 		gin.String(http.StatusBadRequest, "err:%v", err)
 		return
 	}
@@ -254,12 +258,10 @@ func checkP2p(gin *MyContext) {
 
 // createVm create virtual machine
 func createVm(gin *MyContext) {
-	manage, err := vm.NewVirtManager()
-	if err != nil {
-		fmt.Println(err)
-	}
+	name := gin.Query("name")
+	manage := gin.CoreContext.VmManager
 	logrus.Info("create virtual machine  start")
-	err = manage.Create()
+	err := manage.Create(name)
 	logrus.Info("create virtual machine  end")
 	if err != nil {
 		logrus.Error("create virtual machine  fail")
@@ -298,4 +300,39 @@ func addDuration(gin *MyContext) {
 	} else {
 		gin.String(200, "add duration success")
 	}
+}
+
+func getConfig(gin *MyContext) {
+	cfg := gin.CoreContext.GetConfig()
+	gin.JSON(http.StatusOK, Success(cfg))
+}
+
+func setConfig(gin *MyContext) {
+	cfg := gin.CoreContext.GetConfig()
+	reqBody := config.Config{}
+	if err := gin.BindJSON(&reqBody); err != nil {
+		gin.JSON(http.StatusBadRequest, BadRequest())
+		panic(err)
+		return
+	}
+
+	cfg.Vm = reqBody.Vm
+	cfg.ChainApi = reqBody.ChainApi
+	// 校验seed 是否合法
+	_, err := signature.KeyringPairFromSecret(reqBody.SeedOrPhrase, 42)
+	if err != nil {
+		gin.JSON(http.StatusBadRequest, BadRequest("seed not invalid"))
+		return
+	}
+
+	cfg.SeedOrPhrase = reqBody.SeedOrPhrase
+	cfg.ConfigFlag = config.DONE
+
+	err = gin.CoreContext.Cm.Save(cfg)
+	if err != nil {
+		gin.JSON(http.StatusBadRequest, BadRequest("save config fail"))
+		return
+	}
+
+	gin.JSON(http.StatusOK, Success(""))
 }

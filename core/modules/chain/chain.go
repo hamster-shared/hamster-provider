@@ -494,7 +494,6 @@ func (cc *ChainClient) CalculateInstanceOverdue(orderIndex uint64) time.Duration
 	currentNumber := int64(header.Number)
 	order, err := cc.GetOrder(orderIndex)
 	if err != nil {
-		panic(err)
 		return time.Second
 	}
 	overdueNumber := int64(order.RentDuration) + int64(order.Create)
@@ -546,14 +545,14 @@ func (cc *ChainClient) getRentalAgreement(agreementIndex uint64) (*RentalAgreeme
 	return &data, err
 }
 
-func (cc *ChainClient) GetOrder(resourceIndex uint64) (*ComputingOrder, error) {
+func (cc *ChainClient) GetOrder(orderIndex uint64) (*ComputingOrder, error) {
 
 	meta, err := cc.api.RPC.State.GetMetadataLatest()
 	if err != nil {
 		panic(err)
 	}
 
-	bytes, err := types.EncodeToBytes(types.NewU64(resourceIndex))
+	bytes, err := types.EncodeToBytes(types.NewU64(orderIndex))
 	if err != nil {
 		return nil, err
 	}
@@ -571,4 +570,12 @@ func (cc *ChainClient) GetOrder(resourceIndex uint64) (*ComputingOrder, error) {
 	}
 
 	return &order, err
+}
+
+func (cc *ChainClient) GetAgreementIndex(orderIndex uint64) (uint64, error) {
+	order, err := cc.GetOrder(orderIndex)
+	if err != nil {
+		return 0, err
+	}
+	return uint64(order.AgreementIndex), nil
 }
