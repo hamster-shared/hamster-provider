@@ -76,20 +76,6 @@ type ComputingResource struct {
 	Status Status
 }
 
-type ComputingOrder struct {
-	Index      types.U64
-	TenantInfo struct {
-		AccountId types.AccountID
-		PublicKey types.Text
-	}
-	Price          types.U128
-	ResourceIndex  types.U64
-	Create         types.U32
-	RentDuration   types.U32
-	Status         Status
-	AgreementIndex types.U64
-}
-
 type Status struct {
 	IsInuse   bool
 	IsLocked  bool
@@ -132,6 +118,70 @@ func (m *Status) Encode(encoder scale.Encoder) error {
 		err1 = encoder.PushByte(2)
 	} else if m.IsOffline {
 		err1 = encoder.PushByte(3)
+	}
+	if err1 != nil {
+		return err1
+	}
+	return nil
+}
+
+type ComputingOrder struct {
+	Index      types.U64
+	TenantInfo struct {
+		AccountId types.AccountID
+		PublicKey types.Text
+	}
+	Price          types.U128
+	ResourceIndex  types.U64
+	Create         types.U32
+	RentDuration   types.U32
+	Time           Duration
+	Status         OrderStatus
+	AgreementIndex types.OptionU64
+}
+
+type Duration struct {
+	Secs  types.U64
+	Nanos types.U32
+}
+
+type OrderStatus struct {
+	IsPending  bool
+	IsFinished bool
+	IsCanceled bool
+}
+
+func (m *OrderStatus) Decode(decoder scale.Decoder) error {
+	b, err := decoder.ReadOneByte()
+	fmt.Println(b)
+
+	if err != nil {
+		return err
+	}
+
+	if b == 0 {
+		m.IsPending = true
+	} else if b == 1 {
+		m.IsFinished = true
+	} else if b == 2 {
+		m.IsCanceled = true
+	}
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *OrderStatus) Encode(encoder scale.Encoder) error {
+	var err1 error
+	if m.IsPending {
+		err1 = encoder.PushByte(0)
+	} else if m.IsFinished {
+		err1 = encoder.PushByte(1)
+	} else if m.IsCanceled {
+		err1 = encoder.PushByte(2)
 	}
 	if err1 != nil {
 		return err1

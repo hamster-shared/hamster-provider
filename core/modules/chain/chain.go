@@ -33,74 +33,74 @@ func (cc *ChainClient) getPeerId() string {
 	return cf.Identity.PeerID
 }
 
-func (cc *ChainClient) call(c types.Call, meta *types.Metadata) error {
-
-	cf, err := cc.cm.GetConfig()
-
-	// Create the extrinsic
-	ext := types.NewExtrinsic(c)
-	genesisHash, err := cc.api.RPC.Chain.GetBlockHash(0)
-	if err != nil {
-		return err
-	}
-
-	rv, err := cc.api.RPC.State.GetRuntimeVersionLatest()
-	if err != nil {
-		return err
-	}
-
-	keypair, err := signature.KeyringPairFromSecret(cf.SeedOrPhrase, 42)
-	if err != nil {
-		return err
-	}
-
-	// Get the nonce for Account
-	key, err := types.CreateStorageKey(meta, "System", "Account", keypair.PublicKey)
-	if err != nil {
-		return err
-	}
-
-	var accountInfo types.AccountInfo
-	ok, err := cc.api.RPC.State.GetStorageLatest(key, &accountInfo)
-	if err != nil {
-		return err
-	}
-	if !ok {
-		return errors.New("GetStorageLatest fail")
-	}
-
-	nonce := uint32(accountInfo.Nonce)
-	o := types.SignatureOptions{
-		BlockHash:          genesisHash,
-		Era:                types.ExtrinsicEra{IsMortalEra: false},
-		GenesisHash:        genesisHash,
-		Nonce:              types.NewUCompactFromUInt(uint64(nonce)),
-		SpecVersion:        rv.SpecVersion,
-		Tip:                types.NewUCompactFromUInt(0),
-		TransactionVersion: rv.TransactionVersion,
-	}
-
-	// Sign the transaction using User's default account
-	err = ext.Sign(keypair, o)
-	if err != nil {
-		return err
-	}
-
-	res, err := cc.api.RPC.Author.SubmitExtrinsic(ext)
-	if err != nil {
-		logrus.Errorf("extrinsic submit failed: %v", err)
-		return err
-	}
-
-	hex, err := types.Hex(res)
-	if err != nil {
-		return err
-	}
-	if hex == "" {
-		return errors.New("hex is empty")
-	}
-	return nil
-}
+//func (cc *ChainClient) call(c types.Call, meta *types.Metadata) error {
+//
+//	cf, err := cc.cm.GetConfig()
+//
+//	// Create the extrinsic
+//	ext := types.NewExtrinsic(c)
+//	genesisHash, err := cc.api.RPC.Chain.GetBlockHash(0)
+//	if err != nil {
+//		return err
+//	}
+//
+//	rv, err := cc.api.RPC.State.GetRuntimeVersionLatest()
+//	if err != nil {
+//		return err
+//	}
+//
+//	keypair, err := signature.KeyringPairFromSecret(cf.SeedOrPhrase, 42)
+//	if err != nil {
+//		return err
+//	}
+//
+//	// Get the nonce for Account
+//	key, err := types.CreateStorageKey(meta, "System", "Account", keypair.PublicKey)
+//	if err != nil {
+//		return err
+//	}
+//
+//	var accountInfo types.AccountInfo
+//	ok, err := cc.api.RPC.State.GetStorageLatest(key, &accountInfo)
+//	if err != nil {
+//		return err
+//	}
+//	if !ok {
+//		return errors.New("GetStorageLatest fail")
+//	}
+//
+//	nonce := uint32(accountInfo.Nonce)
+//	o := types.SignatureOptions{
+//		BlockHash:          genesisHash,
+//		Era:                types.ExtrinsicEra{IsMortalEra: false},
+//		GenesisHash:        genesisHash,
+//		Nonce:              types.NewUCompactFromUInt(uint64(nonce)),
+//		SpecVersion:        rv.SpecVersion,
+//		Tip:                types.NewUCompactFromUInt(0),
+//		TransactionVersion: rv.TransactionVersion,
+//	}
+//
+//	// Sign the transaction using User's default account
+//	err = ext.Sign(keypair, o)
+//	if err != nil {
+//		return err
+//	}
+//
+//	res, err := cc.api.RPC.Author.SubmitExtrinsic(ext)
+//	if err != nil {
+//		logrus.Errorf("extrinsic submit failed: %v", err)
+//		return err
+//	}
+//
+//	hex, err := types.Hex(res)
+//	if err != nil {
+//		return err
+//	}
+//	if hex == "" {
+//		return errors.New("hex is empty")
+//	}
+//	return nil
+//}
 
 func (cc *ChainClient) callAndWatch(c types.Call, meta *types.Metadata, hook func(header *types.Header) error) error {
 
@@ -157,7 +157,8 @@ func (cc *ChainClient) callAndWatch(c types.Call, meta *types.Metadata, hook fun
 
 	sub, err := cc.api.RPC.Author.SubmitAndWatchExtrinsic(ext)
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		return err
 	}
 	defer sub.Unsubscribe()
 
@@ -168,11 +169,19 @@ func (cc *ChainClient) callAndWatch(c types.Call, meta *types.Metadata, hook fun
 		if status.IsInBlock {
 			fmt.Printf("Completed at block hash: %#x\n", status.AsInBlock)
 
-			hh, err := cc.api.RPC.Chain.GetHeader(status.AsInBlock)
-			if err != nil {
-				return err
+			if hook != nil {
+				hh, err := cc.api.RPC.Chain.GetHeader(status.AsInBlock)
+				if err != nil {
+					return err
+				}
+				return hook(hh)
 			}
-			return hook(hh)
+
+			return nil
+		}
+
+		if status.IsDropped || status.IsInvalid {
+			return errors.New("submit tx fail")
 		}
 	}
 }
@@ -246,7 +255,7 @@ func (cc *ChainClient) RegisterResource(r ResourceInfo) error {
 
 	cf, err := cc.cm.GetConfig()
 
-	if cf.ChainRegInfo.ResourceIndex != 0 {
+	if cf.ChainRegInfo.ResourceIndex > 0 {
 		resource, err := cc.GetResource(cf.ChainRegInfo.ResourceIndex)
 		if err != nil {
 			fmt.Println(err)
@@ -303,7 +312,7 @@ func (cc *ChainClient) RemoveResource(index uint64) error {
 		return err
 	}
 
-	return cc.call(c, meta)
+	return cc.callAndWatch(c, meta, nil)
 }
 
 func (cc *ChainClient) ChangeResourceStatus(index uint64) error {
@@ -318,7 +327,7 @@ func (cc *ChainClient) ChangeResourceStatus(index uint64) error {
 		return err
 	}
 
-	return cc.call(c, meta)
+	return cc.callAndWatch(c, meta, nil)
 }
 
 func (cc *ChainClient) ModifyResourcePrice(index uint64, unitPrice int64) error {
@@ -333,7 +342,7 @@ func (cc *ChainClient) ModifyResourcePrice(index uint64, unitPrice int64) error 
 		return err
 	}
 
-	return cc.call(c, meta)
+	return cc.callAndWatch(c, meta, nil)
 }
 
 func (cc *ChainClient) AddResourceDuration(index uint64, duration int) error {
@@ -348,7 +357,7 @@ func (cc *ChainClient) AddResourceDuration(index uint64, duration int) error {
 		return err
 	}
 
-	return cc.call(c, meta)
+	return cc.callAndWatch(c, meta, nil)
 }
 
 func (cc *ChainClient) Heartbeat(agreementindex uint64) error {
@@ -364,7 +373,7 @@ func (cc *ChainClient) Heartbeat(agreementindex uint64) error {
 		return err
 	}
 
-	return cc.call(c, meta)
+	return cc.callAndWatch(c, meta, nil)
 }
 
 // LoadKeyFromChain Get the public Yue of the current node from the chain
@@ -507,7 +516,8 @@ func (cc *ChainClient) GetResource(resourceIndex uint64) (*ComputingResource, er
 
 	meta, err := cc.api.RPC.State.GetMetadataLatest()
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		return nil, err
 	}
 
 	bytes, err := types.EncodeToBytes(types.NewU64(resourceIndex))
@@ -517,7 +527,8 @@ func (cc *ChainClient) GetResource(resourceIndex uint64) (*ComputingResource, er
 	key, err := types.CreateStorageKey(meta, "Provider", "Resources", bytes)
 
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		return nil, err
 	}
 	fmt.Println(key.Hex())
 
@@ -549,7 +560,8 @@ func (cc *ChainClient) GetOrder(orderIndex uint64) (*ComputingOrder, error) {
 
 	meta, err := cc.api.RPC.State.GetMetadataLatest()
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		return nil, err
 	}
 
 	bytes, err := types.EncodeToBytes(types.NewU64(orderIndex))
@@ -559,7 +571,8 @@ func (cc *ChainClient) GetOrder(orderIndex uint64) (*ComputingOrder, error) {
 	key, err := types.CreateStorageKey(meta, "ResourceOrder", "ResourceOrders", bytes)
 
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		return nil, err
 	}
 	fmt.Println(key.Hex())
 
@@ -577,5 +590,11 @@ func (cc *ChainClient) GetAgreementIndex(orderIndex uint64) (uint64, error) {
 	if err != nil {
 		return 0, err
 	}
-	return uint64(order.AgreementIndex), nil
+	if order.AgreementIndex.IsSome() {
+		ok, value := order.AgreementIndex.Unwrap()
+		if ok {
+			return uint64(value), nil
+		}
+	}
+	return 0, errors.New("no agreementIndex")
 }
