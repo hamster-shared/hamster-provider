@@ -20,7 +20,7 @@ type ResourceInfo struct {
 	ExpireTime time.Time `json:"expireTime"`
 	User       string    `json:"user"`
 	Status     int       `json:"status"`
-	Price      int64     `json:"price"`
+	Price      uint64    `json:"price"`
 }
 
 type RentalAgreement struct {
@@ -53,34 +53,34 @@ type RentalAgreement struct {
 }
 
 type ComputingResource struct {
-	Index     types.U64
-	AccountId types.AccountID
-	PeerId    types.Text
+	Index     types.U64       `json:"index"`
+	AccountId types.AccountID `json:"accountId"`
+	PeerId    types.Text      `json:"peerId"`
 	Config    struct {
-		Cpu      types.U64
-		Memory   types.U64
-		System   types.Text
-		CpuModel types.Text
-	}
+		Cpu      types.U64  `json:"cpu"`
+		Memory   types.U64  `json:"memory"`
+		System   types.Text `json:"system"`
+		CpuModel types.Text `json:"cpuModel"`
+	} `json:"config"`
 	RentalStatistics struct {
-		RentalCount    types.U32
-		RentalDuration types.U32
-		FaultCount     types.U32
-		FaultDuration  types.U32
-	}
+		RentalCount    types.U32 `json:"rentalCount"`
+		RentalDuration types.U32 `json:"rentalDuration"`
+		FaultCount     types.U32 `json:"faultCount"`
+		FaultDuration  types.U32 `json:"faultDuration"`
+	} `json:"rentalStatistics"`
 	RentalInfo struct {
-		RentUnitPrice types.U128
-		RentDuration  types.U32
-		EndOfRent     types.U32
-	}
-	Status Status
+		RentUnitPrice types.U128 `json:"rentUnitPrice"`
+		RentDuration  types.U32  `json:"rentDuration"`
+		EndOfRent     types.U32  `json:"endOfRent"`
+	} `json:"rentalInfo"`
+	Status Status `json:"status"`
 }
 
 type Status struct {
-	IsInuse   bool
-	IsLocked  bool
-	IsUnused  bool
-	IsOffline bool
+	IsInuse   bool `json:"isInuse"`
+	IsLocked  bool `json:"isLocked"`
+	IsUnused  bool `json:"isUnused"`
+	IsOffline bool `json:"isOffline"`
 }
 
 func (m *Status) Decode(decoder scale.Decoder) error {

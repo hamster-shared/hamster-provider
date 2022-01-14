@@ -37,7 +37,7 @@
   import { useMessage } from '/@/hooks/web/useMessage';
 
   import headerImg from '/@/assets/images/header.jpg';
-  import { getConfigApi,setConfigApi } from '/@/api/provider/setting';
+  import { getConfigApi,setConfigApi } from '/@/api/provider/initialization';
   import { vmSchemas,chainSchemas } from './data';
   import { useUserStore } from '/@/store/modules/user';
   import {ProviderConfig} from "/@/api/provider/model/settingModel";

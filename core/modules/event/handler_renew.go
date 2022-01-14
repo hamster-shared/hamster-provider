@@ -1,21 +1,20 @@
 package event
 
 import (
-	"github.com/hamster-shared/hamster-provider/core/context"
 	log "github.com/sirupsen/logrus"
 )
 
 type RenewVmHandler struct {
 	AbstractHandler
-	CoreContext context.CoreContext
+	CoreContext EventContext
 }
 
 func (h *RenewVmHandler) HandlerEvent(e *VmRequest) {
 
 	orderNo := e.OrderNo
 
-	cfg := h.CoreContext.GetConfig()
 	cm := h.CoreContext.Cm
+	cfg, _ := cm.GetConfig()
 
 	cfg.ChainRegInfo.RenewOrderIndex = orderNo
 	_ = cm.Save(cfg)

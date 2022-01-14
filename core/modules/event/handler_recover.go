@@ -1,13 +1,12 @@
 package event
 
 import (
-	"github.com/hamster-shared/hamster-provider/core/context"
 	log "github.com/sirupsen/logrus"
 )
 
 type RecoverVmHandler struct {
 	AbstractHandler
-	CoreContext context.CoreContext
+	CoreContext EventContext
 }
 
 func (h *RecoverVmHandler) HandlerEvent(e *VmRequest) {

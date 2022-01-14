@@ -2,13 +2,12 @@ package event
 
 import (
 	"fmt"
-	"github.com/hamster-shared/hamster-provider/core/context"
 	log "github.com/sirupsen/logrus"
 )
 
 type CreateVmHandler struct {
 	AbstractHandler
-	CoreContext context.CoreContext
+	CoreContext EventContext
 }
 
 func (h *CreateVmHandler) HandlerEvent(e *VmRequest) {

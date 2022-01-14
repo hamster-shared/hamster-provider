@@ -22,6 +22,8 @@ import (
 	context2 "github.com/hamster-shared/hamster-provider/core/context"
 	chain2 "github.com/hamster-shared/hamster-provider/core/modules/chain"
 	"github.com/hamster-shared/hamster-provider/core/modules/config"
+	"github.com/hamster-shared/hamster-provider/core/modules/event"
+	"github.com/hamster-shared/hamster-provider/core/modules/listener"
 	"github.com/hamster-shared/hamster-provider/core/modules/p2p"
 	"github.com/hamster-shared/hamster-provider/core/modules/pk"
 	"github.com/hamster-shared/hamster-provider/core/modules/utils"
@@ -91,14 +93,28 @@ func NewContext() context2.CoreContext {
 		logrus.Error(err)
 		return context2.CoreContext{}
 	}
-	context := context2.CoreContext{
+	timeService := utils.NewTimerService()
+
+	ec := event.EventContext{
 		P2pClient:    p2pClient,
 		VmManager:    vmManager,
 		Cm:           cm,
-		PkManager:    pkManager,
 		ReportClient: reportClient,
-		SubstrateApi: substrateApi,
-		TimerService: utils.NewTimerService(),
+		TimerService: timeService,
+	}
+
+	eventService := event.NewEventService(ec)
+
+	context := context2.CoreContext{
+		P2pClient:     p2pClient,
+		VmManager:     vmManager,
+		Cm:            cm,
+		PkManager:     pkManager,
+		ReportClient:  reportClient,
+		SubstrateApi:  substrateApi,
+		TimerService:  timeService,
+		EventService:  eventService,
+		ChainListener: listener.NewChainListener(eventService, substrateApi, cm, reportClient),
 	}
 	return context
 }

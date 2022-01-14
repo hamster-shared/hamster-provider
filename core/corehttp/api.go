@@ -17,6 +17,12 @@ func StartApi(ctx *context.CoreContext) error {
 		{
 			config.GET("/settting", getConfig)
 			config.POST("/settting", setConfig)
+			config.POST("/boot", setBootState)
+			config.GET("/boot", getBootState)
+		}
+		chain := v1.Group("/chain")
+		{
+			chain.GET("/resource", getChainResource)
 		}
 		// container routing
 		container := v1.Group("/container")

@@ -2,7 +2,7 @@ import { defHttp } from '/@/utils/http/axios';
 import {ProviderConfig,} from '/@/api/provider/model/settingModel';
 
 enum Api {
-  Setting = '/api/v1/config/settting',
+  Setting = '/v1/config/settting',
 }
 
 //获取系统配置
@@ -12,5 +12,5 @@ export const getConfigApi =  () => {
 
 // 修改配置
 export const setConfigApi =  (config: ProviderConfig) => {
-  return defHttp.post({ url: Api.Setting, params: config })
+  return defHttp.post({ url: Api.Setting, data: config })
 }

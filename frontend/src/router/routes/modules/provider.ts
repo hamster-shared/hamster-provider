@@ -15,13 +15,31 @@ const dashboard: AppRouteModule = {
   },
   children: [
     {
-      path: 'setting',
-      name: 'ProviderSetting',
-      component: () => import('/@/views/provider/setting/index.vue'),
+      path: 'initialization',
+      name: 'ProviderInitialization',
+      component: () => import('/@/views/provider/initialization/index.vue'),
       meta: {
         // affix: true,
         icon: 'mdi:cog-outline',
         title: t('routes.provider.setting'),
+      },
+    },
+    {
+      path: 'boot',
+      name: 'BootSetting',
+      component: () => import('/@/views/provider/boot/index.vue'),
+      meta: {
+        icon: 'bi:play-circle',
+        title: t('routes.provider.boot')
+      }
+    },
+    {
+      path: 'resource',
+      name: 'ResourceDetail',
+      component: () => import('/@/views/provider/resource-detail/index.vue'),
+      meta: {
+        icon: 'mi:computer',
+        title: t('routes.provider.resourceDetail'),
       },
     },
   ],

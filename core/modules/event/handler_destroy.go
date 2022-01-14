@@ -1,13 +1,12 @@
 package event
 
 import (
-	"github.com/hamster-shared/hamster-provider/core/context"
 	log "github.com/sirupsen/logrus"
 )
 
 type DestroyVmHandler struct {
 	AbstractHandler
-	CoreContext context.CoreContext
+	CoreContext EventContext
 }
 
 func (h *DestroyVmHandler) HandlerEvent(e *VmRequest) {
@@ -21,6 +20,8 @@ func (h *DestroyVmHandler) HandlerEvent(e *VmRequest) {
 	_ = h.CoreContext.VmManager.Destroy(e.getName())
 	h.CoreContext.TimerService.UnSubTimer(agreementNo)
 	h.CoreContext.TimerService.UnSubTicker(agreementNo)
+	targetAddress := getVmTargetAddress(h.CoreContext, e.getName())
+	_, _ = h.CoreContext.P2pClient.Close(targetAddress)
 }
 
 func (h *DestroyVmHandler) Name() string {

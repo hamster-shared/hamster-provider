@@ -73,7 +73,8 @@ type ChainRegInfo struct {
 	OrderIndex      uint64 `json:"orderIndex"`
 	AgreementIndex  uint64 `json:"agreementIndex"`
 	RenewOrderIndex uint64 `json:"renewOrderIndex"`
-	Working         string
+	Working         string `json:"working"`
+	Price           uint64 `json:"price"`
 }
 
 func NewConfigManager() *ConfigManager {

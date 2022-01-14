@@ -2,12 +2,11 @@ package event
 
 import (
 	"fmt"
-	"github.com/hamster-shared/hamster-provider/core/context"
 	log "github.com/sirupsen/logrus"
 	"time"
 )
 
-func successDealOrder(ctx context.CoreContext, orderNo uint64, name string) error {
+func successDealOrder(ctx EventContext, orderNo uint64, name string) error {
 	err := forwardSSHToP2p(ctx, name)
 	if err != nil {
 		fmt.Println(err)
@@ -34,16 +33,19 @@ func successDealOrder(ctx context.CoreContext, orderNo uint64, name string) erro
 	return nil
 }
 
-func forwardSSHToP2p(ctx context.CoreContext, name string) error {
-	// P2P listen port exposure
+func getVmTargetAddress(ctx EventContext, name string) string {
 	ip, err := ctx.VmManager.GetIp(name)
 	if err != nil {
 		log.Error(err)
-		return err
 	}
 
-	targetOpt := fmt.Sprintf("/ip4/%s/tcp/%d", ip, ctx.VmManager.GetAccessPort(name))
-	err = ctx.P2pClient.Listen(targetOpt)
+	return fmt.Sprintf("/ip4/%s/tcp/%d", ip, ctx.VmManager.GetAccessPort(name))
+}
+
+func forwardSSHToP2p(ctx EventContext, name string) error {
+	// P2P listen port exposure
+	targetOpt := getVmTargetAddress(ctx, name)
+	err := ctx.P2pClient.Listen(targetOpt)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -52,7 +54,7 @@ func forwardSSHToP2p(ctx context.CoreContext, name string) error {
 	return nil
 }
 
-func dealOverdueOrder(ctx context.CoreContext, agreementIndex uint64, name string) bool {
+func dealOverdueOrder(ctx EventContext, agreementIndex uint64, name string) bool {
 	// calculate instance expiration time
 	overdue := ctx.ReportClient.CalculateInstanceOverdue(ctx.GetConfig().ChainRegInfo.OrderIndex)
 	instanceTimer := time.NewTimer(overdue)
@@ -61,6 +63,9 @@ func dealOverdueOrder(ctx context.CoreContext, agreementIndex uint64, name strin
 	go func(t *time.Timer) {
 		<-t.C
 		cfg := ctx.GetConfig()
+
+		targetAddress := getVmTargetAddress(ctx, name)
+		_, _ = ctx.P2pClient.Close(targetAddress)
 
 		// expires triggers close
 		_ = ctx.VmManager.Stop(name)

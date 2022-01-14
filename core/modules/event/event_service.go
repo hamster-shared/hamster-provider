@@ -1,7 +1,5 @@
 package event
 
-import "github.com/hamster-shared/hamster-provider/core/context"
-
 type IEventService interface {
 	Create(r *VmRequest)
 	Destroy(r *VmRequest)
@@ -9,7 +7,7 @@ type IEventService interface {
 	Recover(r *VmRequest)
 }
 
-func NewEventService(coreContext context.CoreContext) IEventService {
+func NewEventService(coreContext EventContext) IEventService {
 	it := new(EventService)
 	it.init(coreContext)
 	return it
@@ -19,7 +17,7 @@ type EventService struct {
 	items []*VmRequest
 }
 
-func (s *EventService) init(coreContext context.CoreContext) {
+func (s *EventService) init(coreContext EventContext) {
 
 	createHandler := &CreateVmHandler{CoreContext: coreContext}
 	destroyHandler := &DestroyVmHandler{CoreContext: coreContext}

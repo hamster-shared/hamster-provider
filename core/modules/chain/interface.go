@@ -29,4 +29,7 @@ type ReportClient interface {
 	CalculateInstanceOverdue(orderIndex uint64) time.Duration
 
 	GetAgreementIndex(orderIndex uint64) (uint64, error)
+
+	//GetResource get vm resource
+	GetResource(resourceIndex uint64) (*ComputingResource, error)
 }

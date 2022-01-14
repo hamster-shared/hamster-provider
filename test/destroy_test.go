@@ -8,7 +8,14 @@ import (
 
 func TestDestroyVm(t *testing.T) {
 	context := cmd.NewContext()
-	eventService := event.NewEventService(context)
+	eventContex := event.EventContext{
+		ReportClient: context.ReportClient,
+		VmManager:    context.VmManager,
+		TimerService: context.TimerService,
+		Cm:           context.Cm,
+		P2pClient:    context.P2pClient,
+	}
+	eventService := event.NewEventService(eventContex)
 	cfg := context.GetConfig()
 
 	orderNo := 0

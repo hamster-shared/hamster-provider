@@ -312,7 +312,6 @@ func setConfig(gin *MyContext) {
 	reqBody := config.Config{}
 	if err := gin.BindJSON(&reqBody); err != nil {
 		gin.JSON(http.StatusBadRequest, BadRequest())
-		panic(err)
 		return
 	}
 
@@ -335,4 +334,32 @@ func setConfig(gin *MyContext) {
 	}
 
 	gin.JSON(http.StatusOK, Success(""))
+}
+
+func setBootState(gin *MyContext) {
+
+	var op BootParam
+
+	if err := gin.BindJSON(&op); err != nil {
+		gin.JSON(http.StatusBadRequest, BadRequest())
+		return
+	}
+
+	gin.CoreContext.ChainListener.SetState(op.Option)
+
+	gin.JSON(http.StatusOK, Success(""))
+}
+
+func getBootState(gin *MyContext) {
+	gin.JSON(http.StatusOK, Success(gin.CoreContext.ChainListener.GetState()))
+}
+
+func getChainResource(gin *MyContext) {
+	resourceIndex := gin.CoreContext.GetConfig().ChainRegInfo.ResourceIndex
+	info, err := gin.CoreContext.ReportClient.GetResource(resourceIndex)
+	if err != nil {
+		gin.JSON(http.StatusBadRequest, BadRequest("query resource fail"))
+	} else {
+		gin.JSON(http.StatusOK, Success(info))
+	}
 }

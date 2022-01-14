@@ -270,7 +270,7 @@ func (cc *ChainClient) RegisterResource(r ResourceInfo) error {
 	memory := types.NewU64(r.Memory)
 	system := r.System
 	cpuModel := r.CpuModel
-	price := types.NewU128(*big.NewInt(r.Price))
+	price := types.NewU128(*big.NewInt(int64(r.Price)))
 	hours := r.ExpireTime.Sub(time.Now()).Hours()
 	rentDurationHour := types.NewU32(uint32(hours))
 
