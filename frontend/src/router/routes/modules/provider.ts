@@ -30,8 +30,8 @@ const dashboard: AppRouteModule = {
       component: () => import('/@/views/provider/boot/index.vue'),
       meta: {
         icon: 'bi:play-circle',
-        title: t('routes.provider.boot')
-      }
+        title: t('routes.provider.boot'),
+      },
     },
     {
       path: 'resource',
@@ -40,6 +40,15 @@ const dashboard: AppRouteModule = {
       meta: {
         icon: 'mi:computer',
         title: t('routes.provider.resourceDetail'),
+      },
+    },
+    {
+      path: 'personal',
+      name: 'PersonalCenter',
+      component: () => import('/@/views/provider/personal-center/index.vue'),
+      meta: {
+        icon: 'ant-design:user-outlined',
+        title: t('routes.provider.personalCenter'),
       },
     },
   ],

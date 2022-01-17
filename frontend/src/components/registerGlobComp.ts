@@ -5,6 +5,11 @@ import {
   Button as AntButton,
   Input,
   Layout,
+  Descriptions,
+  Divider,
+  Modal,
+  Spin,
+  Select,
 } from 'ant-design-vue';
 
 const compList = [AntButton.Group];
@@ -14,5 +19,13 @@ export function registerGlobComp(app: App) {
     app.component(comp.name || comp.displayName, comp);
   });
 
-  app.use(Input).use(Button).use(Layout);
+  app
+    .use(Input)
+    .use(Button)
+    .use(Layout)
+    .use(Descriptions)
+    .use(Divider)
+    .use(Modal)
+    .use(Spin)
+    .use(Select);
 }
