@@ -14,6 +14,10 @@ type Keys struct {
 	PublicKey string `json:"public_key"`
 }
 
+type ChangePrice struct {
+	Price uint64 `json:"price"`
+}
+
 // @Summary startContainer
 // @Description startContainer
 // @Tags containerOperation
@@ -271,15 +275,16 @@ func createVm(gin *MyContext) {
 
 func modifyPrice(gin *MyContext) {
 	reportClient := gin.CoreContext.ReportClient
-	price, err := strconv.Atoi(gin.Query("price"))
+	var json = ChangePrice{}
+	err := gin.BindJSON(&json)
 	if err != nil {
 		gin.String(400, "Incorrect parameter format : %s", gin.Query("price"))
 		return
 	}
 	ri := gin.CoreContext.GetConfig().ChainRegInfo.ResourceIndex
-	err = reportClient.ModifyResourcePrice(ri, int64(price))
+	err = reportClient.ModifyResourcePrice(ri, int64(json.Price))
 	if err != nil {
-		gin.String(400, "modify price fail: %d", price)
+		gin.String(400, "modify price fail: %d", json.Price)
 	} else {
 		gin.String(200, "modify price success")
 	}
@@ -361,5 +366,19 @@ func getChainResource(gin *MyContext) {
 		gin.JSON(http.StatusBadRequest, BadRequest("query resource fail"))
 	} else {
 		gin.JSON(http.StatusOK, Success(info))
+	}
+}
+
+func getCalculateInstanceOverdue(gin *MyContext) {
+	expireBlock, err := strconv.Atoi(gin.Query("expireBlock"))
+	if err != nil {
+		gin.String(400, "Incorrect parameter format : %s", gin.Query("expireBlock"))
+		return
+	}
+	time, er := gin.CoreContext.ReportClient.CalculateResourceOverdue(uint64(expireBlock))
+	if er != nil {
+		gin.JSON(http.StatusBadRequest, BadRequest("Failed to get resource expiration time"))
+	} else {
+		gin.JSON(http.StatusOK, Success(time))
 	}
 }

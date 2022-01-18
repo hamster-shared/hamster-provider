@@ -541,6 +541,16 @@ func (cc *ChainClient) GetResource(resourceIndex uint64) (*ComputingResource, er
 	return &computingResource, err
 }
 
+func (cc *ChainClient) CalculateResourceOverdue(expireBlock uint64) (time.Duration, error) {
+	header, err := cc.api.RPC.Chain.GetHeaderLatest()
+	if err != nil {
+		return time.Second, err
+	}
+	currentNumber := int64(header.Number)
+	duration := int64(expireBlock) - currentNumber
+	return time.Duration(int64(time.Microsecond) * duration * 6), nil
+}
+
 func (cc *ChainClient) getRentalAgreement(agreementIndex uint64) (*RentalAgreement, error) {
 	meta, err := cc.api.RPC.State.GetMetadataLatest()
 	if err != nil {

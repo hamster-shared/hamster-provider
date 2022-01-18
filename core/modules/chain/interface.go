@@ -32,4 +32,6 @@ type ReportClient interface {
 
 	//GetResource get vm resource
 	GetResource(resourceIndex uint64) (*ComputingResource, error)
+
+	CalculateResourceOverdue(expireBlock uint64) (time.Duration, error)
 }
