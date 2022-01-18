@@ -64,12 +64,12 @@ const resource = {
 }
 
 export default [
-  {
-    url: '/api/v1/chain/resource',
-    timeout: 1000,
-    method: 'get',
-    response: () => {
-      return resultSuccess(resource)
-    },
-  },
+  // {
+  //   url: '/api/v1/chain/resource',
+  //   timeout: 1000,
+  //   method: 'get',
+  //   response: () => {
+  //     return resultSuccess(resource)
+  //   },
+  // },
 ] as MockMethod[];

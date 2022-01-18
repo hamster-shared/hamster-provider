@@ -34,13 +34,13 @@
             {{ resourceData.config ? resourceData.config.cpuModel : '' }}
           </a-descriptions-item>
           <a-descriptions-item :label="t('resourceDetail.detail.unitPrice')">
-            {{ resourceData.rentalInfo ? resourceData.rentalInfo.rentUnitPrice : '' }}
+            {{ resourceData.rentalInfo ? priceFormat(resourceData.rentalInfo.rentUnitPrice) : '' }}
           </a-descriptions-item>
           <a-descriptions-item :label="t('resourceDetail.detail.cpuCounts')">
             {{ resourceData.config ? resourceData.config.cpu + '核' : '' }}
           </a-descriptions-item>
           <a-descriptions-item :label="t('resourceDetail.detail.expireDate')">
-            {{ resourceData.rentalInfo ? resourceData.rentalInfo.endOfRent : '' }}
+            {{ resourceData.expirationTime ? resourceData.expirationTime : '' }}
           </a-descriptions-item>
           <a-descriptions-item :label="t('resourceDetail.detail.memory')">
             {{ resourceData.config ? resourceData.config.memory + 'Ｇ' : '' }}
@@ -59,11 +59,23 @@
       <a-spin :spinning="state.changePriceLoading">
         <div class="staking-content">
           <span class="title">{{ t('resourceDetail.detail.unitPriceTitle') }}</span>
-          <BalanceInput
+          <a-input
+            v-model:value="state.value"
             :placeholder="t('resourceDetail.detail.unitPriceText')"
-            :changeClick="checkPrice('changePrice')"
-            ref="inputRef"
-          />
+            @change="checkPrice('changePrice')"
+          >
+            <template #addonAfter>
+              <a-select style="width: 90px" v-model:value="state.uintPower">
+                <a-select-option
+                  v-for="(item, index) in state.uintOptions"
+                  v-model:value="item.power"
+                  :key="index"
+                >
+                  {{ item.text }}
+                </a-select-option>
+              </a-select>
+            </template>
+          </a-input>
         </div>
         <span class="form-error-tip" v-if="state.changePriceTip">{{
           t('resourceDetail.detail.inputUnitPrice')
@@ -91,7 +103,7 @@
           <span class="title">{{ t('resourceDetail.detail.unitPriceTitle') }}</span>
           <a-input
             v-model:value="state.duration"
-            @change="checkPrice()"
+            @change="checkPrice('changeDuration')"
             :placeholder="t('resourceDetail.detail.unitPriceText')"
           >
             <template #addonAfter>
@@ -119,11 +131,14 @@
   import { useMessage } from '/@/hooks/web/useMessage';
   import { ref, onMounted, reactive, getCurrentInstance } from 'vue';
   import { useI18n } from '/@/hooks/web/useI18n';
-  import { getResourceInfoApi } from '/@/api/provider/resource';
+  import { getResourceInfoApi, getExpirationTimeApi, changePriceApi} from '/@/api/provider/resource';
   import { PageWrapper } from '/@/components/Page';
   import { ResourceStatus } from '/@/api/provider/model/resourceModel';
   import BalanceInput from '/@/components/BalanceInput/index.vue';
-  import * as cluster from "cluster";
+  import BigNumber from 'bignumber.js';
+  import { formatToDateTime } from '/@/utils/dateUtil';
+  import * as cluster from 'cluster';
+  import { formatBalance } from '@polkadot/util';
   const { t } = useI18n();
   const resourceData = ref({});
   const state = reactive({
@@ -134,6 +149,9 @@
     increaseDurationLoading: false,
     increaseDurationTip: false,
     duration: '',
+    value: '',
+    uintPower: 0,
+    uintOptions: [],
   });
   const { createMessage } = useMessage();
   const { proxy } = getCurrentInstance();
@@ -151,11 +169,32 @@
       return t('resourceDetail.detail.unused');
     }
   }
+  function priceFormat(params: number) {
+    return new BigNumber(params).div(new BigNumber(Math.pow(10, 12))).toNumber() + ' Uint';
+  }
   onMounted(() => {
+    getUintOptions();
     getResourceInfoApi().then((data) => {
-      resourceData.value = data;
+      getExpirationTimeApi(data.rentalInfo.endOfRent).then((res) => {
+        data['expirationTime'] = formatToDateTime(new Date(new Date().getTime() + res));
+        resourceData.value = data;
+      });
     });
   });
+
+  function getUintOptions() {
+    state.uintOptions = formatBalance.getOptions();
+    state.uintOptions.unshift({ power: -3, text: 'milli', value: '-' });
+    state.uintOptions.unshift({ power: -6, text: 'micro', value: '-' });
+    state.uintOptions.unshift({ power: -9, text: 'nano', value: '-' });
+    state.uintOptions.unshift({ power: -12, text: 'pico', value: '-' });
+  }
+  function getPrice() {
+    return new BigNumber(state.value)
+      .times(new BigNumber(Math.pow(10, state.uintPower)))
+      .times(new BigNumber(Math.pow(10, 12)))
+      .toNumber();
+  }
   function changePriceModal() {
     state.changePriceVisible = true;
     state.changePriceTip = false;
@@ -168,30 +207,33 @@
   function rentAgain() {}
   function changePriceCancel() {
     state.changePriceVisible = false;
-    proxy.$refs.inputRef.value = '';
-    proxy.$refs.inputRef.uintPower = 0;
+    state.value = '';
+    state.uintPower = 0;
   }
   function increaseDurationCancel() {
     state.increaseDurationVisible = false;
     state.duration = '';
   }
   function changePriceOk() {
-    state.changePriceVisible = false;
+    checkPrice('changePrice');
+    state.changePriceLoading = true;
+    let price = getPrice();
+    changePriceApi(price).then((data) => {
+      console.log(data);
+    });
   }
   function increaseDurationOk() {
     state.increaseDurationVisible = false;
   }
   function checkPrice(params: string) {
     if (params === 'changePrice') {
-      if (proxy.$refs.inputRef) {
-        if (proxy.$refs.inputRef.value === '') {
-          state.changePriceTip = true;
-          return;
-        } else {
-          state.changePriceTip = false;
-        }
-        proxy.$refs.inputRef.value = proxy.$refs.inputRef.value.replace(/\D/g, '');
+      if (state.value === '') {
+        state.changePriceTip = true;
+        return;
+      } else {
+        state.changePriceTip = false;
       }
+      state.value = state.value.replace(/\D/g, '');
     } else {
       if (state.duration === '') {
         state.increaseDurationTip = true;
