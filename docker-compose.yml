@@ -4,7 +4,7 @@ services:
 
   ttchain_substrate:
     container_name: ttchain_substrate
-    image: "registry.ttchain.tntlinking.com/ttchain/ttchain_v2:1.0.1"
+    image: "mohaijiang/hamster-provider:1.0.1"
     restart: always
     environment:
       TZ: Asia/Shanghai
