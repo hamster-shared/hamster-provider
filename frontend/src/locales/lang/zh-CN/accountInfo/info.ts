@@ -16,4 +16,10 @@ export default {
   inputPledgeAmount: '请输入质押金额',
   inputWithdrawTip: '请输入取回质押金额',
   withdrawPledgeAmount: '取回质押金额',
+  insufficientBalance: '账户余额不足',
+  pledgeAmountSuccess: '质押金额成功',
+  pledgeAmountFailed: '质押金额失败',
+  withdrawTip: '取回质押金额超过可取回金额',
+  withdrawAmountSuccess: '取回质押金额成功',
+  withdrawAmountFailed: '取回质押金额失败',
 };

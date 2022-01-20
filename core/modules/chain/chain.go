@@ -119,6 +119,8 @@ func (cc *ChainClient) callAndWatch(c types.Call, meta *types.Metadata, hook fun
 	}
 
 	keypair, err := signature.KeyringPairFromSecret(cf.SeedOrPhrase, 42)
+	address := keypair.Address
+	println(address)
 	if err != nil {
 		return err
 	}
@@ -320,7 +322,6 @@ func (cc *ChainClient) ChangeResourceStatus(index uint64) error {
 	if err != nil {
 		return err
 	}
-
 	c, err := types.NewCall(meta, "Provider.change_resource_status", types.NewU64(index))
 
 	if err != nil {
@@ -519,7 +520,6 @@ func (cc *ChainClient) GetResource(resourceIndex uint64) (*ComputingResource, er
 		fmt.Println(err)
 		return nil, err
 	}
-
 	bytes, err := types.EncodeToBytes(types.NewU64(resourceIndex))
 	if err != nil {
 		return nil, err
@@ -573,7 +573,6 @@ func (cc *ChainClient) GetOrder(orderIndex uint64) (*ComputingOrder, error) {
 		fmt.Println(err)
 		return nil, err
 	}
-
 	bytes, err := types.EncodeToBytes(types.NewU64(orderIndex))
 	if err != nil {
 		return nil, err
@@ -607,4 +606,131 @@ func (cc *ChainClient) GetAgreementIndex(orderIndex uint64) (uint64, error) {
 		}
 	}
 	return 0, errors.New("no agreementIndex")
+}
+
+func (cc *ChainClient) ReceiveIncome() error {
+	meta, err := cc.api.RPC.State.GetMetadataLatest()
+	if err != nil {
+		return err
+	}
+	config, err := cc.cm.GetConfig()
+	if err != nil {
+		return err
+	}
+
+	c, err := types.NewCall(meta, "ResourceOrder.withdraw_rental_amount", types.NewU64(config.ChainRegInfo.AgreementIndex))
+
+	if err != nil {
+		return err
+	}
+
+	return cc.callAndWatch(c, meta, nil)
+}
+
+func (cc *ChainClient) GetAccountInfo() (*AccountInfo, error) {
+	cf, err := cc.cm.GetConfig()
+	if err != nil {
+		return nil, err
+	}
+	keypair, err := signature.KeyringPairFromSecret(cf.SeedOrPhrase, 42)
+	if err != nil {
+		return nil, err
+	}
+	meta, err := cc.api.RPC.State.GetMetadataLatest()
+	if err != nil {
+		return nil, err
+	}
+
+	// Get the nonce for Account
+	key, err := types.CreateStorageKey(meta, "System", "Account", keypair.PublicKey)
+	if err != nil {
+		return nil, err
+	}
+
+	var account AccountInfoCustom
+	ok, err := cc.api.RPC.State.GetStorageLatest(key, &account)
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		return nil, errors.New("failed to get account information")
+	}
+	var accountInfo AccountInfo
+	accountInfo.Address = keypair.Address
+	accountInfo.Amount = account.Data.Free
+	return &accountInfo, nil
+}
+
+func (cc *ChainClient) GetStakingInfo() (*StakingAmount, error) {
+	cf, err := cc.cm.GetConfig()
+	if err != nil {
+		return nil, err
+	}
+	keypair, err := signature.KeyringPairFromSecret(cf.SeedOrPhrase, 42)
+	if err != nil {
+		return nil, err
+	}
+	meta, err := cc.api.RPC.State.GetMetadataLatest()
+	if err != nil {
+		return nil, err
+	}
+	key, err := types.CreateStorageKey(meta, "ResourceOrder", "Staking", keypair.PublicKey)
+	if err != nil {
+		return nil, err
+	}
+	var stakingInfo StakingAmount
+	ok, err := cc.api.RPC.State.GetStorageLatest(key, &stakingInfo)
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		return nil, errors.New("failed to get account information")
+	}
+	return &stakingInfo, nil
+}
+
+func (cc *ChainClient) StakingAmount(unitPrice int64) error {
+	meta, err := cc.api.RPC.State.GetMetadataLatest()
+	if err != nil {
+		return err
+	}
+
+	c, err := types.NewCall(meta, "ResourceOrder.staking_amount", types.NewU128(*big.NewInt(unitPrice)))
+
+	if err != nil {
+		return err
+	}
+
+	return cc.callAndWatch(c, meta, nil)
+}
+
+func (cc *ChainClient) WithdrawStakingAmount(unitPrice int64) error {
+	meta, err := cc.api.RPC.State.GetMetadataLatest()
+	if err != nil {
+		return err
+	}
+
+	c, err := types.NewCall(meta, "ResourceOrder.withdraw_amount", types.NewU128(*big.NewInt(unitPrice)))
+
+	if err != nil {
+		return err
+	}
+
+	return cc.callAndWatch(c, meta, nil)
+}
+
+func (cc *ChainClient) ReceiveIncomeJudge() bool {
+	config, err := cc.cm.GetConfig()
+	if err != nil {
+		return false
+	}
+	agreement, err := cc.getRentalAgreement(config.ChainRegInfo.AgreementIndex)
+	if err != nil {
+		return false
+	}
+	price := agreement.ReceiveAmount.Int64()
+	if price > 0 {
+		return true
+	}
+	return false
 }

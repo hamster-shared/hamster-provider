@@ -16,4 +16,10 @@ export default {
   inputPledgeAmount: 'Please enter the pledge amount',
   inputWithdrawTip: 'Please enter the pledge amount to retrieve',
   withdrawPledgeAmount: 'Withdrawal Of Pledge Amount',
+  insufficientBalance: 'Insufficient account balance',
+  pledgeAmountSuccess: 'The pledge amount is successful',
+  pledgeAmountFailed: 'The pledge amount failed',
+  withdrawTip: 'The pledged amount to be retrieved exceeds the amount that can be retrieved',
+  withdrawAmountSuccess: 'Successfully retrieved the pledge amount',
+  withdrawAmountFailed: 'Failed to retrieve the pledge amount',
 };

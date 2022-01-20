@@ -1,53 +1,58 @@
 <template>
   <div>
-    <PageWrapper :title="t('resourceDetail.detail.resourceDetail')" contentBackground>
-      <template #extra>
-        <a-button type="primary" @click="changePriceModal">
-          {{ t('resourceDetail.detail.changePrice') }}
-        </a-button>
-        <a-button type="primary" @click="increaseDurationModal">
-          {{ t('resourceDetail.detail.increaseＤuration') }}
-        </a-button>
-        <a-button type="primary" @click="receiveIncome">
-          {{ t('resourceDetail.detail.receiveＢenefits') }}</a-button
-        >
-        <a-button type="primary" @click="rentAgain">
-          {{ t('resourceDetail.detail.rentＡgain') }}</a-button
-        >
-      </template>
-      <div class="pt-4 m-4 desc-wrap">
-        <a-descriptions
-          :title="t('resourceDetail.detail.resourceInformation')"
-          size="small"
-          :column="2"
-        >
-          <a-descriptions-item :label="t('resourceDetail.detail.resourceID')">
-            {{ resourceData.index }}
-          </a-descriptions-item>
-          <a-descriptions-item :label="t('resourceDetail.detail.system')">
-            {{ resourceData.config ? resourceData.config.system : '' }}
-          </a-descriptions-item>
-          <a-descriptions-item :label="t('resourceDetail.detail.resourceＳtate')">
-            {{ displayResourceStatus(resourceData.status) }}
-          </a-descriptions-item>
-          <a-descriptions-item :label="t('resourceDetail.detail.cpuＭodel')">
-            {{ resourceData.config ? resourceData.config.cpuModel : '' }}
-          </a-descriptions-item>
-          <a-descriptions-item :label="t('resourceDetail.detail.unitPrice')">
-            {{ resourceData.rentalInfo ? priceFormat(resourceData.rentalInfo.rentUnitPrice) : '' }}
-          </a-descriptions-item>
-          <a-descriptions-item :label="t('resourceDetail.detail.cpuCounts')">
-            {{ resourceData.config ? resourceData.config.cpu + '核' : '' }}
-          </a-descriptions-item>
-          <a-descriptions-item :label="t('resourceDetail.detail.expireDate')">
-            {{ resourceData.expirationTime ? resourceData.expirationTime : '' }}
-          </a-descriptions-item>
-          <a-descriptions-item :label="t('resourceDetail.detail.memory')">
-            {{ resourceData.config ? resourceData.config.memory + 'Ｇ' : '' }}
-          </a-descriptions-item>
-        </a-descriptions>
-      </div>
-    </PageWrapper>
+    <a-spin :spinning="state.allLoading">
+      <PageWrapper :title="t('resourceDetail.detail.resourceDetail')" contentBackground>
+        <template #extra>
+          <a-button type="primary" @click="changePriceModal" :disabled="state.disabled">
+            {{ t('resourceDetail.detail.changePrice') }}
+          </a-button>
+          <a-button type="primary" @click="increaseDurationModal" :disabled="state.disabled">
+            {{ t('resourceDetail.detail.increaseＤuration') }}
+          </a-button>
+          <a-button type="primary" @click="rentAgain" :disabled="state.disabled">
+            {{ t('resourceDetail.detail.rentＡgain') }}</a-button
+          >
+          <a-button type="primary" @click="deleteResource" :disabled="state.disabled">
+            {{ t('resourceDetail.detail.deleteResource') }}</a-button
+          >
+          <a-button type="primary" @click="receiveIncome" :disabled="state.receiveJudge">
+            {{ t('resourceDetail.detail.receiveＢenefits') }}</a-button
+          >
+        </template>
+        <div class="pt-4 m-4 desc-wrap">
+          <a-descriptions
+            :title="t('resourceDetail.detail.resourceInformation')"
+            size="small"
+            :column="2"
+          >
+            <a-descriptions-item :label="t('resourceDetail.detail.resourceID')">
+              {{ resourceData.index }}
+            </a-descriptions-item>
+            <a-descriptions-item :label="t('resourceDetail.detail.system')">
+              {{ resourceData.config ? resourceData.config.system : '' }}
+            </a-descriptions-item>
+            <a-descriptions-item :label="t('resourceDetail.detail.resourceＳtate')">
+              {{ displayResourceStatus(resourceData.status) }}
+            </a-descriptions-item>
+            <a-descriptions-item :label="t('resourceDetail.detail.cpuＭodel')">
+              {{ resourceData.config ? resourceData.config.cpuModel : '' }}
+            </a-descriptions-item>
+            <a-descriptions-item :label="t('resourceDetail.detail.unitPrice')">
+              {{ resourceData.rentalInfo ? priceFormat(resourceData.rentalInfo.rentUnitPrice) : '' }}
+            </a-descriptions-item>
+            <a-descriptions-item :label="t('resourceDetail.detail.cpuCounts')">
+              {{ resourceData.config ? resourceData.config.cpu + '核' : '' }}
+            </a-descriptions-item>
+            <a-descriptions-item :label="t('resourceDetail.detail.expireDate')">
+              {{ resourceData.expirationTime ? resourceData.expirationTime : '' }}
+            </a-descriptions-item>
+            <a-descriptions-item :label="t('resourceDetail.detail.memory')">
+              {{ resourceData.config ? resourceData.config.memory + 'Ｇ' : '' }}
+            </a-descriptions-item>
+          </a-descriptions>
+        </div>
+      </PageWrapper>
+    </a-spin>
     <a-modal
       v-model:visible="state.changePriceVisible"
       :title="t('resourceDetail.detail.changeUnitPrice')"
@@ -131,10 +136,18 @@
   import { useMessage } from '/@/hooks/web/useMessage';
   import { ref, onMounted, reactive, getCurrentInstance } from 'vue';
   import { useI18n } from '/@/hooks/web/useI18n';
-  import { getResourceInfoApi, getExpirationTimeApi, changePriceApi} from '/@/api/provider/resource';
+  import {
+    getResourceInfoApi,
+    getExpirationTimeApi,
+    changePriceApi,
+    addDurationAPi,
+    rentAgainApi,
+    receiveIncomeApi,
+    deleteResourceApi,
+    judgeReceiveIncomeApi,
+  } from '/@/api/provider/resource';
   import { PageWrapper } from '/@/components/Page';
   import { ResourceStatus } from '/@/api/provider/model/resourceModel';
-  import BalanceInput from '/@/components/BalanceInput/index.vue';
   import BigNumber from 'bignumber.js';
   import { formatToDateTime } from '/@/utils/dateUtil';
   import * as cluster from 'cluster';
@@ -152,6 +165,9 @@
     value: '',
     uintPower: 0,
     uintOptions: [],
+    allLoading: false,
+    disabled: false,
+    receiveJudge: false,
   });
   const { createMessage } = useMessage();
   const { proxy } = getCurrentInstance();
@@ -174,14 +190,24 @@
   }
   onMounted(() => {
     getUintOptions();
-    getResourceInfoApi().then((data) => {
-      getExpirationTimeApi(data.rentalInfo.endOfRent).then((res) => {
-        data['expirationTime'] = formatToDateTime(new Date(new Date().getTime() + res));
-        resourceData.value = data;
-      });
-    });
+    getResource();
+    judge();
   });
-
+  function getResource() {
+    state.disabled = true;
+    getResourceInfoApi()
+      .then((data) => {
+        getExpirationTimeApi(data.rentalInfo.endOfRent).then((res) => {
+          data['expirationTime'] = formatToDateTime(new Date(new Date().getTime() + res));
+          resourceData.value = data;
+          state.disabled = false;
+        });
+      })
+      .catch(() => {
+        state.disabled = true;
+        resourceData.value = '';
+      });
+  }
   function getUintOptions() {
     state.uintOptions = formatBalance.getOptions();
     state.uintOptions.unshift({ power: -3, text: 'milli', value: '-' });
@@ -203,8 +229,66 @@
     state.increaseDurationVisible = true;
     state.increaseDurationTip = false;
   }
-  function receiveIncome() {}
-  function rentAgain() {}
+  function receiveIncome() {
+    state.allLoading = true;
+    receiveIncomeApi()
+      .then(() => {
+        createMessage.success(t('resourceDetail.detail.receiveIncomeSuccess'));
+        state.allLoading = false;
+      })
+      .catch(() => {
+        createMessage.error(t('resourceDetail.detail.receiveIncomeFailed'));
+        state.allLoading = false;
+      });
+  }
+  function judge() {
+    judgeReceiveIncomeApi().then((data) => {
+      state.receiveJudge = !data;
+    });
+  }
+  function rentAgain() {
+    state.allLoading = true;
+    if (resourceData.value) {
+      if (resourceData.value['status'].isOffline) {
+        rentAgainApi()
+          .then(() => {
+            createMessage.success(t('resourceDetail.detail.rentAgainSuccess'));
+            state.allLoading = false;
+          })
+          .catch(() => {
+            createMessage.error(t('resourceDetail.detail.rentAgainFailed'));
+            state.allLoading = false;
+          });
+      } else {
+        createMessage.warning(t('resourceDetail.detail.rentAgainWarn'));
+        state.allLoading = false;
+      }
+    } else {
+      state.allLoading = false;
+    }
+  }
+  function deleteResource() {
+    state.allLoading = true;
+    if (resourceData.value) {
+      if (resourceData.value['status'].isInuse || resourceData.value['status'].isLocked) {
+        createMessage.warning(t('resourceDetail.detail.deleteResourceWarn'));
+        state.allLoading = false;
+        return;
+      }
+      deleteResourceApi()
+        .then(() => {
+          createMessage.success(t('resourceDetail.detail.deleteResourceSuccess'));
+          getResource();
+          state.allLoading = false;
+        })
+        .catch(() => {
+          createMessage.error(t('resourceDetail.detail.deleteResourceFailed'));
+          state.allLoading = false;
+        });
+    } else {
+      state.allLoading = false;
+    }
+  }
   function changePriceCancel() {
     state.changePriceVisible = false;
     state.value = '';
@@ -218,12 +302,30 @@
     checkPrice('changePrice');
     state.changePriceLoading = true;
     let price = getPrice();
-    changePriceApi(price).then((data) => {
-      console.log(data);
-    });
+    changePriceApi(price)
+      .then(() => {
+        state.changePriceLoading = false;
+        createMessage.success(t('resourceDetail.detail.changPriceSuccess'));
+        changePriceCancel();
+        getResource();
+      })
+      .catch(() => {
+        state.changePriceLoading = false;
+        changePriceCancel();
+        createMessage.error(t('resourceDetail.detail.changPriceError'));
+      });
   }
   function increaseDurationOk() {
-    state.increaseDurationVisible = false;
+    checkPrice('changeDuration');
+    state.increaseDurationLoading = true;
+    addDurationAPi(parseInt(state.duration))
+      .then(() => {
+        state.increaseDurationLoading = false;
+      })
+      .catch(() => {
+        state.increaseDurationLoading = false;
+      });
+    // state.increaseDurationVisible = false;
   }
   function checkPrice(params: string) {
     if (params === 'changePrice') {

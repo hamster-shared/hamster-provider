@@ -34,4 +34,16 @@ type ReportClient interface {
 	GetResource(resourceIndex uint64) (*ComputingResource, error)
 
 	CalculateResourceOverdue(expireBlock uint64) (time.Duration, error)
+
+	ReceiveIncome() error
+
+	GetAccountInfo() (*AccountInfo, error)
+
+	GetStakingInfo() (*StakingAmount, error)
+
+	StakingAmount(unitPrice int64) error
+
+	WithdrawStakingAmount(unitPrice int64) error
+
+	ReceiveIncomeJudge() bool
 }

@@ -12,22 +12,22 @@
       <div class="pt-4 m-4 desc-wrap">
         <a-descriptions :title="t('accountInfo.info.accountInfo')" size="small" :column="2">
           <a-descriptions-item :label="t('accountInfo.info.accountAddress')">
-            fafdafaafa
+            {{ address }}
           </a-descriptions-item>
           <a-descriptions-item :label="t('accountInfo.info.accountBalance')">
-            fafdafaf
+            {{ amount }} Unit
           </a-descriptions-item>
         </a-descriptions>
         <a-divider />
         <a-descriptions :title="t('accountInfo.info.pledgeInformation')" :column="2">
           <a-descriptions-item :label="t('accountInfo.info.totalPledgeAmount')">
-            111
+            {{ pledgeAmount }} Unit
           </a-descriptions-item>
           <a-descriptions-item :label="t('accountInfo.info.activePledgeAmount')">
-            2017-08-08
+            {{ activeAmount }} Unit
           </a-descriptions-item>
           <a-descriptions-item :label="t('accountInfo.info.lockedPledgeAmount')">
-            725
+            {{ lockAmount }} Unit
           </a-descriptions-item>
         </a-descriptions>
       </div>
@@ -66,10 +66,13 @@
 </template>
 
 <script lang="ts">
+  import { getAccountInfoApi, getStakingInfoApi, stakingAmountApi, withdrawAmountApi} from '/@/api/provider/account';
   import { PageWrapper } from '/@/components/Page';
   import BalanceInput from '../../../components/BalanceInput/index.vue';
   import { useI18n } from '/@/hooks/web/useI18n';
-  import { defineComponent, getCurrentInstance, reactive, toRefs } from 'vue';
+  import { defineComponent, getCurrentInstance, onMounted, reactive, toRefs } from 'vue';
+  import BigNumber from 'bignumber.js';
+  import { useMessage } from '/@/hooks/web/useMessage';
   // eslint-disable-next-line vue/no-export-in-script-setup
   export default defineComponent({
     name: 'center',
@@ -78,6 +81,7 @@
       PageWrapper,
     },
     setup: function () {
+      const { createMessage } = useMessage();
       const { t } = useI18n();
       const { proxy } = getCurrentInstance();
       const state = reactive({
@@ -87,7 +91,41 @@
         placeholder: '',
         stakingAmountTip: false,
         activeModal: '',
+        amount: '',
+        address: '',
+        pledgeAmount: '',
+        activeAmount: '',
+        lockAmount: '',
       });
+      onMounted(() => {
+        getAccountInfo();
+        getStaking();
+      });
+      function getAccountInfo() {
+        getAccountInfoApi().then((data) => {
+          state.address = data.Address;
+          state.amount = new BigNumber(data.Amount)
+            .div(new BigNumber(Math.pow(10, 12)))
+            .toNumber()
+            .toFixed(4);
+        });
+      }
+      function getStaking() {
+        getStakingInfoApi().then((data) => {
+          state.pledgeAmount = new BigNumber(data.Amount)
+            .div(new BigNumber(Math.pow(10, 12)))
+            .toNumber()
+            .toFixed(4);
+          state.activeAmount = new BigNumber(data.ActiveAmount)
+            .div(new BigNumber(Math.pow(10, 12)))
+            .toNumber()
+            .toFixed(4);
+          state.lockAmount = new BigNumber(data.LockAmount)
+            .div(new BigNumber(Math.pow(10, 12)))
+            .toNumber()
+            .toFixed(4);
+        });
+      }
       function checkStakingAmount() {
         if (proxy.$refs.inputRef.value === '') {
           state.stakingAmountTip = true;
@@ -109,13 +147,50 @@
         proxy.$refs.inputRef.value = '';
         proxy.$refs.inputRef.uintPower = 0;
       }
-      //质押
       function stakingAmountClick() {
         let price = proxy.$refs.inputRef.getPrice();
-        console.log(price);
+        let amount = new BigNumber(state.amount).times(new BigNumber(Math.pow(10, 12))).toNumber();
+        if (amount < price) {
+          createMessage.warning(t('accountInfo.info.insufficientBalance'));
+          return;
+        }
+        state.stakingLoading = true;
+        stakingAmountApi(price)
+          .then(() => {
+            getStaking();
+            getAccountInfo();
+            createMessage.success(t('accountInfo.info.pledgeAmountSuccess'));
+            state.stakingLoading = false;
+            close();
+          })
+          .catch(() => {
+            state.stakingLoading = false;
+            createMessage.error(t('accountInfo.info.pledgeAmountFailed'));
+          });
       }
-      //取回质押
-      function withdrawAmount() {}
+      function withdrawAmount() {
+        let price = proxy.$refs.inputRef.getPrice();
+        let amount = new BigNumber(state.activeAmount)
+          .times(new BigNumber(Math.pow(10, 12)))
+          .toNumber();
+        if (amount < price) {
+          createMessage.warning(t('accountInfo.info.withdrawTip'));
+          return;
+        }
+        state.stakingLoading = true;
+        withdrawAmountApi(price)
+          .then(() => {
+            getStaking();
+            getAccountInfo();
+            createMessage.success(t('accountInfo.info.withdrawAmountSuccess'));
+            state.stakingLoading = false;
+            close();
+          })
+          .catch(() => {
+            state.stakingLoading = false;
+            createMessage.error(t('accountInfo.info.withdrawAmountFailed'));
+          });
+      }
       function showStakingModal(params: string) {
         state.stakingLoading = false;
         state.visible = true;

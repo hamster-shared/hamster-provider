@@ -83,6 +83,25 @@ type Status struct {
 	IsOffline bool `json:"isOffline"`
 }
 
+type StakingAmount struct {
+	Amount       types.U128
+	ActiveAmount types.U128
+	LockAmount   types.U128
+}
+
+type AccountInfoCustom struct {
+	Nonce       types.U32
+	Consumers   types.U32
+	Providers   types.U32
+	Sufficients types.U32
+	Data        struct {
+		Free       types.U128
+		Reserved   types.U128
+		MiscFrozen types.U128
+		FreeFrozen types.U128
+	}
+}
+
 func (m *Status) Decode(decoder scale.Decoder) error {
 	b, err := decoder.ReadOneByte()
 	fmt.Println(b)
@@ -149,6 +168,11 @@ type OrderStatus struct {
 	IsPending  bool
 	IsFinished bool
 	IsCanceled bool
+}
+
+type AccountInfo struct {
+	Address string
+	Amount  types.U128
 }
 
 func (m *OrderStatus) Decode(decoder scale.Decoder) error {
