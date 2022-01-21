@@ -11,6 +11,6 @@ export const getConfigApi =  () => {
 }
 
 // 修改配置
-export const setConfigApi =  (config: ProviderConfig) => {
+export const setConfigApi = (config: ProviderConfig) => {
   return defHttp.post({ url: Api.Setting, data: config })
 }

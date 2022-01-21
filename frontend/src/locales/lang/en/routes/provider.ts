@@ -4,4 +4,5 @@ export default {
   boot: 'boot',
   start_or_stop: 'start or stop service',
   resourceDetail: 'resource detail',
+  personalCenter: 'account information',
 };
