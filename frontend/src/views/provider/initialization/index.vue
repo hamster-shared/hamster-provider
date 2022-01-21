@@ -1,13 +1,13 @@
 <template>
-  <PageWrapper title="基础配置">
-    <CollapseContainer title="链设置" :canExpan="false">
+  <PageWrapper :title="t('initialization.initialization.basicConfiguration')">
+    <CollapseContainer :title="t('initialization.initialization.chainSettings')" :canExpan="false">
       <a-row :gutter="24">
         <a-col :span="18">
           <BasicForm @register="chainRegister" />
         </a-col>
       </a-row>
     </CollapseContainer>
-    <CollapseContainer class="mt-5" title="虚拟规格设置" :canExpan="false">
+    <CollapseContainer class="mt-5" :title="t('initialization.initialization.virtualSpecificationSettings')" :canExpan="false">
       <a-row :gutter="24">
         <a-col :span="18">
           <BasicForm @register="register" />
@@ -17,13 +17,13 @@
 
     <Description
       class="mt-4"
-      title="虚拟机镜像"
+      :title="t('initialization.initialization.virtualMachineImage')"
       :column="3"
       :data="mockData"
       :schema="imageSchema"
     />
 
-    <Button class="mt-4" type="primary" @click="handleSubmit"> 更新基本信息 </Button>
+    <Button class="mt-4" type="primary" @click="handleSubmit"> {{ t('initialization.initialization.updateInformation') }} </Button>
   </PageWrapper>
 </template>
 <script lang="ts">
@@ -33,7 +33,7 @@
   import { CollapseContainer } from '/@/components/Container';
   import { PageWrapper } from '/@/components/Page';
   import { Description,DescItem} from '/@/components/Description';
-
+  import { useI18n } from '/@/hooks/web/useI18n';
   import { useMessage } from '/@/hooks/web/useMessage';
 
   import headerImg from '/@/assets/images/header.jpg';
@@ -55,7 +55,7 @@
     setup() {
       const { createMessage } = useMessage();
       const userStore = useUserStore();
-
+      const { t } = useI18n();
       const mockData = reactive<Recordable>({
         windows: false,
         ubuntu: false,
@@ -71,9 +71,9 @@
                 type: "primary",
                 onClick: consoleDebug,
                 class: "ml-4",
-              },() => "下载")
+              },() => t('initialization.initialization.download'))
             } else {
-              return "下载完成"
+              return t('initialization.initialization.downloadComplete');
             }
 
           },
@@ -87,9 +87,9 @@
                 type: "primary",
                 onClick: consoleDebug,
                 class: "ml-4",
-              },() => "下载")
+              },() => t('initialization.initialization.download'))
             } else {
-              return "下载完成"
+              return t('initialization.initialization.downloadComplete');
             }
           },
         },
@@ -124,13 +124,14 @@
       }
 
       return {
+        t,
         avatar,
         register,
         chainRegister,
         mockData,
         imageSchema,
         handleSubmit: () => {
-          createMessage.success('更新成功！');
+          createMessage.success(t('initialization.initialization.updateSucceeded'));
           Promise.all([validateFields(),chainValidateFields()]).then(data => {
             let values = data[0]
             let chainValues = data[1]
@@ -141,10 +142,10 @@
               seedOrPhrase: chainValues.account,
             }
             setConfigApi(config).then(() => {
-              createMessage.success('更新成功！');
+              createMessage.success(t('initialization.initialization.updateSucceeded'));
             })
           }).catch(err => {
-            createMessage.error('校验失败',err)
+            createMessage.error(t('initialization.initialization.verificationFailed'),err)
           })
         },
       };

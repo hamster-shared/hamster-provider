@@ -1,7 +1,7 @@
-
 // 基础设置 form
-import {DescItem} from "/@/components/Description";
-
+import { DescItem } from '/@/components/Description';
+import { useI18n } from '/@/hooks/web/useI18n';
+const { t } = useI18n();
 export const vmSchemas: DescItem[] = [
   {
     field: 'cpu',
@@ -9,26 +9,26 @@ export const vmSchemas: DescItem[] = [
   },
   {
     field: 'mem',
-    label: '内存',
+    label: t('boot.boot.memory'),
   },
   {
     field: 'disk',
-    label: '硬盘',
+    label: t('boot.boot.disk'),
   },
   {
     field: 'system',
-    label: '操作系统',
+    label: t('boot.boot.system'),
   },
   {
     field: 'image',
-    label: '镜像',
+    label: t('boot.boot.image'),
   },
   {
     field: 'accessPort',
-    label: '访问端口',
+    label: t('boot.boot.accessPort'),
   },
   {
     field: 'type',
-    label: '虚拟化类型',
+    label: t('boot.boot.type'),
   },
 ];

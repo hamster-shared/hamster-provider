@@ -1,5 +1,6 @@
 import { FormSchema } from '/@/components/Form';
-
+import { useI18n } from '/@/hooks/web/useI18n';
+const { t } = useI18n();
 // 基础设置 form
 export const chainSchemas: FormSchema[] = [
   {
@@ -21,7 +22,7 @@ export const chainSchemas: FormSchema[] = [
     label: 'account',
     colProps: { span: 12 },
     componentProps: {
-      placeholder: '区块链账户seed或助记词',
+      placeholder: t('initialization.initialization.seedTip'),
     },
     rules: [{ required: true }],
   },
@@ -39,35 +40,35 @@ export const vmSchemas: FormSchema[] = [
   {
     field: 'mem',
     component: 'InputNumber',
-    label: '内存',
+    label: t('initialization.initialization.memory'),
     colProps: { span: 12 },
     rules: [{ required: true }],
   },
   {
     field: 'disk',
     component: 'InputNumber',
-    label: '硬盘',
+    label: t('initialization.initialization.disk'),
     colProps: { span: 12 },
     rules: [{ required: true }],
   },
   {
     field: 'system',
     component: 'Input',
-    label: '操作系统',
+    label: t('initialization.initialization.system'),
     colProps: { span: 12 },
     rules: [{ required: true }],
   },
   {
     field: 'image',
     component: 'Input',
-    label: '镜像',
+    label: t('initialization.initialization.image'),
     colProps: { span: 12 },
     rules: [{ required: true }],
   },
   {
     field: 'accessPort',
     component: 'InputNumber',
-    label: '访问端口',
+    label: t('initialization.initialization.accessPort'),
     colProps: { span: 12 },
     rules: [{ required: true }],
   },
@@ -80,7 +81,7 @@ export const vmSchemas: FormSchema[] = [
         { label: 'docker', value: 'docker' },
       ],
     },
-    label: '虚拟化类型',
+    label: t('initialization.initialization.type'),
     colProps: { span: 12 },
     rules: [{ required: true }],
   },
