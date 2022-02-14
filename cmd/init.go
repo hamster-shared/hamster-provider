@@ -31,7 +31,7 @@ var initCmd = &cobra.Command{
 	Short: "init  config",
 
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("init ttchain provider")
+		fmt.Printf("init hamster provider")
 
 		path := config.DefaultConfigPath()
 

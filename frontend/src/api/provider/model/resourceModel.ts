@@ -34,3 +34,7 @@ export interface RentalInfo {
   rentDuration: number,
   endOfRent: number,
 }
+
+export interface UnitPriceParam {
+  unitPrice: number,
+}

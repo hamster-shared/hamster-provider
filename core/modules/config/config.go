@@ -16,7 +16,7 @@ import (
 var packageLock sync.Mutex
 
 const (
-	CONFIG_DIR_NAME         = ".ttchain-compute-provider"
+	CONFIG_DIR_NAME         = ".hamster-provider"
 	CONFIG_DEFAULT_FILENAME = "config"
 	SWARM_KEY               = "/key/swarm/psk/1.0.0/\n/base16/\n55158d9b6b7e5a8e41aa8b34dd057ff1880e38348613d27ae194ad7c5b9670d7"
 )
@@ -116,7 +116,7 @@ func (cm *ConfigManager) GetConfig() (*Config, error) {
 	f, err := os.Open(cm.configPath)
 	defer f.Close()
 	if err != nil {
-		return nil, errors.New("ttchain-computer-provider not initialized, please run `ttchain-compute-provider config init`")
+		return nil, errors.New("hamster-provider not initialized, please run `hamster-provider config init`")
 	}
 	if err := json.NewDecoder(f).Decode(&cfg); err != nil {
 		return nil, fmt.Errorf("failure to decode config: %s", err)
@@ -131,7 +131,7 @@ func (cm *ConfigManager) Save(config *Config) error {
 	f, err := os.OpenFile(cm.configPath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0766)
 	defer f.Close()
 	if err != nil {
-		return errors.New("ttchain-computer-provider not initialized, please run `ttchain-compute-provider config init`")
+		return errors.New("hamster-provider not initialized, please run `hamster-provider config init`")
 	}
 	err = json.NewEncoder(f).Encode(config)
 	if err != nil {

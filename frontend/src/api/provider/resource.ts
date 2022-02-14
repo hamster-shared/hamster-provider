@@ -1,5 +1,5 @@
 import { defHttp } from '/@/utils/http/axios';
-import { ComputingResource } from '/@/api/provider/model/resourceModel';
+import { ComputingResource, UnitPriceParam} from '/@/api/provider/model/resourceModel';
 
 enum Api {
   ChainResource = '/api/v1/chain/resource',
@@ -10,6 +10,8 @@ enum Api {
   receiveIncome = '/api/v1/resource/receive-income',
   deleteResource = '/api/v1/resource/delete-resource',
   judge = '/api/v1/resource/receive-income-judge',
+  ChainResource = '/v1/chain/resource',
+  ModifyPrice = '/v1/chain/price'
 }
 
 // get chainInfo
@@ -50,3 +52,8 @@ export const deleteResourceApi = () => {
 export const judgeReceiveIncomeApi = () => {
   return defHttp.get({ url: Api.judge });
 };
+
+// modify unit price
+export const modifyUintPriceApi = (unitprice: UnitPriceParam) => {
+  return defHttp.post({url: Api.ModifyPrice,params: unitprice})
+}
