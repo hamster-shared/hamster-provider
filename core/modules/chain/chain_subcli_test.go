@@ -428,10 +428,11 @@ func TestDisplaySystemEvents(t *testing.T) {
 }
 
 type AccountInfo struct {
-	Nonce     types.U32
-	Consumers types.U32
-	Providers types.U32
-	Data      struct {
+	Nonce       types.U32
+	Consumers   types.U32
+	Providers   types.U32
+	Sufficients types.U32
+	Data        struct {
 		Free       types.U128
 		Reserved   types.U128
 		MiscFrozen types.U128
@@ -601,4 +602,32 @@ func TestSomeEvent(t *testing.T) {
 			fmt.Println(e.CpuModel, e.PeerId)
 		}
 	}
+}
+
+func TestAccountAmount(t *testing.T) {
+
+	api, err := gsrpc.NewSubstrateAPI(config.Default().RPCURL)
+	if err != nil {
+		panic(err)
+	}
+
+	meta, err := api.RPC.State.GetMetadataLatest()
+	if err != nil {
+		panic(err)
+	}
+
+	keypair, _ := signature.KeyringPairFromSecret("betray extend distance category chimney globe employ scrap armor success kiss forum", 42)
+
+	key, err := types.CreateStorageKey(meta, "System", "Account", keypair.PublicKey)
+	if err != nil {
+		panic(err)
+	}
+
+	var accountInfo AccountInfo
+	ok, err := api.RPC.State.GetStorageLatest(key, &accountInfo)
+	if err != nil || !ok {
+		panic(err)
+	}
+
+	fmt.Println(accountInfo.Data)
 }
