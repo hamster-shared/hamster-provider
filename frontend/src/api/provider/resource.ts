@@ -10,8 +10,7 @@ enum Api {
   receiveIncome = '/api/v1/resource/receive-income',
   deleteResource = '/api/v1/resource/delete-resource',
   judge = '/api/v1/resource/receive-income-judge',
-  ChainResource = '/v1/chain/resource',
-  ModifyPrice = '/v1/chain/price'
+  ModifyPrice = '/v1/chain/price',
 }
 
 // get chainInfo
