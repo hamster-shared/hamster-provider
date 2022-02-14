@@ -51,7 +51,7 @@ const resource = {
     "faultDuration": 0
   },
   "rentalInfo": {
-    "rentUnitPrice": 0,
+    "rentUnitPrice": 123,
     "rentDuration": 143400,
     "endOfRent": 144782
   },
@@ -64,12 +64,21 @@ const resource = {
 }
 
 export default [
-  {
-    url: '/api/v1/chain/resource',
-    timeout: 1000,
-    method: 'get',
-    response: () => {
-      return resultSuccess(resource)
-    },
-  },
+  // {
+  //   url: '/api/v1/chain/resource',
+  //   timeout: 1000,
+  //   method: 'get',
+  //   response: () => {
+  //     return resultSuccess(resource)
+  //   },
+  // },
+  // {
+  //   url: '/api/v1/chain/price',
+  //   timeout: 2000,
+  //   method: 'post',
+  //   response: ()=> {
+  //     return resultSuccess("")
+  //   }
+  // }
+
 ] as MockMethod[];

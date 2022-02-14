@@ -23,6 +23,7 @@ func StartApi(ctx *context.CoreContext) error {
 		chain := v1.Group("/chain")
 		{
 			chain.GET("/resource", getChainResource)
+			chain.POST("/price", changeUnitPrice)
 		}
 		// container routing
 		container := v1.Group("/container")

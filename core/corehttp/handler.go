@@ -363,3 +363,19 @@ func getChainResource(gin *MyContext) {
 		gin.JSON(http.StatusOK, Success(info))
 	}
 }
+
+func changeUnitPrice(gin *MyContext) {
+	var price UnitPriceParam
+
+	if err := gin.BindJSON(&price); err != nil {
+		gin.JSON(http.StatusBadRequest, BadRequest())
+		return
+	}
+	ri := gin.CoreContext.GetConfig().ChainRegInfo.ResourceIndex
+	err := gin.CoreContext.ReportClient.ModifyResourcePrice(ri, int64(price.UnitPrice))
+	if err != nil {
+		gin.JSON(http.StatusBadRequest, BadRequest("modify price fail"))
+	} else {
+		gin.JSON(http.StatusOK, Success(""))
+	}
+}

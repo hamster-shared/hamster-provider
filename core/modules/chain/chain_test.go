@@ -95,7 +95,7 @@ func TestResource(t *testing.T) {
 	cc, err := NewChainClient(cm, substrateApi)
 	assert.NoError(t, err)
 
-	resource, err := cc.GetResource(0)
+	resource, err := cc.GetResource(41)
 	assert.NoError(t, err)
 	fmt.Println(resource)
 }

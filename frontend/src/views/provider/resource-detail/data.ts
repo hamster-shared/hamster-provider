@@ -1,51 +1,5 @@
-import {DescItem} from "/@/components/Description";
 import {ResourceStatus} from "/@/api/provider/model/resourceModel";
-import {h} from 'vue'
-import { Button } from 'ant-design-vue';
 
-export const resourceSchemas: DescItem[] = [
-  {
-    field: 'index',
-    label: '机器id',
-  },
-  {
-    field: 'config.cpuModel',
-    label: 'cpu型号',
-  },
-  {
-    field: 'config.cpu',
-    label: 'cpu核数',
-  },
-  {
-    field: 'config.memory',
-    label: '内存',
-  },
-  {
-    field: 'config.system',
-    label: '系统',
-  },
-  {
-    field: 'rentalInfo.rentUnitPrice',
-    label: '单价/h',
-    render: function (v,data){
-      return h("div",{},[
-        v,
-        h(Button,{type: 'primary',shape:'circle',icon:'search'}),
-
-      ])
-    }
-  },
-  {
-    field: 'rentalInfo.endOfRent',
-    label: '租用到期时间',
-  },
-  {
-    label: '状态',
-    render: function (v,data){
-      return displayResourceStatus(data.status)
-    }
-  }
-];
 
 export function displayResourceStatus(status: ResourceStatus) {
   if (status == undefined){
@@ -60,4 +14,9 @@ export function displayResourceStatus(status: ResourceStatus) {
   }else if(status.isUnused) {
     return '未使用'
   }
+}
+
+export function showEditDialog(){
+
+  console.log('111')
 }

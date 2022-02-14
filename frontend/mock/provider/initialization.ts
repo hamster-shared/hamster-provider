@@ -21,36 +21,36 @@ const providerConfig  = {
 
 
 export default [
-  {
-    url: '/api/v1/config/settting',
-    timeout: 1000,
-    method: 'get',
-    response: () => {
-      return resultSuccess(providerConfig);
-    },
-  },
-  {
-    url: '/api/v1/config/settting',
-    timeout: 1000,
-    method: 'post',
-    response: () => {
-      return resultSuccess({});
-    },
-  },
-  {
-    url: '/api/vi/config/boot',
-    timeout: 1000,
-    method: 'post',
-    response: () => {
-      return resultSuccess('')
-    },
-  },
-  {
-    url: '/api/vi/config/boot',
-    timeout: 1000,
-    method: 'get',
-    response: () => {
-      return resultSuccess(false)
-    },
-  },
+  // {
+  //   url: '/api/v1/config/settting',
+  //   timeout: 1000,
+  //   method: 'get',
+  //   response: () => {
+  //     return resultSuccess(providerConfig);
+  //   },
+  // },
+  // {
+  //   url: '/api/v1/config/settting',
+  //   timeout: 1000,
+  //   method: 'post',
+  //   response: () => {
+  //     return resultSuccess({});
+  //   },
+  // },
+  // {
+  //   url: '/api/vi/config/boot',
+  //   timeout: 1000,
+  //   method: 'post',
+  //   response: () => {
+  //     return resultSuccess('')
+  //   },
+  // },
+  // {
+  //   url: '/api/vi/config/boot',
+  //   timeout: 1000,
+  //   method: 'get',
+  //   response: () => {
+  //     return resultSuccess(false)
+  //   },
+  // },
 ] as MockMethod[];

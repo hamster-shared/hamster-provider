@@ -16,7 +16,7 @@ require (
 	github.com/libp2p/go-libp2p-connmgr v0.2.4
 	github.com/libp2p/go-libp2p-core v0.9.0
 	github.com/libp2p/go-libp2p-kad-dht v0.13.1
-	github.com/libvirt/libvirt-go v7.4.0+incompatible
+	//github.com/libvirt/libvirt-go v7.4.0+incompatible
 	github.com/multiformats/go-multiaddr v0.4.0
 	github.com/multiformats/go-multiaddr-dns v0.3.1
 	github.com/shirou/gopsutil v3.21.4-0.20210419000835-c7a38de76ee5+incompatible
