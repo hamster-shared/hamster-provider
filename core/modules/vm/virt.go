@@ -33,7 +33,7 @@ func NewVirtManager(t Template) (*VirtManager, error) {
 	homedir, err := os.UserHomeDir()
 	manager := &VirtManager{
 		conn: conn,
-		home: homedir + "/.ttchain-compute-provider",
+		home: homedir + "/.hamster-provider",
 	}
 	manager.SetTemplate(t)
 	return manager, err

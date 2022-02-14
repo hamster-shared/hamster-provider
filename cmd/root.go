@@ -27,7 +27,7 @@ import (
 var cfgFile string
 
 const (
-	CONFIG_DIR_NAME         = ".ttchain-compute-provider"
+	CONFIG_DIR_NAME         = ".hamster-provider"
 	CONFIG_DEFAULT_FILENAME = "config"
 	CONFIG_DEFAULT_LINK_API = "http://42.192.53.10:8888"
 	//CONFIG_DEFAULT_CHAIN_API = "ws://127.0.0.1:9944"
@@ -36,7 +36,7 @@ const (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "ttchain-compute-provider",
+	Use:   "hamster-provider",
 	Short: "A brief description of your application",
 	Long: `A longer description that spans multiple lines and likely contains
 examples and usage of using your application. For example:
@@ -62,7 +62,7 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.ttchain-compute-provider.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.hamster-provider.yaml)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
@@ -79,7 +79,7 @@ func initConfig() {
 		home, err := os.UserHomeDir()
 		cobra.CheckErr(err)
 
-		// Search config in home directory with name ".ttchain-compute-provider" (without extension).
+		// Search config in home directory with name ".hamster-provider" (without extension).
 		viper.AddConfigPath(home)
 		viper.SetConfigType("yaml")
 		viper.SetConfigName(CONFIG_DIR_NAME)
