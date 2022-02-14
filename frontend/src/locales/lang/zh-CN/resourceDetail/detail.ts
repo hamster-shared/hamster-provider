@@ -34,4 +34,6 @@ export default {
   deleteResourceFailed: '删除资源失败',
   receiveIncomeSuccess: '领取收益成功',
   receiveIncomeFailed: '领取收益失败',
+  increaseDurationSucceeded: '增加时长成功',
+  increaseDurationFailed: '增加时长失败',
 };

@@ -93,9 +93,9 @@
         activeModal: '',
         amount: '',
         address: '',
-        pledgeAmount: '',
-        activeAmount: '',
-        lockAmount: '',
+        pledgeAmount: '0.0000',
+        activeAmount: '0.0000',
+        lockAmount: '0.0000',
       });
       onMounted(() => {
         getAccountInfo();

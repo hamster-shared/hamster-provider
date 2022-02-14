@@ -140,7 +140,7 @@ export const usePermissionStore = defineStore({
         try {
           patcher(routes);
         } catch (e) {
-          // 已处理完毕跳出循环
+          // Finished processing, jump out of loop
         }
         return;
       };

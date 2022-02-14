@@ -7,6 +7,7 @@ export default {
   download: '下载',
   downloadComplete: '下载完成',
   updateSucceeded: '更新成功',
+  updateFailed: '更新失败',
   verificationFailed: '校验失败',
   seedTip: '区块链账户seed或助记词',
   memory: '内存',

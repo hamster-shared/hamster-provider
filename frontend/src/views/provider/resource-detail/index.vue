@@ -97,7 +97,7 @@
     </a-modal>
     <a-modal
       v-model:visible="state.increaseDurationVisible"
-      :title="t('resourceDetail.detail.changeUnitPrice')"
+      :title="t('resourceDetail.detail.increaseＤuration')"
       :maskClosable="false"
       :footer="null"
       :centered="true"
@@ -197,6 +197,7 @@
     state.disabled = true;
     getResourceInfoApi()
       .then((data) => {
+        console.log(data);
         getExpirationTimeApi(data.rentalInfo.endOfRent).then((res) => {
           data['expirationTime'] = formatToDateTime(new Date(new Date().getTime() + res));
           resourceData.value = data;
@@ -252,6 +253,7 @@
       if (resourceData.value['status'].isOffline) {
         rentAgainApi()
           .then(() => {
+            getResource();
             createMessage.success(t('resourceDetail.detail.rentAgainSuccess'));
             state.allLoading = false;
           })
@@ -321,9 +323,13 @@
     addDurationAPi(parseInt(state.duration))
       .then(() => {
         state.increaseDurationLoading = false;
+        createMessage.success(t('resourceDetail.detail.increaseDurationSucceeded'));
+        getResource();
+        increaseDurationCancel();
       })
       .catch(() => {
         state.increaseDurationLoading = false;
+        createMessage.error(t('resourceDetail.detail.increaseDurationFailed'));
       });
     // state.increaseDurationVisible = false;
   }

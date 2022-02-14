@@ -131,11 +131,9 @@
         mockData,
         imageSchema,
         handleSubmit: () => {
-          createMessage.success(t('initialization.initialization.updateSucceeded'));
           Promise.all([validateFields(),chainValidateFields()]).then(data => {
             let values = data[0]
             let chainValues = data[1]
-            console.log(values)
             let config: ProviderConfig =  {
               vm: values,
               chainApi : chainValues.address,
@@ -143,6 +141,8 @@
             }
             setConfigApi(config).then(() => {
               createMessage.success(t('initialization.initialization.updateSucceeded'));
+            }).catch((err) => {
+              createMessage.error(t('initialization.initialization.updateFailed'),err)
             })
           }).catch(err => {
             createMessage.error(t('initialization.initialization.verificationFailed'),err)
