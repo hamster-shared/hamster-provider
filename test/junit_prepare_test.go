@@ -10,7 +10,6 @@ import (
 	"github.com/hamster-shared/hamster-provider/cmd"
 	"github.com/hamster-shared/hamster-provider/core/context"
 	"github.com/sirupsen/logrus"
-	"github.com/stretchr/testify/assert"
 	"math/big"
 	"testing"
 )
@@ -24,8 +23,8 @@ func TestInit(t *testing.T) {
 	address := types.NewMultiAddressFromAccountID(kp.PublicKey)
 	transformAmountToTestAccount(address, 100_000000000000)
 	// 质押
-	err := staking(ctx, 99_000000000000)
-	assert.NoError(t, err)
+	//err := staking(ctx, 99_000000000000)
+	//assert.NoError(t, err)
 }
 
 func transformAmountToTestAccount(target types.MultiAddress, amount uint64) {
@@ -50,10 +49,12 @@ func transformAmountToTestAccount(target types.MultiAddress, amount uint64) {
 	}
 	a := types.NewUCompactFromUInt(amount)
 
-	c, err := types.NewCall(meta, "Balances.transfer", target, a)
+	call, err := types.NewCall(meta, "Balances.transfer", target, a)
 	if err != nil {
 		panic(err)
 	}
+
+	c, err := types.NewCall(meta, "Utility.batch", []types.Call{call})
 
 	// Create the extrinsic
 	ext := types.NewExtrinsic(c)

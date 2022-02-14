@@ -87,3 +87,14 @@ func TestDuration(t *testing.T) {
 	duration := cc.CalculateInstanceOverdue(43)
 	fmt.Println(duration.String())
 }
+
+func TestResource(t *testing.T) {
+	cm := config.NewConfigManager()
+	cfg, _ := cm.GetConfig()
+	substrateApi, err := gsrpc.NewSubstrateAPI(cfg.ChainApi)
+	cc, err := NewChainClient(cm, substrateApi)
+	assert.NoError(t, err)
+
+	r, err := cc.GetResource(0)
+	fmt.Println(r)
+}
