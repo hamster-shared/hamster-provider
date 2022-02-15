@@ -23,6 +23,11 @@ func StartApi(ctx *context.CoreContext) error {
 		chain := v1.Group("/chain")
 		{
 			chain.GET("/resource", getChainResource)
+			chain.GET("/expiration-time", getCalculateInstanceOverdue)
+			chain.GET("/account-info", getAccountInfo)
+			chain.GET("/staking-info", getStakingInfo)
+			chain.POST("/pledge", stakingAmount)
+			chain.POST("/withdraw-amount", withdrawAmount)
 			chain.POST("/price", changeUnitPrice)
 		}
 		// container routing
@@ -57,6 +62,10 @@ func StartApi(ctx *context.CoreContext) error {
 		{
 			resource.POST("/modify-price", modifyPrice)
 			resource.POST("/add-duration", addDuration)
+			resource.POST("/receive-income", receiveIncome)
+			resource.POST("/rent-again", rentAgain)
+			resource.POST("/delete-resource", deleteResource)
+			resource.GET("/receive-income-judge", receiveIncomeJudge)
 		}
 	}
 	//r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

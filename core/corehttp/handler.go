@@ -7,11 +7,18 @@ import (
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 type Keys struct {
 	PublicKey string `json:"public_key"`
+}
+
+type ChangePrice struct {
+	Price uint64 `json:"price"`
+}
+
+type AddDuration struct {
+	Duration uint16 `json:"duration"`
 }
 
 // @Summary startContainer
@@ -271,34 +278,43 @@ func createVm(gin *MyContext) {
 
 func modifyPrice(gin *MyContext) {
 	reportClient := gin.CoreContext.ReportClient
-	price, err := strconv.Atoi(gin.Query("price"))
+	var json = ChangePrice{}
+	err := gin.BindJSON(&json)
 	if err != nil {
-		gin.String(400, "Incorrect parameter format : %s", gin.Query("price"))
+		gin.JSON(http.StatusBadRequest, BadRequest(fmt.Sprintf("Incorrect parameter format: %d", json.Price)))
 		return
 	}
 	ri := gin.CoreContext.GetConfig().ChainRegInfo.ResourceIndex
-	err = reportClient.ModifyResourcePrice(ri, int64(price))
+	err = reportClient.ModifyResourcePrice(ri, int64(json.Price))
 	if err != nil {
-		gin.String(400, "modify price fail: %d", price)
+		gin.JSON(http.StatusBadRequest, BadRequest(fmt.Sprintf("modify price fail: %d", json.Price)))
 	} else {
-		gin.String(200, "modify price success")
+		gin.JSON(http.StatusOK, Success("modify price success"))
 	}
 }
 
 func addDuration(gin *MyContext) {
-	durationParam := gin.Query("duration")
-
-	duration, err := time.ParseDuration(durationParam)
+	var duration = AddDuration{}
+	err := gin.BindJSON(&duration)
 	if err != nil {
-		gin.String(400, "duration format is not invalid ")
+		gin.JSON(http.StatusBadRequest, BadRequest(fmt.Sprintf("Incorrect parameter format: %d", duration.Duration)))
 		return
 	}
 	ri := gin.CoreContext.GetConfig().ChainRegInfo.ResourceIndex
-	err = gin.CoreContext.ReportClient.AddResourceDuration(ri, int(duration.Hours()))
+	err = gin.CoreContext.ReportClient.AddResourceDuration(ri, int(duration.Duration))
 	if err != nil {
-		gin.String(400, "add duration fail: %d", duration.Hours())
+		gin.JSON(http.StatusBadRequest, BadRequest(fmt.Sprintf("add duration fail: %d", duration.Duration)))
 	} else {
-		gin.String(200, "add duration success")
+		gin.JSON(http.StatusOK, Success("add duration success"))
+	}
+}
+
+func receiveIncome(gin *MyContext) {
+	err := gin.CoreContext.ReportClient.ReceiveIncome()
+	if err != nil {
+		gin.JSON(http.StatusBadRequest, BadRequest("Failed to receive benefits"))
+	} else {
+		gin.JSON(http.StatusOK, Success("Successfully received income"))
 	}
 }
 
@@ -377,5 +393,95 @@ func changeUnitPrice(gin *MyContext) {
 		gin.JSON(http.StatusBadRequest, BadRequest("modify price fail"))
 	} else {
 		gin.JSON(http.StatusOK, Success(""))
+	}
+}
+
+func getCalculateInstanceOverdue(gin *MyContext) {
+	expireBlock, err := strconv.Atoi(gin.Query("expireBlock"))
+	if err != nil {
+		gin.JSON(http.StatusBadRequest, BadRequest(fmt.Sprintf("Incorrect parameter format : %s", gin.Query("expireBlock"))))
+		return
+	}
+	time, er := gin.CoreContext.ReportClient.CalculateResourceOverdue(uint64(expireBlock))
+	if er != nil {
+		gin.JSON(http.StatusBadRequest, BadRequest("Failed to get resource expiration time"))
+	} else {
+		gin.JSON(http.StatusOK, Success(time))
+	}
+}
+
+func getAccountInfo(gin *MyContext) {
+	info, err := gin.CoreContext.ReportClient.GetAccountInfo()
+	if err != nil {
+		gin.JSON(http.StatusBadRequest, BadRequest(fmt.Sprintf("Failed to get account information: %s", err)))
+	} else {
+		gin.JSON(http.StatusOK, Success(info))
+	}
+
+}
+
+func getStakingInfo(gin *MyContext) {
+	info, err := gin.CoreContext.ReportClient.GetStakingInfo()
+	if err != nil {
+		gin.JSON(http.StatusBadRequest, BadRequest(fmt.Sprintf("Failed to get pledge information: %s", err)))
+	} else {
+		gin.JSON(http.StatusOK, Success(info))
+	}
+}
+
+func rentAgain(gin *MyContext) {
+	reportClient := gin.CoreContext.ReportClient
+	ri := gin.CoreContext.GetConfig().ChainRegInfo.ResourceIndex
+	err := reportClient.ChangeResourceStatus(ri)
+	if err != nil {
+		gin.JSON(http.StatusBadRequest, BadRequest("Failed to rent again"))
+	} else {
+		gin.JSON(http.StatusOK, Success("Successfully rented again"))
+	}
+}
+
+func deleteResource(gin *MyContext) {
+	reportClient := gin.CoreContext.ReportClient
+	ri := gin.CoreContext.GetConfig().ChainRegInfo.ResourceIndex
+	err := reportClient.RemoveResource(ri)
+	if err != nil {
+		gin.JSON(http.StatusBadRequest, BadRequest("Delete resource failed"))
+	} else {
+		gin.JSON(http.StatusOK, Success("Deleted the resource successfully"))
+	}
+}
+
+func receiveIncomeJudge(gin *MyContext) {
+	judge := gin.CoreContext.ReportClient.ReceiveIncomeJudge()
+	gin.JSON(http.StatusOK, Success(judge))
+}
+
+func stakingAmount(gin *MyContext) {
+	var json = ChangePrice{}
+	err := gin.BindJSON(&json)
+	if err != nil {
+		gin.JSON(http.StatusBadRequest, BadRequest(fmt.Sprintf("Incorrect parameter format: %d", json.Price)))
+		return
+	}
+	err = gin.CoreContext.ReportClient.StakingAmount(int64(json.Price))
+	if err != nil {
+		gin.JSON(http.StatusBadRequest, BadRequest("The pledge amount failed"))
+	} else {
+		gin.JSON(http.StatusOK, Success("The pledge amount is successful"))
+	}
+}
+
+func withdrawAmount(gin *MyContext) {
+	var json = ChangePrice{}
+	err := gin.BindJSON(&json)
+	if err != nil {
+		gin.JSON(http.StatusBadRequest, BadRequest(fmt.Sprintf("Incorrect parameter format: %d", json.Price)))
+		return
+	}
+	err = gin.CoreContext.ReportClient.WithdrawStakingAmount(int64(json.Price))
+	if err != nil {
+		gin.JSON(http.StatusBadRequest, BadRequest("Failed to retrieve the pledge amount"))
+	} else {
+		gin.JSON(http.StatusOK, Success("Successfully retrieved the pledge amount"))
 	}
 }
