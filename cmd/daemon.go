@@ -76,7 +76,8 @@ func NewContext() context2.CoreContext {
 	if "docker" == cfg.Vm.Type {
 		vmManager, err = vm2.NewDockerManager(template)
 	} else {
-		vmManager, err = vm2.NewVirtManager(template)
+		//vmManager, err = vm2.NewVirtManager(template)
+		os.Exit(1)
 	}
 	if err != nil {
 		logrus.Error(err)

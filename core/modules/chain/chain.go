@@ -532,9 +532,16 @@ func (cc *ChainClient) GetResource(resourceIndex uint64) (*ComputingResource, er
 	}
 	fmt.Println(key.Hex())
 
+	rows, err := cc.api.RPC.State.GetStorageRawLatest(key)
+	fmt.Println("rows", len(*rows))
+	fmt.Println("err:", err)
+	fmt.Println("row:", rows)
+
 	var computingResource ComputingResource
+
 	ok, err := cc.api.RPC.State.GetStorageLatest(key, &computingResource)
 	if !ok {
+		fmt.Println(err)
 		return nil, errors.New("cannot get state with computingResource")
 	}
 

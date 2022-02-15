@@ -380,6 +380,22 @@ func getChainResource(gin *MyContext) {
 	}
 }
 
+func changeUnitPrice(gin *MyContext) {
+	var price UnitPriceParam
+
+	if err := gin.BindJSON(&price); err != nil {
+		gin.JSON(http.StatusBadRequest, BadRequest())
+		return
+	}
+	ri := gin.CoreContext.GetConfig().ChainRegInfo.ResourceIndex
+	err := gin.CoreContext.ReportClient.ModifyResourcePrice(ri, int64(price.UnitPrice))
+	if err != nil {
+		gin.JSON(http.StatusBadRequest, BadRequest("modify price fail"))
+	} else {
+		gin.JSON(http.StatusOK, Success(""))
+	}
+}
+
 func getCalculateInstanceOverdue(gin *MyContext) {
 	expireBlock, err := strconv.Atoi(gin.Query("expireBlock"))
 	if err != nil {

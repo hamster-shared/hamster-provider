@@ -7,6 +7,7 @@ export default {
   download: 'download',
   downloadComplete: 'Download complete',
   updateSucceeded: 'Update succeeded',
+  updateFailed: 'Update failed',
   verificationFailed: 'Verification failed',
   seedTip: 'Blockchain account seed or mnemonic',
   memory: 'memory',

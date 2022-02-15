@@ -34,4 +34,6 @@ export default {
   deleteResourceFailed: 'Delete resource failed',
   receiveIncomeSuccess: 'Receive income successfully',
   receiveIncomeFailed: 'Failed to collect income',
+  increaseDurationSucceeded: 'Increase duration succeeded',
+  increaseDurationFailed: 'increaseDurationSucceeded',
 };
