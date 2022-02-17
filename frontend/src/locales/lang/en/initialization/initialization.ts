@@ -16,4 +16,11 @@ export default {
   image: 'image',
   accessPort: 'access port',
   type: 'virtualization type',
+  addGatewayNode: 'Add gateway node',
+  inputGatewayNodeTip: 'Please enter the gateway node',
+  gatewayNodeTip: 'Gateway node cannot be empty',
+  gatewayNode: 'Gateway node',
+  nodeTip: 'A maximum of 5 gateway nodes are configured',
+  add: 'add',
+  delete: 'remove',
 };

@@ -342,6 +342,7 @@ func setConfig(gin *MyContext) {
 
 	cfg.SeedOrPhrase = reqBody.SeedOrPhrase
 	cfg.ConfigFlag = config.DONE
+	cfg.Bootstraps = reqBody.Bootstraps
 
 	err = gin.CoreContext.Cm.Save(cfg)
 	if err != nil {
