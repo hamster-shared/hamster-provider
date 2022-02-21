@@ -10,7 +10,8 @@ export interface VmConfig {
 }
 
 export interface ProviderConfig {
-  chainApi: string,
-  seedOrPhrase:　string,
-  vm : VmConfig | Recordable,
+  chainApi: string;
+  seedOrPhrase: string;
+  vm: VmConfig | Recordable;
+  bootstraps: string[];
 }

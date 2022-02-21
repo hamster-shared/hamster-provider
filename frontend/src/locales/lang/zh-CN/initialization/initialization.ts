@@ -16,4 +16,11 @@ export default {
   image: '镜象',
   accessPort: '访问端口',
   type: '虚拟化类型',
+  addGatewayNode: '添加网关节点',
+  inputGatewayNodeTip: '请输入网关节点',
+  gatewayNodeTip: '网关节点不能为空',
+  gatewayNode: '网关节点',
+  nodeTip: '网关节点最多配置5个',
+  add: '添加',
+  delete: '移除',
 };
