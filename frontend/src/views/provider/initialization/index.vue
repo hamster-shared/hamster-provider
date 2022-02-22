@@ -1,76 +1,78 @@
 <template>
-  <PageWrapper :title="t('initialization.initialization.basicConfiguration')">
-    <CollapseContainer :title="t('initialization.initialization.chainSettings')" :canExpan="false">
-      <a-row :gutter="24">
-        <a-col :span="18">
-          <BasicForm @register="chainRegister" />
-        </a-col>
-      </a-row>
-      <a-row :gutter="24">
-        <a-col :span="18">
-          <div style="display: flex;margin-left: 20px">
-            <span style="margin-top: 4px;margin-right: 8px">bootstraps:</span>
-            <div>
-              <div class="strap-style" v-for="(item, index) in bootstraps" :key="index">
-                <span>{{ item }}</span>
-                <a-button @click="removeBootstraps(index)" size="small" style="margin-left: 8px" type="primary" danger>{{t('initialization.initialization.delete')}}</a-button>
+  <div>
+    <PageWrapper :title="t('initialization.initialization.basicConfiguration')">
+      <CollapseContainer :title="t('initialization.initialization.chainSettings')" :canExpan="false">
+        <a-row :gutter="24">
+          <a-col :span="18">
+            <BasicForm @register="chainRegister" />
+          </a-col>
+        </a-row>
+        <a-row :gutter="24">
+          <a-col :span="18">
+            <div style="display: flex;margin-left: 20px">
+              <span style="margin-top: 4px;margin-right: 8px">bootstraps:</span>
+              <div>
+                <div class="strap-style" v-for="(item, index) in bootstraps" :key="index">
+                  <span>{{ item }}</span>
+                  <a-button @click="removeBootstraps(index)" size="small" style="margin-left: 8px" type="primary" danger>{{t('initialization.initialization.delete')}}</a-button>
+                </div>
+                <a-button @click="showAddModel" size="small" style="margin-top: 8px" type="primary" :disabled="bootstraps.length < 5 ? false : true">{{t('initialization.initialization.add')}}</a-button>
               </div>
-              <a-button @click="showAddModel" size="small" style="margin-top: 8px" type="primary" :disabled="bootstraps.length < 5 ? false : true">{{t('initialization.initialization.add')}}</a-button>
             </div>
-          </div>
-        </a-col>
-      </a-row>
-    </CollapseContainer>
-    <CollapseContainer class="mt-5" :title="t('initialization.initialization.virtualSpecificationSettings')" :canExpan="false">
-      <a-row :gutter="24">
-        <a-col :span="18">
-          <BasicForm @register="register" />
-        </a-col>
-      </a-row>
-    </CollapseContainer>
+          </a-col>
+        </a-row>
+      </CollapseContainer>
+      <CollapseContainer class="mt-5" :title="t('initialization.initialization.virtualSpecificationSettings')" :canExpan="false">
+        <a-row :gutter="24">
+          <a-col :span="18">
+            <BasicForm @register="register" />
+          </a-col>
+        </a-row>
+      </CollapseContainer>
 
-    <Description
-      class="mt-4"
-      :title="t('initialization.initialization.virtualMachineImage')"
-      :column="3"
-      :data="mockData"
-      :schema="imageSchema"
-    />
+      <Description
+        class="mt-4"
+        :title="t('initialization.initialization.virtualMachineImage')"
+        :column="3"
+        :data="mockData"
+        :schema="imageSchema"
+      />
 
-    <Button class="mt-4" type="primary" @click="handleSubmit"> {{ t('initialization.initialization.updateInformation') }} </Button>
-  </PageWrapper>
-  <a-modal
-    v-model:visible="visible"
-    :title="t('initialization.initialization.addGatewayNode')"
-    :maskClosable="false"
-    :footer="null"
-    :centered="true"
-    :closable="false"
-  >
-    <a-spin :spinning="addLoading">
-      <div class="staking-content">
-        <span class="title">{{ t('initialization.initialization.gatewayNode') }}</span>
-        <a-textarea
-          v-model:value="value"
-          :placeholder="t('initialization.initialization.inputGatewayNodeTip')"
-          :rows="3"
-          @change="checkAddBootstrap"
-          style="width: 420px"
-        />
-      </div>
-      <span class="form-error-tip" v-if="addBootstrapTip">{{
-          t('initialization.initialization.gatewayNodeTip')
-        }}</span>
-      <div class="staking-footer">
-        <a-button class="staking-btn-close" @click="close">{{
-            t('accountInfo.info.cancel')
-          }}</a-button>
-        <a-button class="staking-btn-ok" @click="ok">{{
-            t('accountInfo.info.determine')
-          }}</a-button>
-      </div>
-    </a-spin>
-  </a-modal>
+      <Button class="mt-4" type="primary" @click="handleSubmit"> {{ t('initialization.initialization.updateInformation') }} </Button>
+    </PageWrapper>
+    <a-modal
+      v-model:visible="visible"
+      :title="t('initialization.initialization.addGatewayNode')"
+      :maskClosable="false"
+      :footer="null"
+      :centered="true"
+      :closable="false"
+    >
+      <a-spin :spinning="addLoading">
+        <div class="staking-content">
+          <span class="title">{{ t('initialization.initialization.gatewayNode') }}</span>
+          <a-textarea
+            v-model:value="value"
+            :placeholder="t('initialization.initialization.inputGatewayNodeTip')"
+            :rows="3"
+            @change="checkAddBootstrap"
+            style="width: 420px"
+          />
+        </div>
+        <span class="form-error-tip" v-if="addBootstrapTip">{{
+            t('initialization.initialization.gatewayNodeTip')
+          }}</span>
+        <div class="staking-footer">
+          <a-button class="staking-btn-close" @click="close">{{
+              t('accountInfo.info.cancel')
+            }}</a-button>
+          <a-button class="staking-btn-ok" @click="ok">{{
+              t('accountInfo.info.determine')
+            }}</a-button>
+        </div>
+      </a-spin>
+    </a-modal>
+  </div>
 </template>
 <script lang="ts">
 import {computed, defineComponent, reactive, onMounted, h, ref, toRefs} from 'vue';
@@ -167,7 +169,6 @@ import {string} from "vue-types";
 
       onMounted(async () => {
         const data = await getConfigApi();
-        console.log(data);
         state.bootstraps = data.bootstraps;
         await setFieldsValue(data.vm);
         await chainSetFieldsValue({"address": data.chainApi, "account": data.seedOrPhrase});
