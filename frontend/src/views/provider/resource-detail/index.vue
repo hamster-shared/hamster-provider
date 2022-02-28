@@ -7,16 +7,16 @@
             {{ t('resourceDetail.detail.changePrice') }}
           </a-button>
           <a-button type="primary" @click="increaseDurationModal" :disabled="state.disabled">
-            {{ t('resourceDetail.detail.increaseＤuration') }}
+            {{ t('resourceDetail.detail.increaseDuration') }}
           </a-button>
           <a-button type="primary" @click="rentAgain" :disabled="state.disabled">
-            {{ t('resourceDetail.detail.rentＡgain') }}</a-button
+            {{ t('resourceDetail.detail.rentAgain') }}</a-button
           >
           <a-button type="primary" @click="deleteResource" :disabled="state.disabled">
             {{ t('resourceDetail.detail.deleteResource') }}</a-button
           >
           <a-button type="primary" @click="receiveIncome" :disabled="state.receiveJudge">
-            {{ t('resourceDetail.detail.receiveＢenefits') }}</a-button
+            {{ t('resourceDetail.detail.receiveBenefits') }}</a-button
           >
         </template>
         <div class="pt-4 m-4 desc-wrap">
@@ -31,17 +31,17 @@
             <a-descriptions-item :label="t('resourceDetail.detail.system')">
               {{ resourceData.config ? resourceData.config.system : '' }}
             </a-descriptions-item>
-            <a-descriptions-item :label="t('resourceDetail.detail.resourceＳtate')">
+            <a-descriptions-item :label="t('resourceDetail.detail.resourceState')">
               {{ displayResourceStatus(resourceData.status) }}
             </a-descriptions-item>
-            <a-descriptions-item :label="t('resourceDetail.detail.cpuＭodel')">
+            <a-descriptions-item :label="t('resourceDetail.detail.cpuModel')">
               {{ resourceData.config ? resourceData.config.cpuModel : '' }}
             </a-descriptions-item>
             <a-descriptions-item :label="t('resourceDetail.detail.unitPrice')">
               {{ resourceData.rentalInfo ? priceFormat(resourceData.rentalInfo.rentUnitPrice) : '' }}
             </a-descriptions-item>
             <a-descriptions-item :label="t('resourceDetail.detail.cpuCounts')">
-              {{ resourceData.config ? resourceData.config.cpu + '核' : '' }}
+              {{ resourceData.config ? resourceData.config.cpu + 'Core' : '' }}
             </a-descriptions-item>
             <a-descriptions-item :label="t('resourceDetail.detail.expireDate')">
               {{ resourceData.expirationTime ? resourceData.expirationTime : '' }}
@@ -97,7 +97,7 @@
     </a-modal>
     <a-modal
       v-model:visible="state.increaseDurationVisible"
-      :title="t('resourceDetail.detail.increaseＤuration')"
+      :title="t('resourceDetail.detail.increaseDuration')"
       :maskClosable="false"
       :footer="null"
       :centered="true"
