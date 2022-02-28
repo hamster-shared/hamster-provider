@@ -10,7 +10,7 @@ export default {
   lockedPledgeAmount: 'Locked pledge amount',
   pledgeAmount: 'Pledge amount：',
   stakingAmountTip: 'Pledge amount cannot be blank',
-  determine: 'Determine',
+  determine: 'OK',
   cancel: 'Cancel',
   pledgeAmountModal: 'Pledge Amount',
   inputPledgeAmount: 'Please enter the pledge amount',
