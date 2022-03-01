@@ -20,7 +20,7 @@ func init() {
 // Manager 虚拟化接口
 type Manager interface {
 	// SetTemplate 配置模板
-	SetTemplate(t Template)
+	SetTemplate(t Template) error
 	// Create 创建
 	Create(name string) error
 	// Start 启动虚拟机
@@ -60,8 +60,9 @@ func (s *Status) IsRunning() bool {
 }
 
 type Template struct {
-	Cpu, Memory, Dist uint64
+	Cpu, Memory, Disk uint64
 	System            string
 	PublicKey         string
 	Image             string
+	AccessPort        int
 }

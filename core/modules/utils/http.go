@@ -1,14 +1,21 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 )
 
 func Download(fullURLFile string, destPath string) error {
+
+	dir := filepath.Dir(destPath)
+	if _, err := os.Stat(dir); errors.Is(err, os.ErrNotExist) {
+		_ = os.MkdirAll(dir, os.ModePerm)
+	}
 
 	// Create blank file
 	file, err := os.Create(destPath)
