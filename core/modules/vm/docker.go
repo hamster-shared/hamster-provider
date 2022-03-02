@@ -45,10 +45,11 @@ func NewDockerManager(t Template) (*DockerManager, error) {
 	return manager, err
 }
 
-func (d *DockerManager) SetTemplate(t Template) {
+func (d *DockerManager) SetTemplate(t Template) error {
 	d.template = &t
 	d.image = t.Image
 	d.accessPort = 22
+	return nil
 }
 
 func (d *DockerManager) Status(name string) (*Status, error) {
