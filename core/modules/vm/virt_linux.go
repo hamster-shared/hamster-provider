@@ -36,11 +36,11 @@ func NewVirtManager(t Template) (*VirtManager, error) {
 		conn: conn,
 		home: homedir + "/.hamster-provider",
 	}
-	manager.SetTemplate(t)
+	err = manager.SetTemplate(t)
 	return manager, err
 }
 
-func (v *VirtManager) SetTemplate(t Template) {
+func (v *VirtManager) SetTemplate(t Template) error {
 	v.template = &t
 	v.accessPort = 22
 	baeImage := fmt.Sprintf("%s/%s", v.home, path.Base(v.template.Image))
@@ -51,7 +51,7 @@ func (v *VirtManager) SetTemplate(t Template) {
 		err = utils.Download(v.template.Image, baeImage)
 		if err != nil {
 			log.Error("download template fail")
-			return
+			return err
 		}
 
 	}
@@ -61,290 +61,14 @@ func (v *VirtManager) SetTemplate(t Template) {
 			file, err := os.Open(baeImage)
 			if err != nil {
 				log.Error("download template fail")
-				return
+				return err
 			}
-			err = utils.UnTar(file, v.home)
+			return utils.UnTar(file, v.home)
 		}
 	}
 
+	return nil
 }
-
-//func (v *VirtManager) newXml() (string, error) {
-//
-//	if v.template == nil {
-//		return "", errors.New("template not set,please set template first!")
-//	}
-//
-//	domcfg := &libvirtxml.Domain{
-//		Type: "kvm",
-//		Name: name,
-//		Memory: &libvirtxml.DomainMemory{
-//			Unit:  "GiB",
-//			Value: uint(v.template.Memory),
-//		},
-//		CurrentMemory: &libvirtxml.DomainCurrentMemory{
-//			Unit:  "GiB",
-//			Value: uint(v.template.Memory),
-//		},
-//		VCPU: &libvirtxml.DomainVCPU{
-//			Placement: "static",
-//			Value:     uint(v.template.Cpu),
-//		},
-//		OS: &libvirtxml.DomainOS{
-//			Type: &libvirtxml.DomainOSType{
-//				Arch:    "x86_64",
-//				Machine: "pc-i440fx-rhel7.0.0",
-//				Type:    "hvm",
-//			},
-//			BootDevices: []libvirtxml.DomainBootDevice{
-//				{
-//					Dev: "hd",
-//				},
-//			},
-//		},
-//		Features: &libvirtxml.DomainFeatureList{
-//			APIC: &libvirtxml.DomainFeatureAPIC{},
-//			ACPI: &libvirtxml.DomainFeature{},
-//		},
-//		CPU: &libvirtxml.DomainCPU{
-//			Mode:  "custom",
-//			Match: "exact",
-//			Check: "partial",
-//			Model: &libvirtxml.DomainCPUModel{
-//				Fallback: "allow",
-//				Value:    "Haswell-noTSX-IBRS",
-//			},
-//			Features: []libvirtxml.DomainCPUFeature{
-//				{
-//					Policy: "require",
-//					Name:   "md-clear",
-//				},
-//				{
-//					Policy: "require",
-//					Name:   "spec-ctrl",
-//				},
-//				{
-//					Policy: "require",
-//					Name:   "ssbd",
-//				},
-//			},
-//		},
-//		OnCrash:    "destroy",
-//		OnReboot:   "restart",
-//		OnPoweroff: "destroy",
-//		Devices: &libvirtxml.DomainDeviceList{
-//			Emulator: "/usr/libexec/qemu-kvm",
-//			Disks: []libvirtxml.DomainDisk{
-//				{
-//					Device: "disk",
-//					Driver: &libvirtxml.DomainDiskDriver{
-//						Name: "qemu",
-//						Type: "qcow2",
-//					},
-//					Source: &libvirtxml.DomainDiskSource{
-//						File: &libvirtxml.DomainDiskSourceFile{
-//							File: v.image,
-//						},
-//					},
-//					Target: &libvirtxml.DomainDiskTarget{
-//						Dev: "hda",
-//						Bus: "ide",
-//					},
-//					Address: &libvirtxml.DomainAddress{
-//						Drive: &libvirtxml.DomainAddressDrive{
-//							Controller: helpUint(0),
-//							Bus:        helpUint(0),
-//							Target:     helpUint(0),
-//							goUnit:       helpUint(0),
-//						},
-//					},
-//				},
-//			},
-//			Controllers: []libvirtxml.DomainController{
-//				{
-//					Type:  "usb",
-//					Index: helpUint(0),
-//					Model: "ich9-ehci1",
-//					Address: &libvirtxml.DomainAddress{
-//						PCI: &libvirtxml.DomainAddressPCI{
-//							Domain:   helpUint(0),
-//							Bus:      helpUint(0),
-//							Slot:     helpUint(4),
-//							Function: helpUint(7),
-//						},
-//					},
-//				},
-//				{
-//					Type:  "usb",
-//					Index: helpUint(0),
-//					Model: "ich9-uhci1",
-//					USB: &libvirtxml.DomainControllerUSB{
-//						Master: &libvirtxml.DomainControllerUSBMaster{
-//							StartPort: 0,
-//						},
-//					},
-//					Address: &libvirtxml.DomainAddress{
-//						PCI: &libvirtxml.DomainAddressPCI{
-//							Domain:        helpUint(0),
-//							Bus:           helpUint(0),
-//							Slot:          helpUint(4),
-//							Function:      helpUint(0),
-//							MultiFunction: "on",
-//						},
-//					},
-//				},
-//				{
-//					Type:  "usb",
-//					Index: helpUint(0),
-//					Model: "ich9-uhci2",
-//					USB: &libvirtxml.DomainControllerUSB{
-//						Master: &libvirtxml.DomainControllerUSBMaster{
-//							StartPort: 2,
-//						},
-//					},
-//					Address: &libvirtxml.DomainAddress{
-//						PCI: &libvirtxml.DomainAddressPCI{
-//							Domain:   helpUint(0),
-//							Bus:      helpUint(0),
-//							Slot:     helpUint(4),
-//							Function: helpUint(1),
-//						},
-//					},
-//				},
-//				{
-//					Type:  "usb",
-//					Index: helpUint(0),
-//					Model: "ich9-uhci3",
-//					USB: &libvirtxml.DomainControllerUSB{
-//						Master: &libvirtxml.DomainControllerUSBMaster{
-//							StartPort: 4,
-//						},
-//					},
-//					Address: &libvirtxml.DomainAddress{
-//						PCI: &libvirtxml.DomainAddressPCI{
-//							Domain:   helpUint(0),
-//							Bus:      helpUint(0),
-//							Slot:     helpUint(4),
-//							Function: helpUint(2),
-//						},
-//					},
-//				},
-//				{
-//					Type:  "pci",
-//					Index: helpUint(0),
-//					Model: "pci-root",
-//				},
-//				{
-//					Type:  "ide",
-//					Index: helpUint(0),
-//					Address: &libvirtxml.DomainAddress{
-//						PCI: &libvirtxml.DomainAddressPCI{
-//							Domain:   helpUint(0),
-//							Bus:      helpUint(0),
-//							Slot:     helpUint(1),
-//							Function: helpUint(1),
-//						},
-//					},
-//				},
-//			},
-//			Interfaces: []libvirtxml.DomainInterface{
-//				{
-//					Source: &libvirtxml.DomainInterfaceSource{
-//						Network: &libvirtxml.DomainInterfaceSourceNetwork{
-//							Network: "default",
-//						},
-//					},
-//					Model: &libvirtxml.DomainInterfaceModel{
-//						Type: "e1000",
-//					},
-//					Address: &libvirtxml.DomainAddress{
-//						PCI: &libvirtxml.DomainAddressPCI{
-//							Domain:   helpUint(0),
-//							Bus:      helpUint(0),
-//							Slot:     helpUint(3),
-//							Function: helpUint(0),
-//						},
-//					},
-//				},
-//			},
-//			Serials: []libvirtxml.DomainSerial{
-//				{
-//					Target: &libvirtxml.DomainSerialTarget{
-//						Type: "isa-serial",
-//						Port: helpUint(0),
-//						Model: &libvirtxml.DomainSerialTargetModel{
-//							Name: "isa-serial",
-//						},
-//					},
-//				},
-//			},
-//			Consoles: []libvirtxml.DomainConsole{
-//				{
-//					Target: &libvirtxml.DomainConsoleTarget{
-//						Type: "serial",
-//						Port: helpUint(0),
-//					},
-//				},
-//			},
-//			Inputs: []libvirtxml.DomainInput{
-//				{
-//					Type: "tablet",
-//					Bus:  "usb",
-//					Address: &libvirtxml.DomainAddress{
-//						USB: &libvirtxml.DomainAddressUSB{
-//							Bus:  helpUint(0),
-//							Port: "1",
-//						},
-//					},
-//				},
-//				{
-//					Type: "mouse",
-//					Bus:  "ps2",
-//				},
-//				{
-//					Type: "keyboard",
-//					Bus:  "ps2",
-//				},
-//			},
-//			Videos: []libvirtxml.DomainVideo{
-//				{
-//					Model: libvirtxml.DomainVideoModel{
-//						Type:    "vga",
-//						VRam:    16384,
-//						Heads:   1,
-//						Primary: "yes",
-//					},
-//					Address: &libvirtxml.DomainAddress{
-//						PCI: &libvirtxml.DomainAddressPCI{
-//							Domain:   helpUint(0),
-//							Bus:      helpUint(0),
-//							Slot:     helpUint(2),
-//							Function: helpUint(0),
-//						},
-//					},
-//				},
-//			},
-//			MemBalloon: &libvirtxml.DomainMemBalloon{
-//				Model: "virtio",
-//				Address: &libvirtxml.DomainAddress{
-//					PCI: &libvirtxml.DomainAddressPCI{
-//						Domain:   helpUint(0),
-//						Bus:      helpUint(0),
-//						Slot:     helpUint(5),
-//						Function: helpUint(0),
-//					},
-//				},
-//			},
-//		},
-//	}
-//
-//	xml, err := domcfg.Marshal()
-//	if err != nil {
-//		return "", err
-//	}
-//
-//	return xml, nil
-//}
 
 func (v *VirtManager) getCopyDiskFile(name string) string {
 	return fmt.Sprintf("%s/orders/%s_%s", v.home, name, v.getBaseImageName())
@@ -363,7 +87,7 @@ func (v *VirtManager) getBaseImagePath() string {
 }
 
 // Create create
-func (v *VirtManager) Create(name string) error {
+func (v *VirtManager) Create(name string) (string, error) {
 	log.Info("start the virtual machine")
 	//xml, err := v.newXml()
 	//if err != nil {
@@ -391,7 +115,7 @@ func (v *VirtManager) Create(name string) error {
 	if err != nil {
 		fmt.Println("Execute Command failed:" + err.Error())
 	}
-	return err
+	return name, err
 }
 
 // Start start the virtual machine
@@ -417,35 +141,36 @@ func (v *VirtManager) Start(name string) error {
 }
 
 // CreateAndStart create and start
-func (v *VirtManager) CreateAndStart(name string) error {
+func (v *VirtManager) CreateAndStart(name string) (string, error) {
 
-	err := v.Create(name)
+	id, err := v.Create(name)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return v.Start(name)
+	err = v.Start(name)
+	return id, err
 }
 
-func (v *VirtManager) CreateAndStartAndInjectionPublicKey(name, publicKey string) error {
+func (v *VirtManager) CreateAndStartAndInjectionPublicKey(name, publicKey string) (string, error) {
 
 	// injection public key
 	err := v.InjectionPublicKey(name, publicKey)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// create a virtual machine
-	err = v.CreateAndStart(name)
+	id, err := v.CreateAndStart(name)
 	if err != nil {
-		return err
+		return id, err
 	}
 
 	// wait for the virtual machine to start successfully
 	for {
 		status, err := v.Status(name)
 		if err != nil {
-			return err
+			return "", err
 		}
 		if status.IsRunning() {
 			break
@@ -454,7 +179,7 @@ func (v *VirtManager) CreateAndStartAndInjectionPublicKey(name, publicKey string
 	}
 
 	log.Info("processing order complete")
-	return nil
+	return id, err
 }
 
 // Stop shutdown the virtual machine
