@@ -26,6 +26,8 @@ require (
 	github.com/stretchr/testify v1.7.0
 )
 
+require github.com/libvirt/libvirt-go v7.4.0+incompatible
+
 require (
 	github.com/ChainSafe/go-schnorrkel v1.0.0 // indirect
 	github.com/Microsoft/go-winio v0.5.1 // indirect
