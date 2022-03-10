@@ -13,7 +13,7 @@ type CreateVmHandler struct {
 func (h *CreateVmHandler) HandlerEvent(e *VmRequest) {
 
 	// inject public key
-	err := h.CoreContext.VmManager.CreateAndStartAndInjectionPublicKey(e.getName(), e.PublicKey)
+	_, err := h.CoreContext.VmManager.CreateAndStartAndInjectionPublicKey(e.getName(), e.PublicKey)
 	if err != nil {
 		log.Error("failed to process order,%v", err)
 		return

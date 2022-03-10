@@ -268,7 +268,7 @@ func createVm(gin *MyContext) {
 	name := gin.Query("name")
 	manage := gin.CoreContext.VmManager
 	logrus.Info("create virtual machine  start")
-	err := manage.Create(name)
+	_, err := manage.Create(name)
 	logrus.Info("create virtual machine  end")
 	if err != nil {
 		logrus.Error("create virtual machine  fail")

@@ -41,14 +41,15 @@ func NewDockerManager(t Template) (*DockerManager, error) {
 		cli: cli,
 		ctx: context.Background(),
 	}
-	manager.SetTemplate(t)
+	err = manager.SetTemplate(t)
 	return manager, err
 }
 
-func (d *DockerManager) SetTemplate(t Template) {
+func (d *DockerManager) SetTemplate(t Template) error {
 	d.template = &t
 	d.image = t.Image
 	d.accessPort = 22
+	return nil
 }
 
 func (d *DockerManager) Status(name string) (*Status, error) {
@@ -131,7 +132,7 @@ func (d *DockerManager) GetAccessPort(name string) int {
 	return 0
 }
 
-func (d *DockerManager) Create(name string) error {
+func (d *DockerManager) Create(name string) (string, error) {
 
 	// view all images
 	imageLists, err := d.cli.ImageList(d.ctx, types.ImageListOptions{
@@ -140,18 +141,18 @@ func (d *DockerManager) Create(name string) error {
 	})
 	if err != nil {
 		log.Println(err)
-		return err
+		return "", err
 	}
 	if len(imageLists) == 0 {
 		// pull image
 		out, err := d.cli.ImagePull(d.ctx, d.image, types.ImagePullOptions{})
 		if err != nil {
 			log.Println(err)
-			return err
+			return "", err
 		}
 		_, err = io.Copy(os.Stdout, out)
 		if err != nil {
-			return err
+			return "", err
 		}
 	}
 
@@ -164,7 +165,7 @@ func (d *DockerManager) Create(name string) error {
 	if status.id != "" {
 		err = d.cli.ContainerRemove(d.ctx, status.id, types.ContainerRemoveOptions{Force: true})
 		if err != nil {
-			return err
+			return status.id, err
 		}
 	}
 
@@ -197,12 +198,12 @@ func (d *DockerManager) Create(name string) error {
 
 	if err != nil {
 		log.Println(err)
-		return err
+		return resp.ID, err
 	}
 
 	log.WithField("containerId", resp.ID).Info("container created")
 
-	return nil
+	return resp.ID, err
 }
 
 // StartContainer running containers in the background
@@ -223,32 +224,34 @@ func (d *DockerManager) Start(name string) error {
 
 }
 
-func (d *DockerManager) CreateAndStart(name string) error {
-	err := d.Create(name)
+func (d *DockerManager) CreateAndStart(name string) (string, error) {
+	id, err := d.Create(name)
 	if err != nil {
-		return err
+		return id, err
 	}
-	return d.Start(name)
+	err = d.Start(name)
+	return id, err
 }
 
-func (d *DockerManager) CreateAndStartAndInjectionPublicKey(name, publicKey string) error {
+func (d *DockerManager) CreateAndStartAndInjectionPublicKey(name, publicKey string) (string, error) {
 	// create a virtual machine
-	err := d.CreateAndStart(name)
+	id, err := d.CreateAndStart(name)
 	if err != nil {
-		return err
+		return id, err
 	}
 	// wait for the virtual machine to start successfully
 	for {
 		status, err := d.Status(name)
 		if err != nil {
-			return err
+			return id, err
 		}
 		if status.IsRunning() {
 			break
 		}
 		time.Sleep(time.Second * 3)
 	}
-	return d.InjectionPublicKey(name, publicKey)
+	err = d.InjectionPublicKey(name, publicKey)
+	return id, err
 }
 
 func (d *DockerManager) Stop(name string) error {

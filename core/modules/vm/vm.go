@@ -22,13 +22,13 @@ type Manager interface {
 	// SetTemplate 配置模板
 	SetTemplate(t Template) error
 	// Create 创建
-	Create(name string) error
+	Create(name string) (string, error)
 	// Start 启动虚拟机
 	Start(name string) error
 	// CreateAndStart 创建并启动
-	CreateAndStart(name string) error
+	CreateAndStart(name string) (string, error)
 	// 启动并注入公钥
-	CreateAndStartAndInjectionPublicKey(name string, publicKey string) error
+	CreateAndStartAndInjectionPublicKey(name string, publicKey string) (string, error)
 	// Stop 关闭虚拟机
 	Stop(name string) error
 	// Reboot 重启虚拟机

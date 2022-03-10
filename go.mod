@@ -26,6 +26,8 @@ require (
 	github.com/stretchr/testify v1.7.0
 )
 
+//require github.com/libvirt/libvirt-go v7.4.0+incompatible
+
 require github.com/libvirt/libvirt-go v7.4.0+incompatible
 
 require (
