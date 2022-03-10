@@ -23,7 +23,7 @@ hamster is a blockchain-based blockchain infrastructure service. Any computing d
 
 ### 1.2 Contributing Guide
 
-Hi! Thank you for choosing gin-vue-admin.
+Hi! Thank you for choosing Hamster.
 
 Hamster is a blockchain that providers infrastructure service.
 
