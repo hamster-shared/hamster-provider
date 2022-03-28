@@ -573,6 +573,21 @@ func (cc *ChainClient) getRentalAgreement(agreementIndex uint64) (*RentalAgreeme
 	return &data, err
 }
 
+func (cc *ChainClient) GetGatewayNodes() ([]string, error) {
+	var nodes []string
+	meta, err := cc.api.RPC.State.GetMetadataLatest()
+	if err != nil {
+		return nodes, err
+	}
+	key, err := types.CreateStorageKey(meta, "Gateway", "Gateways")
+	var data []string
+	ok, err := cc.api.RPC.State.GetStorageLatest(key, &data)
+	if !ok {
+		return data, errors.New("gateway nodes is empty")
+	}
+	return data, err
+}
+
 func (cc *ChainClient) GetOrder(orderIndex uint64) (*ComputingOrder, error) {
 
 	meta, err := cc.api.RPC.State.GetMetadataLatest()

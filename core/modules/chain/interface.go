@@ -46,4 +46,6 @@ type ReportClient interface {
 	WithdrawStakingAmount(unitPrice int64) error
 
 	ReceiveIncomeJudge() bool
+
+	GetGatewayNodes() ([]string, error)
 }

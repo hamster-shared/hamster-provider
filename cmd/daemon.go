@@ -30,7 +30,10 @@ import (
 	vm2 "github.com/hamster-shared/hamster-provider/core/modules/vm"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"log"
+	"math/rand"
 	"os"
+	"path/filepath"
 )
 
 // daemonCmd represents the daemon command
@@ -48,6 +51,7 @@ to quickly create a Cobra application.`,
 
 		context := NewContext()
 		server := core.NewServer(context)
+		saveGatewayNodes(context)
 		server.Run()
 	},
 }
@@ -119,7 +123,40 @@ func NewContext() context2.CoreContext {
 	}
 	return context
 }
+func saveGatewayNodes(ctx context2.CoreContext) {
+	cfg := getDefaultConfig()
+	data, err := ctx.ReportClient.GetGatewayNodes()
+	var nodes []string
+	if err != nil {
+		cfg.Bootstraps = nodes
+	}
+	if len(data) <= 3 {
+		cfg.Bootstraps = data
+	} else {
+		num := rand.Intn(len(data) - 1)
+		nodes = append(nodes, data[num])
+		num1 := rand.Intn(len(data) - 1)
+		nodes = append(nodes, data[num1])
+		num3 := rand.Intn(len(data) - 1)
+		nodes = append(nodes, data[num3])
+		cfg.Bootstraps = nodes
+	}
+	path := config.DefaultConfigPath()
 
+	err = os.MkdirAll(filepath.Dir(path), os.ModeDir)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = os.Chmod(filepath.Dir(path), os.ModePerm)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = config.NewConfigManagerWithPath(path).Save(&cfg)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
 func init() {
 	rootCmd.AddCommand(daemonCmd)
 
