@@ -65,11 +65,11 @@ We are excited that you are interested in contributing to Hamster. Before submit
 # install package dependency
 
 ## ubuntu
-sudo apt install qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils virtinst virt-manager
+sudo apt install qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils virtinst virt-manager libvirt-devel
 sudo systemctl is-active libvirtd
 
 ## centos
-yum install -y qemu-kvm libvirt virt-install
+yum install -y qemu-kvm libvirt virt-install libvirt-dev
 systemctl start libvirtd && systemctl enable libvirtd
 
 
