@@ -83,7 +83,7 @@ cd frontend
 npm install
 
 # build frontend 
-npm run build
+npm run serve
 
 # go to root directory
 cd ..
