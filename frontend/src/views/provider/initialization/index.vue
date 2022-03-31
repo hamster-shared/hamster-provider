@@ -30,13 +30,13 @@
         </a-row>
       </CollapseContainer>
 
-      <Description
-        class="mt-4"
-        :title="t('initialization.initialization.virtualMachineImage')"
-        :column="3"
-        :data="mockData"
-        :schema="imageSchema"
-      />
+<!--      <Description-->
+<!--        class="mt-4"-->
+<!--        :title="t('initialization.initialization.virtualMachineImage')"-->
+<!--        :column="3"-->
+<!--        :data="mockData"-->
+<!--        :schema="imageSchema"-->
+<!--      />-->
 
       <Button class="mt-4" type="primary" @click="handleSubmit"> {{ t('initialization.initialization.updateInformation') }} </Button>
     </PageWrapper>
