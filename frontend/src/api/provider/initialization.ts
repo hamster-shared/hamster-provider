@@ -2,7 +2,7 @@ import { defHttp } from '/@/utils/http/axios';
 import {ProviderConfig,} from '/@/api/provider/model/settingModel';
 
 enum Api {
-  Setting = '/api/v1/config/settting',
+  Setting = '/v1/config/settting',
 }
 
 //获取系统配置

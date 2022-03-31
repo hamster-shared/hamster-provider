@@ -1,7 +1,7 @@
 import { defHttp } from '/@/utils/http/axios';
 
 enum Api {
-  Boot = '/api/v1/config/boot',
+  Boot = '/v1/config/boot',
 }
 
 // set boot state

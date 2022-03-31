@@ -2,14 +2,14 @@ import { defHttp } from '/@/utils/http/axios';
 import { ComputingResource, UnitPriceParam} from '/@/api/provider/model/resourceModel';
 
 enum Api {
-  ChainResource = '/api/v1/chain/resource',
-  ResourceExpirationTime = '/api/v1/chain/expiration-time',
-  changePrice = '/api/v1/resource/modify-price',
-  addDuration = '/api/v1/resource/add-duration',
-  rentAgain = '/api/v1/resource/rent-again',
-  receiveIncome = '/api/v1/resource/receive-income',
-  deleteResource = '/api/v1/resource/delete-resource',
-  judge = '/api/v1/resource/receive-income-judge',
+  ChainResource = '/v1/chain/resource',
+  ResourceExpirationTime = '/v1/chain/expiration-time',
+  changePrice = '/v1/resource/modify-price',
+  addDuration = '/v1/resource/add-duration',
+  rentAgain = '/v1/resource/rent-again',
+  receiveIncome = '/v1/resource/receive-income',
+  deleteResource = '/v1/resource/delete-resource',
+  judge = '/v1/resource/receive-income-judge',
   ModifyPrice = '/v1/chain/price',
 }
 
