@@ -25,7 +25,7 @@ import (
 
 var (
 	DEFAULT_IPFS_PEERS = []string{
-		"/ip4/183.66.65.247/tcp/4001/p2p/12D3KooWHPbFSqWiKgh1QzuX64otKZNfYuUu1cYRmfCWnxEqjb5k",
+		"/ip4/104.43.227.20/tcp/4001/p2p/12D3KooWSWG7DFT6VkT3QXu6CTUxLKwjWwnrxuoZvcfGkizXZvLh",
 		//"/ip4/10.8.0.1/tcp/4001/p2p/12D3KooWPspserj71AYehMh69Nra7GA1QbtD9CueAXdrThiBbAxz",
 	}
 )
