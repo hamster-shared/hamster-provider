@@ -65,7 +65,7 @@ We are excited that you are interested in contributing to Hamster. Before submit
 # install package dependency
 
 ## ubuntu
-sudo apt install qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils virtinst virt-manager libvirt-devel
+sudo apt install qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils virtinst virt-manager libvirt-dev
 sudo systemctl is-active libvirtd
 
 ## centos
@@ -83,7 +83,7 @@ cd frontend
 npm install
 
 # build frontend 
-npm run serve
+npm run build
 
 # go to root directory
 cd ..
