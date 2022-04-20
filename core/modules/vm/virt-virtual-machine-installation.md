@@ -10,11 +10,11 @@ egrep 'vmx|svm' /proc/cpuinfo --color=auto
 
 ```shell
 ## centos
-yum install -y qemu-kvm libvirt virt-install
+yum install -y qemu-kvm libvirt virt-install libvirt-devel
 systemctl start libvirtd && systemctl enable libvirtd
 
 ## ubuntu 
-sudo apt install qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils virtinst virt-manager
+sudo apt install qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils virtinst virt-manager libvirt-dev
 sudo systemctl is-active libvirtd
 sudo usermod -aG libvirt $USER
 sudo usermod -aG kvm $USER
