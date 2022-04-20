@@ -124,37 +124,41 @@ func NewContext() context2.CoreContext {
 	return context
 }
 func saveGatewayNodes(ctx context2.CoreContext) {
-	cfg := getDefaultConfig()
-	data, err := ctx.ReportClient.GetGatewayNodes()
-	var nodes []string
+	cfg, err := ctx.Cm.GetConfig()
 	if err != nil {
-		cfg.Bootstraps = nodes
-	}
-	if len(data) <= 3 {
-		cfg.Bootstraps = data
+		fmt.Println("save gateway failed", err)
 	} else {
-		num := rand.Intn(len(data) - 1)
-		nodes = append(nodes, data[num])
-		num1 := rand.Intn(len(data) - 1)
-		nodes = append(nodes, data[num1])
-		num3 := rand.Intn(len(data) - 1)
-		nodes = append(nodes, data[num3])
-		cfg.Bootstraps = nodes
-	}
-	path := config.DefaultConfigPath()
+		data, err := ctx.ReportClient.GetGatewayNodes()
+		var nodes []string
+		if err != nil {
+			cfg.Bootstraps = nodes
+		}
+		if len(data) <= 3 {
+			cfg.Bootstraps = data
+		} else {
+			num := rand.Intn(len(data) - 1)
+			nodes = append(nodes, data[num])
+			num1 := rand.Intn(len(data) - 1)
+			nodes = append(nodes, data[num1])
+			num3 := rand.Intn(len(data) - 1)
+			nodes = append(nodes, data[num3])
+			cfg.Bootstraps = nodes
+		}
+		path := config.DefaultConfigPath()
 
-	err = os.MkdirAll(filepath.Dir(path), os.ModeDir)
-	if err != nil {
-		log.Fatal(err)
-	}
+		err = os.MkdirAll(filepath.Dir(path), os.ModeDir)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-	err = os.Chmod(filepath.Dir(path), os.ModePerm)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = config.NewConfigManagerWithPath(path).Save(&cfg)
-	if err != nil {
-		fmt.Println(err)
+		err = os.Chmod(filepath.Dir(path), os.ModePerm)
+		if err != nil {
+			log.Fatal(err)
+		}
+		err = config.NewConfigManagerWithPath(path).Save(cfg)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 }
 func init() {
