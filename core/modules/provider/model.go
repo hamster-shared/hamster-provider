@@ -1,4 +1,4 @@
-package vm
+package provider
 
 import (
 	log "github.com/sirupsen/logrus"
@@ -15,6 +15,14 @@ func init() {
 
 	// Only log the warning severity or above.
 	log.SetLevel(log.WarnLevel)
+}
+
+type Template struct {
+	Cpu, Memory, Disk uint64
+	System            string
+	PublicKey         string
+	Image             string
+	AccessPort        int
 }
 
 // Manager 虚拟化接口
@@ -49,20 +57,12 @@ type Manager interface {
 }
 
 type Status struct {
-	id string
+	Id string
 	// status 状态 0: 关闭,1: running , 2：其他
-	status int
+	Status int
 }
 
 // IsRunning 是否正在运行
 func (s *Status) IsRunning() bool {
-	return s.status == 1
-}
-
-type Template struct {
-	Cpu, Memory, Disk uint64
-	System            string
-	PublicKey         string
-	Image             string
-	AccessPort        int
+	return s.Status == 1
 }

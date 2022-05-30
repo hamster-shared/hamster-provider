@@ -1,5 +1,7 @@
 FROM golang:1.17.3 as builder
 
+ADD ./sources.list /etc/apt/sources.list
+
 # install cgo-related dependencies
 RUN set -eux; \
 	apt-get update; \
@@ -23,6 +25,8 @@ RUN set -eux; \
 
 FROM docker:20
 
+ADD ./repositories /etc/apk/repositories
+
 RUN set -eux; \
     apk update ; \
     apk add libvirt-dev
@@ -34,14 +38,15 @@ ENV CHAIN_ADDRESS 183.66.65.207:49944
 ENV CPU 1
 ENV MEMORY 1
 
-COPY --from=builder /usr/local/go/src/tntlinking.com/ttchain-compute-provider/ttchain-compute-provider /usr/local/bin/
+COPY --from=builder /usr/local/go/src/github.com/hamster-shared/hamster-provider/hamster-provider /usr/local/bin/
+ADD ./frontend/dist frontend/dist
 
 RUN set -eux ;\
-    ttchain-compute-provider init
+    hamster-provider init
 
 
-CMD sed -i 's/"none"/"done"/' ~/.ttchain-compute-provider/config \
-    && sed -i "s/127.0.0.1:9944/$CHAIN_ADDRESS/" ~/.ttchain-compute-provider/config \
-    && sed -i "s/cpu\"\:1/cpu\"\:$CPU/"  ~/.ttchain-compute-provider/config\
-    && sed -i "s/mem\"\:1/mem\"\:$MEMORY/"  ~/.ttchain-compute-provider/config\
-    && ttchain-compute-provider daemon
+CMD sed -i 's/"none"/"done"/' ~/.hamster-provider/config \
+    && sed -i "s/127.0.0.1:9944/$CHAIN_ADDRESS/" ~/.hamster-provider/config \
+    && sed -i "s/cpu\"\:1/cpu\"\:$CPU/"  ~/.hamster-provider/config\
+    && sed -i "s/mem\"\:1/mem\"\:$MEMORY/"  ~/.hamster-provider/config\
+    && hamster-provider daemon

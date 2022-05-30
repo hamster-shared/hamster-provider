@@ -37,14 +37,6 @@ func StartApi(ctx *context.CoreContext) error {
 			container.GET("/delete", deleteContainer)
 		}
 
-		pk := v1.Group("/pk")
-		// publick key
-		{
-			pk.POST("/grantKey", grantKey)
-			pk.POST("/deleteKey", deleteKey)
-			pk.POST("/queryKey", queryKey)
-		}
-
 		p2p := v1.Group("/p2p")
 		// p2p
 		{

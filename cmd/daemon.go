@@ -25,9 +25,9 @@ import (
 	"github.com/hamster-shared/hamster-provider/core/modules/event"
 	"github.com/hamster-shared/hamster-provider/core/modules/listener"
 	"github.com/hamster-shared/hamster-provider/core/modules/p2p"
-	"github.com/hamster-shared/hamster-provider/core/modules/pk"
+	"github.com/hamster-shared/hamster-provider/core/modules/provider"
+	"github.com/hamster-shared/hamster-provider/core/modules/provider/docker"
 	"github.com/hamster-shared/hamster-provider/core/modules/utils"
-	vm2 "github.com/hamster-shared/hamster-provider/core/modules/vm"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"log"
@@ -58,7 +58,6 @@ to quickly create a Cobra application.`,
 
 func NewContext() context2.CoreContext {
 	cm := config.NewConfigManager()
-	pkManager := pk.NewManager(cm)
 	cfg, err := cm.GetConfig()
 	if err != nil {
 		logrus.Error(err)
@@ -69,16 +68,16 @@ func NewContext() context2.CoreContext {
 		logrus.Error(err)
 		return context2.CoreContext{}
 	}
-	var vmManager vm2.Manager
+	var vmManager provider.Manager
 	// set vm template
-	template := vm2.Template{
+	template := provider.Template{
 		Cpu:    cfg.Vm.Cpu,
 		Memory: cfg.Vm.Mem,
 		System: cfg.Vm.System,
 		Image:  cfg.Vm.Image,
 	}
 	if "docker" == cfg.Vm.Type {
-		vmManager, err = vm2.NewDockerManager(template)
+		vmManager, err = docker.NewDockerManager(template)
 	} else {
 		//vmManager, err = vm2.NewVirtManager(template)
 		os.Exit(1)
@@ -114,7 +113,6 @@ func NewContext() context2.CoreContext {
 		P2pClient:     p2pClient,
 		VmManager:     vmManager,
 		Cm:            cm,
-		PkManager:     pkManager,
 		ReportClient:  reportClient,
 		SubstrateApi:  substrateApi,
 		TimerService:  timeService,
