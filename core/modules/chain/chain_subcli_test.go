@@ -568,7 +568,7 @@ func TestSomeEvent(t *testing.T) {
 	meta, err := api.RPC.State.GetMetadataLatest()
 	assert.NoError(t, err)
 
-	bh, err := api.RPC.Chain.GetBlockHash(6)
+	bh, err := api.RPC.Chain.GetBlockHash(493888)
 	assert.NoError(t, err)
 	key, err := types.CreateStorageKey(meta, "System", "Events", nil)
 	assert.NoError(t, err)
@@ -576,32 +576,17 @@ func TestSomeEvent(t *testing.T) {
 	/// [accountId, index, peerId, cpu, memory, system, cpu_model, price_hour, rent_duration_hour]
 	//RegisterResourceSuccess(T::AccountId, u64, Vec<u8>, u64, u64, Vec<u8>, Vec<u8>, Balance, u32),
 
-	type MyEventRecords struct {
-		types.EventRecords
-		TemplateModule_SomethingStored []EventSomethingStored //nolint:stylecheck,golint
-		Balances_Withdraw              []EventBalancesWithdraw
-	}
-
 	// Decode the event records
 	events := MyEventRecords{}
 	err = types.EventRecordsRaw(*raw).DecodeEventRecords(meta, &events)
 
 	if err != nil {
 		fmt.Println(err)
-		panic(err)
+		return
+
 	}
+	fmt.Println(len(events.Balances_Transfer))
 
-	if len(events.TemplateModule_SomethingStored) > 0 {
-		for _, e := range events.TemplateModule_SomethingStored {
-			fmt.Println(e.Who)
-
-			fmt.Println("=========")
-
-			fmt.Println(AccountIdToAddress(e.Who))
-
-			fmt.Println("=========")
-		}
-	}
 }
 
 // 连接2个比特数组
