@@ -1,0 +1,115 @@
+version: '3'
+services:
+  graph-node:
+    image: graphprotocol/graph-node:v0.26.0
+    ports:
+      - '8000:8000'
+      - '8001:8001'
+      - '8020:8020'
+      - '8030:8030'
+      - '8040:8040'
+    depends_on:
+      - ipfs
+      - postgres
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    environment:
+      postgres_host: postgres
+      postgres_user: graph-node
+      postgres_pass: let-me-in
+      postgres_db: graph-node
+      ipfs: 'ipfs:5001'
+      ethereum: "{{ .NodeEthereumUrl }}"
+      GRAPH_LOG: info
+  ipfs:
+    image: ipfs/go-ipfs:v0.4.23
+    ports:
+      - '5001:5001'
+    volumes:
+      - ./data/ipfs:/data/ipfs
+  postgres:
+    image: postgres:14
+    ports:
+      - '5432:5432'
+    command: ["postgres", "-cshared_preload_libraries=pg_stat_statements"]
+    environment:
+      POSTGRES_USER: graph-node
+      POSTGRES_PASSWORD: let-me-in
+      POSTGRES_DB: graph-node
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+  index-service:
+    image: ghcr.io/graphprotocol/indexer-service:v0.19.0
+    ports:
+      - '7600:7600'
+    command:
+      - start
+      - --ethereum
+      - "{{ .EthereumUrl }}"
+      - --ethereum-network
+      - "{{ .EthereumNetwork }}"
+      - --indexer-address
+      - "{{ .IndexerAddress }}"
+      - --mnemonic
+      - "{{ .Mnemonic }}"
+      - --network-subgraph-deployment
+      - "QmYnGeUXVNZd3MupWqPwZekCriF2CVkpoXZbuSZB9t7eQS"
+      - --network-subgraph-endpoint
+      - "https://gateway.testnet.thegraph.com/network"
+      - --client-signer-address
+      - "0xe1EC4339019eC9628438F8755f847e3023e4ff9c"
+      - --graph-node-query-endpoint
+      - "http://graph-node:8040/"
+      - --graph-node-status-endpoint 
+      - "http://graph-node:8030/graphql"
+      - --postgres-host 
+      - "postgres" 
+      - --postgres-database
+      - "graph-node"
+      - --postgres-username
+      - "graph-node"
+      - --postgres-password 
+      - "let-me-in"
+
+  index-agent:
+    image: ghcr.io/graphprotocol/indexer-agent:v0.19.0
+    command: 
+      - start
+      -  --ethereum
+      - "{{ .EthereumUrl }}"
+      - --ethereum-network
+      - "{{ .EthereumNetwork }}"
+      -  --mnemonic
+      - "{{ .Mnemonic }}"
+      - --indexer-address 
+      - "{{ .IndexerAddress }}"
+      - --graph-node-query-endpoint 
+      - "http://graph-node:8040/" 
+      - --graph-node-status-endpoint 
+      - "http://graph-node:8030/graphql" 
+      - --graph-node-admin-endpoint 
+      - "http://graph-node:8020/" 
+      - --public-indexer-url 
+      - "http://index-service:7600/"  
+      - --index-node-ids 
+      - default 
+      - --postgres-host 
+      - "postgres" 
+      - --postgres-database
+      - "graph-node"
+      - --postgres-username
+      - "graph-node"
+      - --postgres-password
+      - "let-me-in"
+      - --network-subgraph-deployment
+      - "QmYnGeUXVNZd3MupWqPwZekCriF2CVkpoXZbuSZB9t7eQS"
+      - --network-subgraph-endpoint 
+      - "https://gateway.testnet.thegraph.com/network" 
+      - --dai-contract 
+      - "0x9e7e607afd22906f7da6f1ec8f432d6f244278be" 
+      - --collect-receipts-endpoint
+      - "https://gateway.testnet.thegraph.com/collect-receipts" 
+      - --indexer-management-port 
+      - "8500"
+      - --metrics-port
+      - "6000"

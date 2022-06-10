@@ -10,7 +10,7 @@ require (
 	github.com/gin-gonic/gin v1.7.4
 	github.com/ipfs/go-datastore v0.4.6
 	github.com/ipfs/go-ipfs v0.10.0
-	github.com/ipfs/go-log/v2 v2.3.0
+	github.com/ipfs/go-log/v2 v2.3.0 // indirect
 	github.com/jbenet/goprocess v0.1.4
 	github.com/libp2p/go-libp2p v0.15.2-0.20210929152330-6df4e2348c2b
 	github.com/libp2p/go-libp2p-connmgr v0.2.4
@@ -29,6 +29,7 @@ require (
 //require github.com/libvirt/libvirt-go v7.4.0+incompatible
 
 require (
+	github.com/ThomasRooney/gexpect v0.0.0-20161231170123-5482f0350944
 	github.com/compose-spec/compose-go v1.2.6
 	github.com/docker/cli v20.10.16+incompatible
 	github.com/docker/compose/v2 v2.5.1
@@ -59,6 +60,7 @@ require (
 	github.com/containerd/ttrpc v1.1.0 // indirect
 	github.com/containerd/typeurl v1.0.2 // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
+	github.com/creack/pty v1.1.11 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/davidlazar/go-crypto v0.0.0-20200604182044-b73af7476f6c // indirect
 	github.com/deckarep/golang-set v1.7.1 // indirect
@@ -123,6 +125,7 @@ require (
 	github.com/klauspost/compress v1.15.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.9 // indirect
 	github.com/koron/go-ssdp v0.0.2 // indirect
+	github.com/kr/pty v1.1.8 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/libp2p/go-addr-util v0.1.0 // indirect
 	github.com/libp2p/go-buffer-pool v0.0.2 // indirect
