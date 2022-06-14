@@ -10,7 +10,6 @@ require (
 	github.com/gin-gonic/gin v1.7.4
 	github.com/ipfs/go-datastore v0.4.6
 	github.com/ipfs/go-ipfs v0.10.0
-	github.com/ipfs/go-log/v2 v2.3.0 // indirect
 	github.com/jbenet/goprocess v0.1.4
 	github.com/libp2p/go-libp2p v0.15.2-0.20210929152330-6df4e2348c2b
 	github.com/libp2p/go-libp2p-connmgr v0.2.4
@@ -33,6 +32,8 @@ require (
 	github.com/compose-spec/compose-go v1.2.6
 	github.com/docker/cli v20.10.16+incompatible
 	github.com/docker/compose/v2 v2.5.1
+	github.com/gorilla/websocket v1.4.2
+	github.com/ipfs/go-log/v2 v2.3.0
 	github.com/libvirt/libvirt-go v7.4.0+incompatible
 	github.com/minio/blake2b-simd v0.0.0-20160723061019-3f5f724cb5b1
 	github.com/mr-tron/base58 v1.2.0
@@ -99,7 +100,6 @@ require (
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
-	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
 	github.com/gtank/merlin v0.1.1 // indirect

@@ -8,6 +8,8 @@ import (
 
 func StartApi(ctx *context.CoreContext) error {
 	r := NewMyServer(ctx)
+	r.GET("/ws", TerminalHandle)
+	r.GET("/wslog", TerminalLogHandle)
 	// router
 	v1 := r.Group("/api/v1")
 	{
