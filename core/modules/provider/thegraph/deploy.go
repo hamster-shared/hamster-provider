@@ -82,8 +82,9 @@ func InstallDocker() error {
 }
 
 // TemplateInstance Docker compose file instantiation
-func TemplateInstance(deployParams DeployParams) error {
-	t, err := template.ParseFiles("./templates/graph-docker-compose.text")
+func templateInstance(data DeployParams) error {
+
+	t, err := template.ParseFiles("/home/mohaijiang/IdeaProject/hamster-provider/templates/graph-docker-compose.text")
 	if err != nil {
 		log.Printf("template failed with %s\n", err)
 		return err
@@ -95,7 +96,7 @@ func TemplateInstance(deployParams DeployParams) error {
 		log.Printf("create file failed %s\n", err)
 		return createErr
 	}
-	writeErr := t.Execute(file, deployParams)
+	writeErr := t.Execute(file, data)
 	if writeErr != nil {
 		log.Printf("template write file failed %s\n", err)
 		return writeErr
@@ -104,25 +105,28 @@ func TemplateInstance(deployParams DeployParams) error {
 }
 
 // StartDockerCompose exec docker-compose
-func StartDockerCompose() error {
-	cmd := exec.Command("docker-compose", "up", "-d")
+func startDockerCompose() error {
+	cmd := exec.Command("docker", "compose", "up", "-d")
+	println(config.DefaultConfigDir())
 	cmd.Dir = config.DefaultConfigDir()
-	err := cmd.Run()
-	if err != nil {
-		return err
-	}
-	return nil
+	return cmd.Run()
 }
 
-// DeployGraph deploy the graph
-func DeployGraph(deployParams DeployParams) error {
-	err := TemplateInstance(deployParams)
-	if err != nil {
-		return err
-	}
-	startErr := StartDockerCompose()
-	if startErr != nil {
-		return startErr
-	}
-	return nil
+// StopDockerCompose  停止docker compose 服务
+func stopDockerCompose() error {
+	cmd := exec.Command("docker", "compose", "down", "-v")
+	println(config.DefaultConfigDir())
+	cmd.Dir = config.DefaultConfigDir()
+	return cmd.Run()
+}
+
+type ComposeStatus int
+
+const (
+	STOP = 1
+)
+
+func composeStatus() ComposeStatus {
+
+	return STOP
 }

@@ -1,6 +1,7 @@
 package core
 
 import (
+	"fmt"
 	context2 "github.com/hamster-shared/hamster-provider/core/context"
 	"github.com/hamster-shared/hamster-provider/core/corehttp"
 	"github.com/hamster-shared/hamster-provider/core/modules/event"
@@ -94,7 +95,12 @@ func (s *Server) Run() {
 	//	//go s.WatchEvent()
 	//}
 
-	err := corehttp.StartApi(&s.ctx)
+	err := s.ctx.P2pClient.Listen("/x/provider", fmt.Sprintf("/ip4/127.0.0.1/tcp/%d", s.ctx.GetConfig().ApiPort))
+	if err != nil {
+		os.Exit(1)
+	}
+	err = corehttp.StartApi(&s.ctx)
+
 	if err != nil {
 		os.Exit(1)
 	}

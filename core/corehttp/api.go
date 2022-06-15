@@ -8,6 +8,7 @@ import (
 
 func StartApi(ctx *context.CoreContext) error {
 	r := NewMyServer(ctx)
+
 	// router
 	v1 := r.Group("/api/v1")
 	{
@@ -58,6 +59,13 @@ func StartApi(ctx *context.CoreContext) error {
 			resource.POST("/rent-again", rentAgain)
 			resource.POST("/delete-resource", deleteResource)
 			resource.GET("/receive-income-judge", receiveIncomeJudge)
+		}
+
+		thegraph := v1.Group("/thegraph")
+		{
+			thegraph.POST("/deploy", deployTheGraph)
+			thegraph.GET("/ws", execHandler)
+			thegraph.GET("/wslog", logHandler)
 		}
 	}
 	//r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
