@@ -82,13 +82,7 @@ func InstallDocker() error {
 }
 
 // TemplateInstance Docker compose file instantiation
-func TemplateInstance() error {
-	var data DeployParams
-	data.EthereumNetwork = "rinkeby"
-	data.EthereumUrl = "https://rinkeby.infura.io/v3/af7a79eb36f64e609b5dda130cd62946"
-	data.IndexerAddress = "0x9438BbE4E7AF1ec6b13f75ECd1f53391506A12DF"
-	data.Mnemonic = "please output text solve glare exit divert boil nerve eagle attack turkey"
-	data.NodeEthereumUrl = "rinkeby:https://rinkeby.infura.io/v3/af7a79eb36f64e609b5dda130cd62946"
+func TemplateInstance(deployParams DeployParams) error {
 	t, err := template.ParseFiles("./templates/graph-docker-compose.text")
 	if err != nil {
 		log.Printf("template failed with %s\n", err)
@@ -101,7 +95,7 @@ func TemplateInstance() error {
 		log.Printf("create file failed %s\n", err)
 		return createErr
 	}
-	writeErr := t.Execute(file, data)
+	writeErr := t.Execute(file, deployParams)
 	if writeErr != nil {
 		log.Printf("template write file failed %s\n", err)
 		return writeErr
@@ -112,11 +106,23 @@ func TemplateInstance() error {
 // StartDockerCompose exec docker-compose
 func StartDockerCompose() error {
 	cmd := exec.Command("docker-compose", "up", "-d")
-	println(config.DefaultConfigDir())
 	cmd.Dir = config.DefaultConfigDir()
 	err := cmd.Run()
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+// DeployGraph deploy the graph
+func DeployGraph(deployParams DeployParams) error {
+	err := TemplateInstance(deployParams)
+	if err != nil {
+		return err
+	}
+	startErr := StartDockerCompose()
+	if startErr != nil {
+		return startErr
 	}
 	return nil
 }
