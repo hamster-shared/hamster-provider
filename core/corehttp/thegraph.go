@@ -16,13 +16,15 @@ var upgrader = websocket.Upgrader{
 
 func deployTheGraph(c *MyContext) {
 
-	var data thegraph.DeployParams
-	err := c.BindJSON(&data)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, err.Error())
-		return
-	}
-	err = thegraph.Deploy(data)
+	//var data thegraph.DeployParams
+	//err := c.BindJSON(&data)
+	//if err != nil {
+	//	c.JSON(http.StatusBadRequest, err.Error())
+	//	return
+	//}
+
+	data := thegraph.DeployParams{}
+	err := thegraph.Deploy(data)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, err.Error())
 		return

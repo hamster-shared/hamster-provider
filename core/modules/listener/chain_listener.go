@@ -232,6 +232,7 @@ func (l *ChainListener) dealFreeResourceApplied(e chain2.EventResourceOrderFreeR
 			System:    cfg.Vm.System,
 			PublicKey: e.PublicKey,
 			Image:     cfg.Vm.Image,
+			Duration:  uint64(e.Duration),
 		}
 		l.eventService.Create(evt)
 	}

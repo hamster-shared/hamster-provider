@@ -9,15 +9,13 @@ import (
 type TheGraphHandler struct {
 	AbstractHandler
 	CoreContext EventContext
-
-	isServe bool
 }
 
 func (h *TheGraphHandler) HandlerEvent(e *VmRequest) {
 
 	fmt.Println("the graph register")
 
-	if h.isServe {
+	if thegraph.IsServer() {
 		return
 	}
 	orderNo := e.OrderNo
@@ -30,10 +28,11 @@ func (h *TheGraphHandler) HandlerEvent(e *VmRequest) {
 	err := h.CoreContext.ReportClient.ProcessApplyFreeResource(orderNo, peerId)
 
 	if err != nil {
-		h.isServe = true
+		thegraph.SetIsServer(true)
 	}
 
 	overdue := time.Second * 6 * time.Duration(e.Duration)
+	fmt.Printf("overdue is： %s", overdue)
 	instanceTimer := time.NewTimer(overdue)
 	h.CoreContext.TimerService.SubTimer(orderNo, instanceTimer)
 
@@ -42,7 +41,7 @@ func (h *TheGraphHandler) HandlerEvent(e *VmRequest) {
 		fmt.Printf("over due time is : %d, now  terminal", overdue)
 		err = thegraph.Uninstall()
 		if err != nil {
-			h.isServe = true
+			thegraph.SetIsServer(false)
 		}
 	}(instanceTimer)
 }
