@@ -14,6 +14,7 @@ type VmRequest struct {
 	PublicKey   string
 	OrderNo     uint64
 	AgreementNo uint64
+	Duration    uint64
 }
 
 func (req *VmRequest) getName() string {
@@ -26,3 +27,4 @@ const OPCreatedVm OperationTag = 1
 const OPDestroyVm OperationTag = 2
 const OPRenewVM OperationTag = 3
 const OPRecoverVM OperationTag = 4
+const OPFreeResourceApply OperationTag = 5

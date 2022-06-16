@@ -80,7 +80,8 @@ func listenP2p(gin *MyContext) {
 	}
 
 	target := fmt.Sprintf("/ip4/127.0.0.1/tcp/%d", port)
-	err = gin.CoreContext.P2pClient.Listen(target)
+	protocol := gin.DefaultQuery("protocol", "/x/ssh")
+	err = gin.CoreContext.P2pClient.Listen(protocol, target)
 	if err != nil {
 		logrus.Error("p2p port create fail")
 		gin.String(400, "p2p port create fail")
@@ -116,7 +117,9 @@ func forwardP2p(gin *MyContext) {
 
 	targetPeerId := gin.Query("peerId")
 
-	err = gin.CoreContext.P2pClient.Forward(port, targetPeerId)
+	protocol := gin.DefaultQuery("protocol", "/x/ssh")
+
+	err = gin.CoreContext.P2pClient.Forward(protocol, port, targetPeerId)
 	if err != nil {
 		logrus.Error("p2p port create fail")
 		gin.String(400, "p2p port create fail")
@@ -169,8 +172,9 @@ func closeP2p(gin *MyContext) {
 // @Router /p2p/check [POST]
 func checkP2p(gin *MyContext) {
 	targetPeerId := gin.Query("peerId")
+	protocol := gin.DefaultQuery("protocol", "/x/ssh")
 
-	err := gin.CoreContext.P2pClient.CheckForwardHealth(targetPeerId)
+	err := gin.CoreContext.P2pClient.CheckForwardHealth(protocol, targetPeerId)
 	if err != nil {
 		gin.String(http.StatusBadRequest, "p2p connection is not ready")
 	} else {

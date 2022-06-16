@@ -756,3 +756,24 @@ func (cc *ChainClient) ReceiveIncomeJudge() bool {
 	}
 	return false
 }
+
+func (cc *ChainClient) ProcessApplyFreeResource(index uint64, peerId string) error {
+	meta, err := cc.api.RPC.State.GetMetadataLatest()
+	if err != nil {
+		return err
+	}
+
+	c, err := types.NewCall(meta, "ResourceOrder.process_apply_free_resource", types.NewU64(index), peerId)
+
+	if err != nil {
+		return err
+	}
+
+	return cc.callAndWatch(c, meta, hook)
+}
+
+func hook(header *types.Header) error {
+	fmt.Println(header.Number)
+
+	return nil
+}
