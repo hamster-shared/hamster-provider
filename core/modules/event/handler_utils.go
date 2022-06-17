@@ -45,7 +45,7 @@ func getVmTargetAddress(ctx EventContext, name string) string {
 func forwardSSHToP2p(ctx EventContext, name string) error {
 	// P2P listen port exposure
 	targetOpt := getVmTargetAddress(ctx, name)
-	err := ctx.P2pClient.Listen(targetOpt)
+	err := ctx.P2pClient.Listen("/x/ssh", targetOpt)
 	if err != nil {
 		fmt.Println(err)
 		return err

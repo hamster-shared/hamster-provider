@@ -1,14 +1,54 @@
 package thegraph
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gorilla/websocket"
 	"time"
 )
 
-func GetWebSocket(conn *websocket.Conn) {
+var isServe = false
+
+func IsServer() bool {
+	return isServe
+}
+
+func SetIsServer(status bool) {
+	isServe = status
+}
+
+func Deploy(data DeployParams) error {
+	data.EthereumNetwork = "rinkeby"
+	data.EthereumUrl = "https://rinkeby.infura.io/v3/af7a79eb36f64e609b5dda130cd62946"
+	data.IndexerAddress = "0x9438BbE4E7AF1ec6b13f75ECd1f53391506A12DF"
+	data.Mnemonic = "please output text solve glare exit divert boil nerve eagle attack turkey"
+	data.NodeEthereumUrl = "rinkeby:https://rinkeby.infura.io/v3/af7a79eb36f64e609b5dda130cd62946"
+
+	if !isServe {
+		return errors.New("status is error")
+	}
+
+	err := templateInstance(data)
+	if err != nil {
+		return err
+	}
+
+	if STOP == composeStatus() {
+		err = startDockerCompose()
+		return err
+	}
+
+	return nil
+}
+
+func Uninstall() error {
+	return stopDockerCompose()
+}
+
+// GetWebSocket 获取容器执行的websocket
+func GetWebSocket(conn *websocket.Conn, containerName string) {
 	bean := &DockerBean{
-		ContainerName: "nginx",
+		ContainerName: containerName,
 		Shell:         "/bin/sh",
 	}
 	// 执行exec，获取到容器终端的连接
@@ -31,9 +71,10 @@ func GetWebSocket(conn *websocket.Conn) {
 	wsReaderCopy(conn, hr.Conn)
 }
 
-func GetDockerLog(conn *websocket.Conn) {
+// GetDockerLog 获取容器日志的websocket
+func GetDockerLog(conn *websocket.Conn, containerName string) {
 	bean := &DockerBean{
-		ContainerName: "nginx",
+		ContainerName: containerName,
 		Shell:         "/bin/sh",
 	}
 

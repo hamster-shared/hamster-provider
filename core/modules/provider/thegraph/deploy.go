@@ -82,13 +82,8 @@ func InstallDocker() error {
 }
 
 // TemplateInstance Docker compose file instantiation
-func TemplateInstance() error {
-	var data DeployParams
-	data.EthereumNetwork = "rinkeby"
-	data.EthereumUrl = "https://rinkeby.infura.io/v3/af7a79eb36f64e609b5dda130cd62946"
-	data.IndexerAddress = "0x9438BbE4E7AF1ec6b13f75ECd1f53391506A12DF"
-	data.Mnemonic = "please output text solve glare exit divert boil nerve eagle attack turkey"
-	data.NodeEthereumUrl = "rinkeby:https://rinkeby.infura.io/v3/af7a79eb36f64e609b5dda130cd62946"
+func templateInstance(data DeployParams) error {
+
 	t, err := template.ParseFiles("./templates/graph-docker-compose.text")
 	if err != nil {
 		log.Printf("template failed with %s\n", err)
@@ -110,13 +105,28 @@ func TemplateInstance() error {
 }
 
 // StartDockerCompose exec docker-compose
-func StartDockerCompose() error {
-	cmd := exec.Command("docker-compose", "up", "-d")
+func startDockerCompose() error {
+	cmd := exec.Command("docker", "compose", "up", "-d")
 	println(config.DefaultConfigDir())
 	cmd.Dir = config.DefaultConfigDir()
-	err := cmd.Run()
-	if err != nil {
-		return err
-	}
-	return nil
+	return cmd.Run()
+}
+
+// StopDockerCompose  停止docker compose 服务
+func stopDockerCompose() error {
+	cmd := exec.Command("docker", "compose", "down", "-v")
+	println(config.DefaultConfigDir())
+	cmd.Dir = config.DefaultConfigDir()
+	return cmd.Run()
+}
+
+type ComposeStatus int
+
+const (
+	STOP = 1
+)
+
+func composeStatus() ComposeStatus {
+
+	return STOP
 }

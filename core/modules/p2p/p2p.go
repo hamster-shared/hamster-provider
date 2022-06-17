@@ -196,25 +196,23 @@ func (c *P2pClient) List() *P2PLsOutput {
 }
 
 // Listen map local ports to p2p networks
-func (c *P2pClient) Listen(targetOpt string) error {
+func (c *P2pClient) Listen(proto, targetOpt string) error {
 	log.Println("listening for connections")
 
-	protoOpt := "/x/ssh"
 	//targetOpt := fmt.Sprintf("/ip4/127.0.0.1/tcp/%d", port)
-	proto := protocol.ID(protoOpt)
+	protoId := protocol.ID(proto)
 
 	target, err := ma.NewMultiaddr(targetOpt)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	_, err = c.P2P.ForwardRemote(context.Background(), proto, target, false)
+	_, err = c.P2P.ForwardRemote(context.Background(), protoId, target, false)
 	logrus.Info("local port" + targetOpt + ",mapping to p2p network succeeded")
 	return err
 }
 
 // Forward map p2p network remote nodes to local ports
-func (c *P2pClient) Forward(port int, targetOpt string) error {
-	protoOpt := "/x/ssh"
+func (c *P2pClient) Forward(proto string, port int, targetOpt string) error {
 	listenOpt := fmt.Sprintf("/ip4/127.0.0.1/tcp/%d", port)
 	listen, err := ma.NewMultiaddr(listenOpt)
 
@@ -224,9 +222,9 @@ func (c *P2pClient) Forward(port int, targetOpt string) error {
 	}
 
 	targets, err := parseIpfsAddr(targetOpt)
-	proto := protocol.ID(protoOpt)
+	protoId := protocol.ID(proto)
 
-	err = forwardLocal(context.Background(), c.P2P, (*c.Host).Peerstore(), proto, listen, targets)
+	err = forwardLocal(context.Background(), c.P2P, (*c.Host).Peerstore(), protoId, listen, targets)
 	if err != nil {
 		log.Println(err)
 		return err
@@ -236,17 +234,16 @@ func (c *P2pClient) Forward(port int, targetOpt string) error {
 }
 
 // CheckForwardHealth check if the remote node is connected
-func (c *P2pClient) CheckForwardHealth(peerId string) error {
-	protoOpt := "/x/ssh"
+func (c *P2pClient) CheckForwardHealth(proto, peerId string) error {
 	targetOpt := fmt.Sprintf("/p2p/%s", peerId)
 	targets, err := parseIpfsAddr(targetOpt)
-	proto := protocol.ID(protoOpt)
+	protoId := protocol.ID(proto)
 	if err != nil {
 		return err
 	}
 	cctx, cancel := context.WithTimeout(context.Background(), time.Second*30) //TODO: configurable?
 	defer cancel()
-	stream, err := (*c.Host).NewStream(cctx, targets.ID, proto)
+	stream, err := (*c.Host).NewStream(cctx, targets.ID, protoId)
 	if err != nil {
 		return err
 	} else {
