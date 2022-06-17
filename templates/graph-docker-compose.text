@@ -2,6 +2,7 @@ version: '3'
 services:
   graph-node:
     image: graphprotocol/graph-node:v0.26.0
+    restart: always
     ports:
       - '8000:8000'
       - '8001:8001'
@@ -9,24 +10,18 @@ services:
       - '8030:8030'
       - '8040:8040'
     depends_on:
-      - ipfs
       - postgres
-    extra_hosts:
-      - host.docker.internal:host-gateway
     environment:
       postgres_host: postgres
       postgres_user: graph-node
       postgres_pass: let-me-in
       postgres_db: graph-node
-      ipfs: 'ipfs:5001'
+      ipfs: 'https://ipfs.network.thegraph.com'
+      # ethereum: 'rinkeby:https://rinkeby.infura.io/v3/af7a79eb36f64e609b5dda130cd62946'
       ethereum: "{{ .NodeEthereumUrl }}"
       GRAPH_LOG: info
-  ipfs:
-    image: ipfs/go-ipfs:v0.4.23
-    ports:
-      - '5001:5001'
-    volumes:
-      - ./data/ipfs:/data/ipfs
+
+
   postgres:
     image: postgres:14
     ports:
@@ -37,9 +32,11 @@ services:
       POSTGRES_PASSWORD: let-me-in
       POSTGRES_DB: graph-node
     volumes:
-      - ./data/postgres:/var/lib/postgresql/data
+      - postgresql:/var/lib/postgresql/data
+
   index-service:
     image: ghcr.io/graphprotocol/indexer-service:v0.19.0
+    restart: always
     ports:
       - '7600:7600'
     command:
@@ -70,9 +67,14 @@ services:
       - "graph-node"
       - --postgres-password 
       - "let-me-in"
+    depends_on:
+      - postgres
 
   index-agent:
     image: ghcr.io/graphprotocol/indexer-agent:v0.19.0
+    restart: always
+    ports:
+      - '8500'
     command: 
       - start
       -  --ethereum
@@ -112,4 +114,20 @@ services:
       - --indexer-management-port 
       - "8500"
       - --metrics-port
-      - "6000"
+      - "6000"   
+    depends_on:
+      - postgres    
+
+  index-cli:
+    image: ghcr.io/graphprotocol/indexer-cli:v0.19.0
+    restart: always
+    entrypoint:
+      - tail 
+      - -f
+      - /usr/local/bin/docker-entrypoint.sh
+    depends_on:
+      - index-agent
+
+
+volumes:
+  postgresql:       

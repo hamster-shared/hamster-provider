@@ -84,7 +84,7 @@ func InstallDocker() error {
 // TemplateInstance Docker compose file instantiation
 func templateInstance(data DeployParams) error {
 
-	t, err := template.ParseFiles("/home/mohaijiang/IdeaProject/hamster-provider/templates/graph-docker-compose.text")
+	t, err := template.ParseFiles("./templates/graph-docker-compose.text")
 	if err != nil {
 		log.Printf("template failed with %s\n", err)
 		return err
