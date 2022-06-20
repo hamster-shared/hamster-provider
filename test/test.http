@@ -1,0 +1,5 @@
+### Send POST request with json body
+POST http://localhost:10771/api/v1/thegraph/deploy
+Content-Type: application/json
+
+{"nodeEthereumUrl":"mainnet:https://eth-mainnet.alchemyapi.io/v2/wHl5-FZKD68DlhCuUiOXgYh4Z0q0L5fh ","ethereumUrl":"https://rinkeby.infura.io/v3/af7a79eb36f64e609b5dda130cd62946","ethereumNetwork":"rinkeby","indexerAddress":"0x9438BbE4E7AF1ec6b13f75ECd1f53391506A12DF","mnemonic":"please output text solve glare exit divert boil nerve eagle attack turkey"}

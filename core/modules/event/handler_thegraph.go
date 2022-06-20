@@ -31,7 +31,7 @@ func (h *TheGraphHandler) HandlerEvent(e *VmRequest) {
 		thegraph.SetIsServer(true)
 	}
 
-	overdue := time.Second * 6 * time.Duration(e.Duration)
+	overdue := time.Hour * time.Duration(e.Duration)
 	fmt.Printf("overdue is： %s", overdue)
 	instanceTimer := time.NewTimer(overdue)
 	h.CoreContext.TimerService.SubTimer(orderNo, instanceTimer)

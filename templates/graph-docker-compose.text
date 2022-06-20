@@ -2,6 +2,7 @@ version: '3'
 services:
   graph-node:
     image: graphprotocol/graph-node:v0.26.0
+    container_name: graph-node
     restart: always
     ports:
       - '8000:8000'
@@ -24,6 +25,7 @@ services:
 
   postgres:
     image: postgres:14
+    container_name: postgres
     ports:
       - '5432:5432'
     command: ["postgres", "-cshared_preload_libraries=pg_stat_statements"]
@@ -36,6 +38,7 @@ services:
 
   index-service:
     image: ghcr.io/graphprotocol/indexer-service:v0.19.0
+    container_name: index-service
     restart: always
     ports:
       - '7600:7600'
@@ -72,6 +75,7 @@ services:
 
   index-agent:
     image: ghcr.io/graphprotocol/indexer-agent:v0.19.0
+    container_name: index-agent
     restart: always
     ports:
       - '8500'
@@ -120,6 +124,7 @@ services:
 
   index-cli:
     image: ghcr.io/graphprotocol/indexer-cli:v0.19.0
+    container_name: index-cli
     restart: always
     entrypoint:
       - tail 

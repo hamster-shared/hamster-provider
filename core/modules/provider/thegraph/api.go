@@ -1,7 +1,6 @@
 package thegraph
 
 import (
-	"errors"
 	"fmt"
 	"github.com/gorilla/websocket"
 	"time"
@@ -18,15 +17,10 @@ func SetIsServer(status bool) {
 }
 
 func Deploy(data DeployParams) error {
-	data.EthereumNetwork = "rinkeby"
-	data.EthereumUrl = "https://rinkeby.infura.io/v3/af7a79eb36f64e609b5dda130cd62946"
-	data.IndexerAddress = "0x9438BbE4E7AF1ec6b13f75ECd1f53391506A12DF"
-	data.Mnemonic = "please output text solve glare exit divert boil nerve eagle attack turkey"
-	data.NodeEthereumUrl = "rinkeby:https://rinkeby.infura.io/v3/af7a79eb36f64e609b5dda130cd62946"
 
-	if !isServe {
-		return errors.New("status is error")
-	}
+	//if !isServe {
+	//	return errors.New("status is error")
+	//}
 
 	err := templateInstance(data)
 	if err != nil {
