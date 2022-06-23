@@ -1,9 +1,9 @@
 package corehttp
 
 import (
-	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/hamster-shared/hamster-provider/core/modules/provider/thegraph"
+	"github.com/hamster-shared/hamster-provider/log"
 	"net/http"
 )
 
@@ -20,7 +20,7 @@ func deployTheGraph(c *MyContext) {
 
 	err := c.BindJSON(&data)
 	if err != nil {
-		fmt.Println("binding json error")
+		log.GetLogger().Info("binding json error")
 		c.JSON(http.StatusBadRequest, err.Error())
 		return
 	}
@@ -28,7 +28,7 @@ func deployTheGraph(c *MyContext) {
 	//data := thegraph.DeployParams{}
 	err = thegraph.Deploy(data)
 	if err != nil {
-		fmt.Println("deploy error , error is : ", err.Error())
+		log.GetLogger().Info("deploy error , error is : ", err.Error())
 		c.JSON(http.StatusBadRequest, err.Error())
 		return
 	}
@@ -43,7 +43,7 @@ func execHandler(c *MyContext) {
 	// websocket握手
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
-		fmt.Println("error", err.Error())
+		log.GetLogger().Info("error", err.Error())
 		return
 	}
 	defer conn.Close()
@@ -57,11 +57,20 @@ func logHandler(c *MyContext) {
 
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
-		fmt.Println("error", err.Error())
+		log.GetLogger().Info("error", err.Error())
 		return
 	}
 
 	defer conn.Close()
 
 	thegraph.GetDockerLog(conn, containerName)
+}
+
+func deployStatus(c *MyContext) {
+	containerName := c.Query("serviceName")
+
+	if containerName == "" {
+		c.JSON(http.StatusOK, Success(thegraph.GetStatus(containerName)))
+	}
+
 }

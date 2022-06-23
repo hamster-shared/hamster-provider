@@ -1,7 +1,7 @@
 package event
 
 import (
-	log "github.com/sirupsen/logrus"
+	"github.com/hamster-shared/hamster-provider/log"
 )
 
 type DestroyVmHandler struct {
@@ -13,7 +13,7 @@ func (h *DestroyVmHandler) HandlerEvent(e *VmRequest) {
 	orderNo := e.OrderNo
 	agreementNo, err := h.CoreContext.ReportClient.GetAgreementIndex(orderNo)
 	if err != nil {
-		log.Error("query agreementNo fail")
+		log.GetLogger().Error("query agreementNo fail")
 	}
 
 	_ = h.CoreContext.VmManager.Stop(e.getName())

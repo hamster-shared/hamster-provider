@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hamster-shared/hamster-provider/core/modules/utils"
-	log "github.com/sirupsen/logrus"
+	"github.com/hamster-shared/hamster-provider/log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -30,12 +30,12 @@ func (v *VirtManager) SetTemplate(t Template) error {
 	v.template = &t
 	baeImage := filepath.Join(v.home, filepath.Base(v.template.Image))
 	if _, err := os.Stat(baeImage); errors.Is(err, os.ErrNotExist) {
-		log.Info("start download template")
+		log.GetLogger().Info("start download template")
 
 		// download file and rename
 		err = utils.Download(v.template.Image, baeImage)
 		if err != nil {
-			log.Error("download template fail")
+			log.GetLogger().Error("download template fail")
 			return err
 		}
 	}
@@ -44,7 +44,7 @@ func (v *VirtManager) SetTemplate(t Template) error {
 		if strings.HasSuffix(baeImage, ".tar.gz") {
 			file, err := os.Open(baeImage)
 			if err != nil {
-				log.Error("download template fail")
+				log.GetLogger().Error("download template fail")
 				return err
 			}
 			err = utils.UnTar(file, v.getBaseImagePath())

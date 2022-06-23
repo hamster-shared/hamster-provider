@@ -11,7 +11,7 @@ import (
 	"github.com/docker/go-connections/nat"
 	"github.com/hamster-shared/hamster-provider/core/modules/provider"
 	"github.com/hamster-shared/hamster-provider/core/modules/utils"
-	log "github.com/sirupsen/logrus"
+	"github.com/hamster-shared/hamster-provider/log"
 	"io"
 	"os"
 	"os/exec"
@@ -35,7 +35,7 @@ type DockerManager struct {
 func NewDockerManager(t provider.Template) (*DockerManager, error) {
 	cli, err := client.NewClientWithOpts(client.WithVersion("1.38"))
 	if err != nil {
-		log.Error(err)
+		log.GetLogger().Error(err)
 		return nil, err
 	}
 	manager := &DockerManager{
@@ -66,23 +66,23 @@ func (d *DockerManager) Status(name string) (*provider.Status, error) {
 	}
 
 	// status Status 0: Off, 1: On, 2: Paused, 3, other
-	var status int
+	var status provider.StatusValue
 
 	switch containers[0].State {
 	case "created":
-		status = 0
+		status = provider.STOP
 		break
 	case "restarting":
-		status = 3
+		status = provider.OTHER
 		break
 	case "running":
-		status = 1
+		status = provider.RUNNING
 		break
 	case "removing":
-		status = 3
+		status = provider.OTHER
 		break
 	case "paused":
-		status = 2
+		status = provider.OTHER
 		break
 	case "exited":
 	case "dead":
@@ -141,14 +141,14 @@ func (d *DockerManager) Create(name string) (string, error) {
 		Filters: filters.NewArgs(filters.Arg("reference", d.image)),
 	})
 	if err != nil {
-		log.Println(err)
+		log.GetLogger().Error(err)
 		return "", err
 	}
 	if len(imageLists) == 0 {
 		// pull image
 		out, err := d.cli.ImagePull(d.ctx, d.image, types.ImagePullOptions{})
 		if err != nil {
-			log.Println(err)
+			log.GetLogger().Error(err)
 			return "", err
 		}
 		_, err = io.Copy(os.Stdout, out)
@@ -160,7 +160,7 @@ func (d *DockerManager) Create(name string) (string, error) {
 	// determine whether there is a repeated start
 	status, err := d.Status(name)
 	if err != nil {
-		log.Info(err.Error())
+		log.GetLogger().Error(err.Error())
 	}
 
 	if status.Id != "" {
@@ -198,11 +198,11 @@ func (d *DockerManager) Create(name string) (string, error) {
 		}, nil, nil, name)
 
 	if err != nil {
-		log.Println(err)
+		log.GetLogger().Error(err)
 		return resp.ID, err
 	}
 
-	log.WithField("containerId", resp.ID).Info("container created")
+	log.GetLogger().WithField("containerId", resp.ID).Info("container created")
 
 	return resp.ID, err
 }

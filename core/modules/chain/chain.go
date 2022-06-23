@@ -2,11 +2,11 @@ package chain
 
 import (
 	"errors"
-	"fmt"
 	gsrpc "github.com/centrifuge/go-substrate-rpc-client/v4"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/types"
 	"github.com/hamster-shared/hamster-provider/core/modules/config"
+	"github.com/hamster-shared/hamster-provider/log"
 	"github.com/sirupsen/logrus"
 	"math/big"
 	"time"
@@ -159,17 +159,17 @@ func (cc *ChainClient) callAndWatch(c types.Call, meta *types.Metadata, hook fun
 
 	sub, err := cc.api.RPC.Author.SubmitAndWatchExtrinsic(ext)
 	if err != nil {
-		fmt.Println(err)
+		log.GetLogger().Info(err)
 		return err
 	}
 	defer sub.Unsubscribe()
 
 	for {
 		status := <-sub.Chan()
-		fmt.Printf("Transaction status: %#v\n", status)
+		log.GetLogger().Info("Transaction status: %#v\n", status)
 
 		if status.IsInBlock {
-			fmt.Printf("Completed at block hash: %#x\n", status.AsInBlock)
+			log.GetLogger().Info("Completed at block hash: %#x\n", status.AsInBlock)
 
 			if hook != nil {
 				hh, err := cc.api.RPC.Chain.GetHeader(status.AsInBlock)
@@ -194,20 +194,20 @@ func (cc *ChainClient) getBlock(blockNumber uint64) {
 	meta, err := cc.api.RPC.State.GetMetadataLatest()
 	hash, err := cc.api.RPC.Chain.GetBlockHash(uint64(blockNumber))
 	if err != nil {
-		err = fmt.Errorf("get block hash error: %s", err)
+		log.GetLogger().Errorf("get block hash error: %s", err)
 		return
 	}
 	block, err := cc.api.RPC.Chain.GetBlock(hash)
 	if err != nil {
-		err = fmt.Errorf("get block error: %s", err)
+		log.GetLogger().Errorf("get block error: %s", err)
 		return
 	}
-	fmt.Println("blocknumber", block.Block.Header.Number)
+	log.GetLogger().Info("blocknumber", block.Block.Header.Number)
 	for _, ext := range block.Block.Extrinsics {
 		//callIndex, err := meta.FindCallIndex("ResourceOrder.order_exec")
 		callIndex, err := meta.FindCallIndex("ResourceOrder.staking_amount")
 		if err != nil {
-			fmt.Println(err)
+			log.GetLogger().Info(err)
 			continue
 		}
 		if ext.Method.CallIndex != callIndex {
@@ -217,9 +217,9 @@ func (cc *ChainClient) getBlock(blockNumber uint64) {
 		if string(ext.Signature.Signer.AsID[:]) != string(kp.PublicKey) {
 			continue
 		}
-		fmt.Println("callIndex:", ext.Method.CallIndex.SectionIndex)
-		fmt.Println("args:", ext.Method.Args)
-		fmt.Println()
+		log.GetLogger().Info("callIndex:", ext.Method.CallIndex.SectionIndex)
+		log.GetLogger().Info("args:", ext.Method.Args)
+		log.GetLogger().Info()
 	}
 }
 
@@ -260,7 +260,7 @@ func (cc *ChainClient) RegisterResource(r ResourceInfo) error {
 	if cf.ChainRegInfo.ResourceIndex > 0 {
 		resource, err := cc.GetResource(cf.ChainRegInfo.ResourceIndex)
 		if err != nil {
-			fmt.Println(err)
+			log.GetLogger().Info(err)
 		}
 		if resource != nil {
 			return nil
@@ -390,7 +390,7 @@ func (cc *ChainClient) ReportStatus() error {
 // OrderExec order execution
 func (cc *ChainClient) OrderExec(orderIndex uint64) error {
 
-	fmt.Printf("orderExec : %d\n", orderIndex)
+	log.GetLogger().Info("orderExec : %d\n", orderIndex)
 
 	meta, err := cc.api.RPC.State.GetMetadataLatest()
 	if err != nil {
@@ -440,7 +440,7 @@ func (cc *ChainClient) OrderExec(orderIndex uint64) error {
 // CheckExtrinsicSuccess verify that the transaction is successful
 func (cc *ChainClient) CheckExtrinsicSuccess(header *types.Header, call string) error {
 
-	fmt.Printf("check tx exec Success, blockNumber : %d\n", header.Number)
+	log.GetLogger().Info("check tx exec Success, blockNumber : %d\n", header.Number)
 
 	cf, _ := cc.cm.GetConfig()
 	kp, _ := signature.KeyringPairFromSecret(cf.SeedOrPhrase, 42)
@@ -517,7 +517,7 @@ func (cc *ChainClient) GetResource(resourceIndex uint64) (*ComputingResource, er
 
 	meta, err := cc.api.RPC.State.GetMetadataLatest()
 	if err != nil {
-		fmt.Println(err)
+		log.GetLogger().Info(err)
 		return nil, err
 	}
 	bytes, err := types.EncodeToBytes(types.NewU64(resourceIndex))
@@ -527,21 +527,21 @@ func (cc *ChainClient) GetResource(resourceIndex uint64) (*ComputingResource, er
 	key, err := types.CreateStorageKey(meta, "Provider", "Resources", bytes)
 
 	if err != nil {
-		fmt.Println(err)
+		log.GetLogger().Info(err)
 		return nil, err
 	}
-	fmt.Println(key.Hex())
+	log.GetLogger().Info(key.Hex())
 
 	rows, err := cc.api.RPC.State.GetStorageRawLatest(key)
-	fmt.Println("rows", len(*rows))
-	fmt.Println("err:", err)
-	fmt.Println("row:", rows)
+	log.GetLogger().Info("rows", len(*rows))
+	log.GetLogger().Info("err:", err)
+	log.GetLogger().Info("row:", rows)
 
 	var computingResource ComputingResource
 
 	ok, err := cc.api.RPC.State.GetStorageLatest(key, &computingResource)
 	if !ok {
-		fmt.Println(err)
+		log.GetLogger().Info(err)
 		return nil, errors.New("cannot get state with computingResource")
 	}
 
@@ -592,7 +592,7 @@ func (cc *ChainClient) GetOrder(orderIndex uint64) (*ComputingOrder, error) {
 
 	meta, err := cc.api.RPC.State.GetMetadataLatest()
 	if err != nil {
-		fmt.Println(err)
+		log.GetLogger().Info(err)
 		return nil, err
 	}
 	bytes, err := types.EncodeToBytes(types.NewU64(orderIndex))
@@ -602,10 +602,10 @@ func (cc *ChainClient) GetOrder(orderIndex uint64) (*ComputingOrder, error) {
 	key, err := types.CreateStorageKey(meta, "ResourceOrder", "ResourceOrders", bytes)
 
 	if err != nil {
-		fmt.Println(err)
+		log.GetLogger().Info(err)
 		return nil, err
 	}
-	fmt.Println(key.Hex())
+	log.GetLogger().Info(key.Hex())
 
 	var order ComputingOrder
 	ok, err := cc.api.RPC.State.GetStorageLatest(key, &order)
@@ -773,7 +773,6 @@ func (cc *ChainClient) ProcessApplyFreeResource(index uint64, peerId string) err
 }
 
 func hook(header *types.Header) error {
-	fmt.Println(header.Number)
-
+	log.GetLogger().Info(header.Number)
 	return nil
 }

@@ -2,7 +2,7 @@ package event
 
 import (
 	"fmt"
-	log "github.com/sirupsen/logrus"
+	"github.com/hamster-shared/hamster-provider/log"
 	"time"
 )
 
@@ -36,7 +36,7 @@ func successDealOrder(ctx EventContext, orderNo uint64, name string) error {
 func getVmTargetAddress(ctx EventContext, name string) string {
 	ip, err := ctx.VmManager.GetIp(name)
 	if err != nil {
-		log.Error(err)
+		log.GetLogger().Error(err)
 	}
 
 	return fmt.Sprintf("/ip4/%s/tcp/%d", ip, ctx.VmManager.GetAccessPort(name))

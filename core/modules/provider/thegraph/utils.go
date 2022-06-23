@@ -6,6 +6,8 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/gorilla/websocket"
+	"github.com/hamster-shared/hamster-provider/core/modules/provider"
+	"github.com/hamster-shared/hamster-provider/log"
 	"io"
 )
 
@@ -100,6 +102,39 @@ func wsReaderCopy(reader *websocket.Conn, writer io.Writer) {
 		}
 		if messageType == websocket.TextMessage {
 			writer.Write(p)
+		}
+	}
+}
+
+func dockerStatus(containerIdOrName string) *provider.Status {
+	cli := GetDockerClient()
+	if cli == nil {
+		return &provider.Status{
+			Id:     containerIdOrName,
+			Status: provider.STOP,
+		}
+	}
+
+	containerJson, err := cli.ContainerInspect(context.Background(), containerIdOrName)
+	if err != nil {
+		log.GetLogger().Warn("container status query fail")
+		return &provider.Status{
+			Id:     containerIdOrName,
+			Status: provider.STOP,
+		}
+	}
+
+	log.GetLogger().Info(containerJson.State.Status)
+
+	if containerJson.State.Running {
+		return &provider.Status{
+			Id:     containerIdOrName,
+			Status: provider.RUNNING,
+		}
+	} else {
+		return &provider.Status{
+			Id:     containerIdOrName,
+			Status: provider.STOP,
 		}
 	}
 }

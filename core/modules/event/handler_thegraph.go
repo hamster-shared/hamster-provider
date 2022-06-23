@@ -1,8 +1,8 @@
 package event
 
 import (
-	"fmt"
 	"github.com/hamster-shared/hamster-provider/core/modules/provider/thegraph"
+	"github.com/hamster-shared/hamster-provider/log"
 	"time"
 )
 
@@ -13,7 +13,7 @@ type TheGraphHandler struct {
 
 func (h *TheGraphHandler) HandlerEvent(e *VmRequest) {
 
-	fmt.Println("the graph register")
+	log.GetLogger().Info("the graph register")
 
 	if thegraph.IsServer() {
 		return
@@ -32,13 +32,13 @@ func (h *TheGraphHandler) HandlerEvent(e *VmRequest) {
 	}
 
 	overdue := time.Hour * time.Duration(e.Duration)
-	fmt.Printf("overdue is： %s", overdue)
+	log.GetLogger().Infof("overdue is： %s", overdue)
 	instanceTimer := time.NewTimer(overdue)
 	h.CoreContext.TimerService.SubTimer(orderNo, instanceTimer)
 
 	go func(t *time.Timer) {
 		<-t.C
-		fmt.Printf("over due time is : %d, now  terminal", overdue)
+		log.GetLogger().Printf("over due time is : %d, now  terminal", overdue)
 		err = thegraph.Uninstall()
 		if err != nil {
 			thegraph.SetIsServer(false)

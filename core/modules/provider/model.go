@@ -59,8 +59,14 @@ type Manager interface {
 type Status struct {
 	Id string
 	// status 状态 0: 关闭,1: running , 2：其他
-	Status int
+	Status StatusValue
 }
+
+type StatusValue int
+
+const STOP StatusValue = 0
+const RUNNING StatusValue = 1
+const OTHER StatusValue = 2
 
 // IsRunning 是否正在运行
 func (s *Status) IsRunning() bool {

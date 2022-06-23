@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
 	"github.com/hamster-shared/hamster-provider/core/modules/config"
-	"github.com/sirupsen/logrus"
+	"github.com/hamster-shared/hamster-provider/log"
 	"net/http"
 	"strconv"
 )
@@ -68,13 +68,13 @@ func listenP2p(gin *MyContext) {
 	portStr := gin.Query("port")
 	port, err := strconv.Atoi(portStr)
 	if err != nil {
-		logrus.Error("port format is invalid")
+		log.GetLogger().Error("port format is invalid")
 		gin.String(400, "port is not integer")
 		return
 	}
 
 	if port > 65535 || port <= 0 {
-		logrus.Error("port range invalid ，getter 65535 or smaller 0")
+		log.GetLogger().Error("port range invalid ，getter 65535 or smaller 0")
 		gin.String(400, "port range invalid ，getter 65535 or smaller 0")
 		return
 	}
@@ -83,7 +83,7 @@ func listenP2p(gin *MyContext) {
 	protocol := gin.DefaultQuery("protocol", "/x/ssh")
 	err = gin.CoreContext.P2pClient.Listen(protocol, target)
 	if err != nil {
-		logrus.Error("p2p port create fail")
+		log.GetLogger().Error("p2p port create fail")
 		gin.String(400, "p2p port create fail")
 		return
 	}
@@ -104,13 +104,13 @@ func forwardP2p(gin *MyContext) {
 	portStr := gin.Query("port")
 	port, err := strconv.Atoi(portStr)
 	if err != nil {
-		logrus.Error("port format is invalid")
+		log.GetLogger().Error("port format is invalid")
 		gin.String(400, "port is not integer")
 		return
 	}
 
 	if port > 65535 || port <= 0 {
-		logrus.Error("port range invalid ，getter 65535 or smaller 0")
+		log.GetLogger().Error("port range invalid ，getter 65535 or smaller 0")
 		gin.String(400, "port range invalid ，getter 65535 or smaller 0")
 		return
 	}
@@ -121,7 +121,7 @@ func forwardP2p(gin *MyContext) {
 
 	err = gin.CoreContext.P2pClient.Forward(protocol, port, targetPeerId)
 	if err != nil {
-		logrus.Error("p2p port create fail")
+		log.GetLogger().Error("p2p port create fail")
 		gin.String(400, "p2p port create fail")
 		return
 	}
@@ -186,11 +186,11 @@ func checkP2p(gin *MyContext) {
 func createVm(gin *MyContext) {
 	name := gin.Query("name")
 	manage := gin.CoreContext.VmManager
-	logrus.Info("create virtual machine  start")
+	log.GetLogger().Info("create virtual machine  start")
 	_, err := manage.Create(name)
-	logrus.Info("create virtual machine  end")
+	log.GetLogger().Info("create virtual machine  end")
 	if err != nil {
-		logrus.Error("create virtual machine  fail")
+		log.GetLogger().Error("create virtual machine  fail")
 		fmt.Println(err)
 	}
 }

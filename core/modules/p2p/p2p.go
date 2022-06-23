@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"github.com/hamster-shared/hamster-provider/log"
 	ds "github.com/ipfs/go-datastore"
 	dsync "github.com/ipfs/go-datastore/sync"
 	ipfsp2p "github.com/ipfs/go-ipfs/p2p"
@@ -22,8 +23,6 @@ import (
 	rhost "github.com/libp2p/go-libp2p/p2p/host/routed"
 	ma "github.com/multiformats/go-multiaddr"
 	madns "github.com/multiformats/go-multiaddr-dns"
-	"github.com/sirupsen/logrus"
-	"log"
 	"time"
 )
 
@@ -35,12 +34,12 @@ func newRoutedHost(listenPort int, privstr string, swarmkey []byte, peers []stri
 
 	skbytes, err := base64.StdEncoding.DecodeString(privstr)
 	if err != nil {
-		logrus.Error(err)
+		log.GetLogger().Error(err)
 		return nil, nil, nil, err
 	}
 	priv, err := crypto.UnmarshalPrivateKey(skbytes)
 	if err != nil {
-		logrus.Error(err)
+		log.GetLogger().Error(err)
 		return nil, nil, nil, err
 	}
 	bootstrapPeers := convertPeers(peers)
@@ -121,9 +120,9 @@ func newRoutedHost(listenPort int, privstr string, swarmkey []byte, peers []stri
 	// by encapsulating both addresses:
 	// addr := routedHost.Addrs()[0]
 	addrs := routedHost.Addrs()
-	log.Println("I can be reached at:")
+	log.GetLogger().Info("I can be reached at:")
 	for _, addr := range addrs {
-		log.Println(addr.Encapsulate(hostAddr))
+		log.GetLogger().Info(addr.Encapsulate(hostAddr))
 	}
 
 	return &basicHost, routedHost, DHT, nil
@@ -197,17 +196,17 @@ func (c *P2pClient) List() *P2PLsOutput {
 
 // Listen map local ports to p2p networks
 func (c *P2pClient) Listen(proto, targetOpt string) error {
-	log.Println("listening for connections")
+	log.GetLogger().Info("listening for connections")
 
 	//targetOpt := fmt.Sprintf("/ip4/127.0.0.1/tcp/%d", port)
 	protoId := protocol.ID(proto)
 
 	target, err := ma.NewMultiaddr(targetOpt)
 	if err != nil {
-		log.Fatalln(err)
+		log.GetLogger().Error(err)
 	}
 	_, err = c.P2P.ForwardRemote(context.Background(), protoId, target, false)
-	logrus.Info("local port" + targetOpt + ",mapping to p2p network succeeded")
+	log.GetLogger().Info("local port" + targetOpt + ",mapping to p2p network succeeded")
 	return err
 }
 
@@ -217,7 +216,7 @@ func (c *P2pClient) Forward(proto string, port int, targetOpt string) error {
 	listen, err := ma.NewMultiaddr(listenOpt)
 
 	if err != nil {
-		log.Println(err)
+		log.GetLogger().Error(err)
 		return err
 	}
 
@@ -226,10 +225,10 @@ func (c *P2pClient) Forward(proto string, port int, targetOpt string) error {
 
 	err = forwardLocal(context.Background(), c.P2P, (*c.Host).Peerstore(), protoId, listen, targets)
 	if err != nil {
-		log.Println(err)
+		log.GetLogger().Error(err)
 		return err
 	}
-	logrus.Info("remote node" + targetOpt + ",forward to " + listenOpt + "success")
+	log.GetLogger().Info("remote node" + targetOpt + ",forward to " + listenOpt + "success")
 	return err
 }
 

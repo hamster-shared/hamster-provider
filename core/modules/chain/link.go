@@ -5,9 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/hamster-shared/hamster-provider/core/modules/config"
-	"github.com/sirupsen/logrus"
+	"github.com/hamster-shared/hamster-provider/log"
 	"io"
-	"log"
 	"net/http"
 	"time"
 )
@@ -42,7 +41,7 @@ func (c *LinkClient) RegisterResource(r ResourceInfo) error {
 
 		defer resp.Body.Close()
 
-		logrus.Info("successfully registered virtual machine")
+		log.GetLogger().Info("successfully registered virtual machine")
 	}
 	return nil
 }
@@ -98,7 +97,7 @@ func (c *LinkClient) LoadRegistryInfoFromChain() (*ResourceInfo, error) {
 	var info ResourceInfo
 	err = json.Unmarshal(body, &info)
 	if err != nil {
-		log.Println(err)
+		log.GetLogger().Error(err)
 		return nil, err
 	}
 	return &info, nil

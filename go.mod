@@ -29,6 +29,7 @@ require (
 
 require (
 	github.com/ThomasRooney/gexpect v0.0.0-20161231170123-5482f0350944
+	github.com/antonfisher/nested-logrus-formatter v1.3.1
 	github.com/gorilla/websocket v1.4.2
 	github.com/ipfs/go-log/v2 v2.3.0
 	github.com/libvirt/libvirt-go v7.4.0+incompatible

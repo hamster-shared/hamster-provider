@@ -28,9 +28,8 @@ import (
 	"github.com/hamster-shared/hamster-provider/core/modules/provider"
 	"github.com/hamster-shared/hamster-provider/core/modules/provider/docker"
 	"github.com/hamster-shared/hamster-provider/core/modules/utils"
-	"github.com/sirupsen/logrus"
+	"github.com/hamster-shared/hamster-provider/log"
 	"github.com/spf13/cobra"
-	"log"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -60,12 +59,12 @@ func NewContext() context2.CoreContext {
 	cm := config.NewConfigManager()
 	cfg, err := cm.GetConfig()
 	if err != nil {
-		logrus.Error(err)
+		log.GetLogger().Error(err)
 		return context2.CoreContext{}
 	}
 	p2pClient, err := p2p.NewP2pClient(34001, cfg.Identity.PrivKey, cfg.Identity.SwarmKey, cfg.Bootstraps)
 	if err != nil {
-		logrus.Error(err)
+		log.GetLogger().Error(err)
 		return context2.CoreContext{}
 	}
 	var vmManager provider.Manager
@@ -83,18 +82,18 @@ func NewContext() context2.CoreContext {
 		os.Exit(1)
 	}
 	if err != nil {
-		logrus.Error(err)
+		log.GetLogger().Error(err)
 		return context2.CoreContext{}
 	}
 
 	substrateApi, err := gsrpc.NewSubstrateAPI(cfg.ChainApi)
 	if err != nil {
-		logrus.Error(err)
+		log.GetLogger().Error(err)
 		os.Exit(1)
 	}
 	reportClient, err := chain2.NewChainClient(cm, substrateApi)
 	if err != nil {
-		logrus.Error(err)
+		log.GetLogger().Error(err)
 		return context2.CoreContext{}
 	}
 	timeService := utils.NewTimerService()
@@ -146,16 +145,16 @@ func saveGatewayNodes(ctx context2.CoreContext) {
 
 		err = os.MkdirAll(filepath.Dir(path), os.ModeDir)
 		if err != nil {
-			log.Fatal(err)
+			log.GetLogger().Error(err)
 		}
 
 		err = os.Chmod(filepath.Dir(path), os.ModePerm)
 		if err != nil {
-			log.Fatal(err)
+			log.GetLogger().Error(err)
 		}
 		err = config.NewConfigManagerWithPath(path).Save(cfg)
 		if err != nil {
-			fmt.Println(err)
+			log.GetLogger().Error(err)
 		}
 	}
 }

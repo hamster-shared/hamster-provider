@@ -18,16 +18,12 @@ func SetIsServer(status bool) {
 
 func Deploy(data DeployParams) error {
 
-	//if !isServe {
-	//	return errors.New("status is error")
-	//}
-
 	err := templateInstance(data)
 	if err != nil {
 		return err
 	}
 
-	if STOP == composeStatus() {
+	if RUNNING != GetStatus() {
 		err = startDockerCompose()
 		return err
 	}
@@ -87,4 +83,36 @@ func GetDockerLog(conn *websocket.Conn, containerName string) {
 
 	time.Sleep(time.Minute * 10)
 	cancel()
+}
+
+type ComposeStatus int
+
+const (
+	STOP        = 0
+	RUNNING     = 1
+	SOME_EXITED = 2
+)
+
+// 查询docker compose 启动状态
+func GetStatus(containerIds ...string) ComposeStatus {
+
+	if len(containerIds) == 0 {
+		containerIds = []string{"graph-node", "postgres", "index-service", "index-agent", "index-cli"}
+	}
+
+	allStatus := true
+	allCheck := false
+
+	for _, containerId := range containerIds {
+		status := dockerStatus(containerId)
+		allStatus = allStatus && status.IsRunning()
+		allCheck = allCheck || status.IsRunning()
+	}
+
+	if allStatus {
+		return RUNNING
+	} else if allCheck {
+		return SOME_EXITED
+	}
+	return STOP
 }
