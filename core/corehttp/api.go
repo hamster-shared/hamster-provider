@@ -66,6 +66,7 @@ func StartApi(ctx *context.CoreContext) error {
 			thegraph.POST("/deploy", deployTheGraph)
 			thegraph.GET("/ws", execHandler)
 			thegraph.GET("/wslog", logHandler)
+			thegraph.GET("/status", deployStatus)
 		}
 	}
 	//r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
