@@ -89,6 +89,7 @@ func getDefaultConfig() config.Config {
 		SeedOrPhrase: "betray extend distance category chimney globe employ scrap armor success kiss forum",
 		ChainRegInfo: config.ChainRegInfo{},
 		ConfigFlag:   config.NONE,
+		Bootstraps:   []string{},
 	}
 }
 
