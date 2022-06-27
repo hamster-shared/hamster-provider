@@ -16,7 +16,7 @@
                   <span>{{ item }}</span>
                   <a-button @click="removeBootstraps(index)" size="small" style="margin-left: 8px" type="primary" danger>{{t('initialization.initialization.delete')}}</a-button>
                 </div>
-                <a-button @click="showAddModel" size="small" style="margin-top: 8px" type="primary" :disabled="bootstraps.length < 5 ? false : true">{{t('initialization.initialization.add')}}</a-button>
+                <a-button @click="showAddModel" size="small" style="margin-top: 8px" type="primary" :disabled="bootstraps.length>=5">{{t('initialization.initialization.add')}}</a-button>
               </div>
             </div>
           </a-col>
@@ -90,7 +90,6 @@ import {computed, defineComponent, reactive, onMounted, h, ref, toRefs} from 'vu
   import { useUserStore } from '/@/store/modules/user';
   import {ProviderConfig} from "/@/api/provider/model/settingModel";
   import AButton from "/@/components/Button/src/BasicButton.vue";
-import {string} from "vue-types";
 
   export default defineComponent({
     components: {
@@ -112,7 +111,7 @@ import {string} from "vue-types";
         ubuntu: false,
       });
       const state = reactive({
-        bootstraps: [],
+        bootstraps: [] as string[],
         visible: false,
         addLoading: false,
         addBootstrapTip: false,
