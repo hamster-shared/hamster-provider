@@ -27,11 +27,11 @@ import (
 var cfgFile string
 
 const (
-	CONFIG_DIR_NAME         = ".hamster-provider"
-	CONFIG_DEFAULT_FILENAME = "config"
-	CONFIG_DEFAULT_LINK_API = "http://42.192.53.10:8888"
-	//CONFIG_DEFAULT_CHAIN_API = "ws://127.0.0.1:9944"
-	CONFIG_DEFAULT_CHAIN_API = "ws://183.66.65.207:49944"
+	CONFIG_DIR_NAME          = ".hamster-provider"
+	CONFIG_DEFAULT_FILENAME  = "config"
+	CONFIG_DEFAULT_LINK_API  = "http://42.192.53.10:8888"
+	CONFIG_DEFAULT_CHAIN_API = "ws://127.0.0.1:9944"
+	//CONFIG_DEFAULT_CHAIN_API = "ws://183.66.65.207:49944"
 )
 
 // rootCmd represents the base command when called without any subcommands
