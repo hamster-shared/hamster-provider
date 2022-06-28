@@ -7,7 +7,7 @@ require (
 	github.com/docker/docker v20.10.10+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/gin-contrib/static v0.0.1
-	github.com/gin-gonic/gin v1.7.4
+	github.com/gin-gonic/gin v1.7.7
 	github.com/ipfs/go-datastore v0.4.6
 	github.com/ipfs/go-ipfs v0.10.0
 	github.com/ipfs/go-log/v2 v2.3.0

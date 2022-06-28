@@ -69,9 +69,8 @@ type ComputingResource struct {
 		FaultDuration  types.U32 `json:"faultDuration"`
 	} `json:"rentalStatistics"`
 	RentalInfo struct {
-		RentUnitPrice types.U128 `json:"rentUnitPrice"`
-		RentDuration  types.U32  `json:"rentDuration"`
-		EndOfRent     types.U32  `json:"endOfRent"`
+		RentDuration types.U32 `json:"rentDuration"`
+		EndOfRent    types.U32 `json:"endOfRent"`
 	} `json:"rentalInfo"`
 	Status Status `json:"status"`
 }
