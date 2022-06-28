@@ -35,17 +35,24 @@
   import { getConfigApi } from '/@/api/provider/initialization';
   import { Description, useDescription } from '/@/components/Description/index';
   import { vmSchemas } from '/@/views/provider/boot/data';
+  import { useMessage } from '/@/hooks/web/useMessage';
 
   const { pkg } = __APP_INFO__;
   const { name } = pkg;
   const { t } = useI18n();
   const option = ref(true);
   const loading = ref(false);
+  const {createMessage} = useMessage();
+  const { error } = createMessage;
 
   const onChange = function (checked) {
     loading.value = true;
     setBootStateApi(checked)
       .then(() => {})
+      .catch(err => {
+        option.value = !checked
+        error(err.response.data.message)
+      })
       .finally(() => {
         loading.value = false;
       });

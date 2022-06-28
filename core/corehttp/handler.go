@@ -365,7 +365,10 @@ func setBootState(gin *MyContext) {
 		return
 	}
 
-	gin.CoreContext.ChainListener.SetState(op.Option)
+	if err := gin.CoreContext.ChainListener.SetState(op.Option); err != nil {
+		gin.JSON(http.StatusBadRequest, BadRequest(err.Error()))
+		return
+	}
 
 	gin.JSON(http.StatusOK, Success(""))
 }
