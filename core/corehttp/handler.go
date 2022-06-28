@@ -320,6 +320,9 @@ func receiveIncome(gin *MyContext) {
 
 func getConfig(gin *MyContext) {
 	cfg := gin.CoreContext.GetConfig()
+	if cfg.Bootstraps == nil {
+		cfg.Bootstraps = []string{}
+	}
 	gin.JSON(http.StatusOK, Success(cfg))
 }
 
