@@ -486,3 +486,14 @@ func withdrawAmount(gin *MyContext) {
 		gin.JSON(http.StatusOK, Success("Successfully retrieved the pledge amount"))
 	}
 }
+
+// become provider validator
+func becomeProviderValidator(gin *MyContext) {
+	seed := gin.CoreContext.GetConfig().SeedOrPhrase
+	err := gin.CoreContext.ReportClient.BecomeProviderValidator(seed)
+	if err != nil {
+		gin.JSON(http.StatusBadRequest, BadRequest("become provider fail "))
+	} else {
+		gin.JSON(http.StatusOK, Success("Successfully become provider role"))
+	}
+}

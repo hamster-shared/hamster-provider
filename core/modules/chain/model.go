@@ -212,3 +212,7 @@ func (m *OrderStatus) Encode(encoder scale.Encoder) error {
 	}
 	return nil
 }
+
+type UserInfo struct {
+	stackedAmount types.U128
+}

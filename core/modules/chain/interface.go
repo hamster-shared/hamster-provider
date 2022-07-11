@@ -48,4 +48,6 @@ type ReportClient interface {
 	ReceiveIncomeJudge() bool
 
 	GetGatewayNodes() ([]string, error)
+	// become provider validator
+	BecomeProviderValidator(seed string) error
 }

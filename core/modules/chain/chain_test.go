@@ -99,3 +99,25 @@ func TestResource(t *testing.T) {
 	assert.NoError(t, err)
 	fmt.Println(resource)
 }
+
+func TestBecomeProviderValidator(t *testing.T) {
+	cm := config.NewConfigManager()
+	cfg, _ := cm.GetConfig()
+	substrateApi, err := gsrpc.NewSubstrateAPI(cfg.ChainApi)
+	cc, err := NewChainClient(cm, substrateApi)
+	assert.NoError(t, err)
+	err = cc.BecomeProviderValidator("betray extend distance category chimney globe employ scrap armor success kiss forum")
+	assert.NoError(t, err)
+}
+
+func TestGetUserInfo(t *testing.T) {
+	cm := config.NewConfigManager()
+	cfg, _ := cm.GetConfig()
+	substrateApi, err := gsrpc.NewSubstrateAPI(cfg.ChainApi)
+	cc, err := NewChainClient(cm, substrateApi)
+	assert.NoError(t, err)
+
+	user, err := cc.GetUserInfo()
+	assert.NoError(t, err)
+	fmt.Println(user)
+}

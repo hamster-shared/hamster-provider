@@ -12,7 +12,7 @@ import (
 )
 
 func TestSampleCall(t *testing.T) {
-	api, err := gsrpc.NewSubstrateAPI("wss://chain.stage-ttchain.tntlinking.com")
+	api, err := gsrpc.NewSubstrateAPI("ws:///183.66.65.207:9944")
 	if err != nil {
 		panic(err)
 	}
@@ -427,19 +427,6 @@ func TestDisplaySystemEvents(t *testing.T) {
 	}
 }
 
-type AccountInfo struct {
-	Nonce       types.U32
-	Consumers   types.U32
-	Providers   types.U32
-	Sufficients types.U32
-	Data        struct {
-		Free       types.U128
-		Reserved   types.U128
-		MiscFrozen types.U128
-		FreeFrozen types.U128
-	}
-}
-
 func TestListenToBalanceChange(t *testing.T) {
 	api, err := gsrpc.NewSubstrateAPI(config.Default().RPCURL)
 	if err != nil {
@@ -458,7 +445,7 @@ func TestListenToBalanceChange(t *testing.T) {
 	}
 	fmt.Println(key.Hex())
 
-	var accountInfo AccountInfo
+	var accountInfo types.AccountInfo
 	ok, err := api.RPC.State.GetStorageLatest(key, &accountInfo)
 	if err != nil || !ok {
 		panic(err)
@@ -490,7 +477,7 @@ func TestListenToBalanceChange(t *testing.T) {
 				continue
 			}
 
-			var acc AccountInfo
+			var acc types.AccountInfo
 			if err = types.DecodeFromBytes(chng.StorageData, &acc); err != nil {
 				panic(err)
 			}
@@ -629,5 +616,5 @@ func TestAccountAmount(t *testing.T) {
 		panic(err)
 	}
 
-	fmt.Println(accountInfo.Data)
+	fmt.Println(accountInfo.Amount)
 }

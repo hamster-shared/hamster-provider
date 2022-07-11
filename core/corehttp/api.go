@@ -29,6 +29,7 @@ func StartApi(ctx *context.CoreContext) error {
 			chain.POST("/pledge", stakingAmount)
 			chain.POST("/withdraw-amount", withdrawAmount)
 			chain.POST("/price", changeUnitPrice)
+			chain.POST("/become-provider", becomeProviderValidator)
 		}
 		// container routing
 		container := v1.Group("/container")

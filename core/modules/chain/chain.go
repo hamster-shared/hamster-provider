@@ -119,8 +119,6 @@ func (cc *ChainClient) callAndWatch(c types.Call, meta *types.Metadata, hook fun
 	}
 
 	keypair, err := signature.KeyringPairFromSecret(cf.SeedOrPhrase, 42)
-	address := keypair.Address
-	println(address)
 	if err != nil {
 		return err
 	}
@@ -267,6 +265,7 @@ func (cc *ChainClient) RegisterResource(r ResourceInfo) error {
 		}
 	}
 
+	resourceIndex := cf.ChainRegInfo.ResourceIndex
 	peerId := cf.Identity.PeerID
 	cpu := types.NewU64(r.Cpu)
 	memory := types.NewU64(r.Memory)
@@ -276,7 +275,7 @@ func (cc *ChainClient) RegisterResource(r ResourceInfo) error {
 	hours := r.ExpireTime.Sub(time.Now()).Hours()
 	rentDurationHour := types.NewU32(uint32(hours))
 
-	c, err := types.NewCall(meta, "Provider.register_resource", peerId, cpu, memory, system, cpuModel, price, rentDurationHour)
+	c, err := types.NewCall(meta, "Provider.register_resource", peerId, cpu, memory, system, cpuModel, price, rentDurationHour, resourceIndex)
 
 	if err != nil {
 		return err
@@ -755,4 +754,73 @@ func (cc *ChainClient) ReceiveIncomeJudge() bool {
 		return true
 	}
 	return false
+}
+
+func (cc *ChainClient) BecomeProviderValidator(seed string) error {
+
+	meta, err := cc.api.RPC.State.GetMetadataLatest()
+	if err != nil {
+		return err
+	}
+
+	// enum
+	/**
+	{
+	  "MarketUserStatus": {
+	    "_enum": [
+	      "Provider",
+	      "Gateway",
+	      "Client"
+	    ]
+	  }
+	}
+	*/
+	c, err := types.NewCall(meta, "Market.crate_market_account", types.NewU8(0))
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Println()
+
+	return cc.callAndWatch(c, meta, nil)
+}
+
+func (cc *ChainClient) GetUserInfo() (*UserInfo, error) {
+
+	cf, err := cc.cm.GetConfig()
+	if err != nil {
+		return nil, err
+	}
+	keypair, err := signature.KeyringPairFromSecret(cf.SeedOrPhrase, 42)
+	meta, err := cc.api.RPC.State.GetMetadataLatest()
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	encoded, err := types.EncodeToBytes(types.U8(0))
+
+	key, err := types.CreateStorageKey(meta, "Market", "StakerInfo", encoded, keypair.PublicKey)
+
+	fmt.Println(key.Hex())
+
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	rows, err := cc.api.RPC.State.GetStorageRawLatest(key)
+	fmt.Println("rows", len(*rows))
+	fmt.Println("err:", err)
+	fmt.Println("row:", rows)
+
+	var userInfo UserInfo
+
+	ok, err := cc.api.RPC.State.GetStorageLatest(key, &userInfo)
+	if !ok {
+		fmt.Println(err)
+		return nil, errors.New("cannot get state with computingResource")
+	}
+
+	return &userInfo, err
 }
