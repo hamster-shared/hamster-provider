@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/hamster-shared/hamster-provider/log"
 	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/sirupsen/logrus"
 	"os"
 	"strings"
 	"sync"
@@ -99,11 +99,11 @@ func DefaultConfigDir() string {
 		return CONFIG_DIR_NAME + "."
 	}
 	if err != nil {
-		logrus.Error(err)
+		log.GetLogger().Error(err)
 	}
 	dir := strings.Join([]string{userHomeDir, CONFIG_DIR_NAME}, string(os.PathSeparator))
 	if err != nil {
-		logrus.Error(err)
+		log.GetLogger().Error(err)
 	}
 	return dir
 }

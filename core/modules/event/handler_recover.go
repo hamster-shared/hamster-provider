@@ -1,7 +1,7 @@
 package event
 
 import (
-	log "github.com/sirupsen/logrus"
+	"github.com/hamster-shared/hamster-provider/log"
 )
 
 type RecoverVmHandler struct {
@@ -17,14 +17,14 @@ func (h *RecoverVmHandler) HandlerEvent(e *VmRequest) {
 
 	status, err := vmManager.Status(e.getName())
 	if err != nil {
-		log.Errorf("Order %s failed to restore, reason: VM instance does not exist", e.getName())
+		log.GetLogger().Errorf("Order %s failed to restore, reason: VM instance does not exist", e.getName())
 		return
 	}
 
 	if !status.IsRunning() {
 		err = vmManager.Start(e.getName())
 		if err != nil {
-			log.Errorf("Order %s failed to restore, reason: VM failed to start", e.getName())
+			log.GetLogger().Errorf("Order %s failed to restore, reason: VM failed to start", e.getName())
 			return
 		}
 	}
@@ -32,9 +32,9 @@ func (h *RecoverVmHandler) HandlerEvent(e *VmRequest) {
 	err = successDealOrder(h.CoreContext, e.OrderNo, e.getName())
 
 	if err != nil {
-		log.Error("handling recovery failures")
+		log.GetLogger().Error("handling recovery failures")
 	} else {
-		log.Info("handling order complete")
+		log.GetLogger().Info("handling order complete")
 	}
 
 }

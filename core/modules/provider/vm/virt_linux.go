@@ -9,9 +9,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/docker/docker/pkg/fileutils"
+	"github.com/hamster-shared/hamster-provider/core/modules/provider"
 	"github.com/hamster-shared/hamster-provider/core/modules/utils"
+	"github.com/hamster-shared/hamster-provider/log"
 	libvirt "github.com/libvirt/libvirt-go"
-	log "github.com/sirupsen/logrus"
 	"os"
 	"os/exec"
 	"path"
@@ -24,12 +25,12 @@ import (
 type VirtManager struct {
 	conn       *libvirt.Connect
 	home       string
-	template   *Template
+	template   *provider.Template
 	accessPort int
 }
 
 // NewVirtManager create virtManager
-func NewVirtManager(t Template) (*VirtManager, error) {
+func NewVirtManager(t provider.Template) (*VirtManager, error) {
 	conn, err := libvirt.NewConnect("qemu:///system")
 	homedir, err := os.UserHomeDir()
 	manager := &VirtManager{
@@ -40,17 +41,17 @@ func NewVirtManager(t Template) (*VirtManager, error) {
 	return manager, err
 }
 
-func (v *VirtManager) SetTemplate(t Template) error {
+func (v *VirtManager) SetTemplate(t provider.Template) error {
 	v.template = &t
 	v.accessPort = 22
 	baeImage := fmt.Sprintf("%s/%s", v.home, path.Base(v.template.Image))
 	if _, err := os.Stat(baeImage); errors.Is(err, os.ErrNotExist) {
-		log.Info("start download template")
+		log.GetLogger().Info("start download provider.Template")
 
 		// download file and rename
 		err = utils.Download(v.template.Image, baeImage)
 		if err != nil {
-			log.Error("download template fail")
+			log.GetLogger().Error("download provider.Template fail")
 			return err
 		}
 
@@ -60,7 +61,7 @@ func (v *VirtManager) SetTemplate(t Template) error {
 		if strings.HasSuffix(baeImage, ".tar.gz") {
 			file, err := os.Open(baeImage)
 			if err != nil {
-				log.Error("download template fail")
+				log.GetLogger().Error("download provider.Template fail")
 				return err
 			}
 			return utils.UnTar(file, v.home)
@@ -88,7 +89,7 @@ func (v *VirtManager) getBaseImagePath() string {
 
 // Create create
 func (v *VirtManager) Create(name string) (string, error) {
-	log.Info("start the virtual machine")
+	log.GetLogger().Info("start the virtual machine")
 	//xml, err := v.newXml()
 	//if err != nil {
 	//	return err
@@ -125,7 +126,7 @@ func (v *VirtManager) Start(name string) error {
 	defer func(dom *libvirt.Domain) {
 		err := dom.Free()
 		if err != nil {
-			log.Error("free libvirt.Domain fail")
+			log.GetLogger().Error("free libvirt.Domain fail")
 		}
 	}(d)
 
@@ -178,7 +179,7 @@ func (v *VirtManager) CreateAndStartAndInjectionPublicKey(name, publicKey string
 		time.Sleep(time.Second * 3)
 	}
 
-	log.Info("processing order complete")
+	log.GetLogger().Info("processing order complete")
 	return id, err
 }
 
@@ -191,7 +192,7 @@ func (v *VirtManager) Stop(name string) error {
 	defer func(dom *libvirt.Domain) {
 		err := dom.Free()
 		if err != nil {
-			log.Error("free libvirt.Domain fail")
+			log.GetLogger().Error("free libvirt.Domain fail")
 		}
 	}(d)
 
@@ -207,7 +208,7 @@ func (v *VirtManager) Reboot(name string) error {
 	defer func(dom *libvirt.Domain) {
 		err := dom.Free()
 		if err != nil {
-			log.Error("free libvirt.Domain fail")
+			log.GetLogger().Error("free libvirt.Domain fail")
 		}
 	}(d)
 
@@ -223,7 +224,7 @@ func (v *VirtManager) Shutdown(name string) error {
 	defer func(dom *libvirt.Domain) {
 		err := dom.Free()
 		if err != nil {
-			log.Error("free libvirt.Domain fail")
+			log.GetLogger().Error("free libvirt.Domain fail")
 		}
 	}(d)
 
@@ -239,7 +240,7 @@ func (v *VirtManager) Destroy(name string) error {
 	defer func(dom *libvirt.Domain) {
 		err := dom.Free()
 		if err != nil {
-			log.Error("free libvirt.Domain fail")
+			log.GetLogger().Error("free libvirt.Domain fail")
 		}
 	}(d)
 	return d.Destroy()
@@ -278,7 +279,7 @@ func (v *VirtManager) InjectionPublicKey(name, publicKey string) error {
 }
 
 // Status View status
-func (v *VirtManager) Status(name string) (*Status, error) {
+func (v *VirtManager) Status(name string) (*provider.Status, error) {
 	dom, err := v.conn.LookupDomainByName(name)
 	if err != nil {
 		fmt.Println("err", err)
@@ -326,12 +327,12 @@ func (v *VirtManager) Status(name string) (*Status, error) {
 	defer func(dom *libvirt.Domain) {
 		err := dom.Free()
 		if err != nil {
-			log.Error("free libvirt.Domain fail")
+			log.GetLogger().Error("free libvirt.Domain fail")
 		}
 	}(dom)
-	return &Status{
-		status: status,
-		id:     strconv.Itoa(int(id)),
+	return &provider.Status{
+		Status: status,
+		Id:     strconv.Itoa(int(id)),
 	}, err
 }
 

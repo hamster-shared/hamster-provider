@@ -7,17 +7,15 @@ import (
 	"github.com/hamster-shared/hamster-provider/core/modules/event"
 	"github.com/hamster-shared/hamster-provider/core/modules/listener"
 	"github.com/hamster-shared/hamster-provider/core/modules/p2p"
-	"github.com/hamster-shared/hamster-provider/core/modules/pk"
+	"github.com/hamster-shared/hamster-provider/core/modules/provider"
 	"github.com/hamster-shared/hamster-provider/core/modules/utils"
-	"github.com/hamster-shared/hamster-provider/core/modules/vm"
 )
 
 // CoreContext the application context , wrapped with some bean
 type CoreContext struct {
 	P2pClient     *p2p.P2pClient
-	VmManager     vm.Manager
+	VmManager     provider.Manager
 	Cm            *config.ConfigManager
-	PkManager     *pk.Manager
 	ReportClient  chain.ReportClient
 	SubstrateApi  *gsrpc.SubstrateAPI
 	TimerService  *utils.TimerService

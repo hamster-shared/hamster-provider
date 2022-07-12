@@ -8,6 +8,7 @@ import (
 
 func StartApi(ctx *context.CoreContext) error {
 	r := NewMyServer(ctx)
+
 	// router
 	v1 := r.Group("/api/v1")
 	{
@@ -37,14 +38,6 @@ func StartApi(ctx *context.CoreContext) error {
 			container.GET("/delete", deleteContainer)
 		}
 
-		pk := v1.Group("/pk")
-		// publick key
-		{
-			pk.POST("/grantKey", grantKey)
-			pk.POST("/deleteKey", deleteKey)
-			pk.POST("/queryKey", queryKey)
-		}
-
 		p2p := v1.Group("/p2p")
 		// p2p
 		{
@@ -66,6 +59,14 @@ func StartApi(ctx *context.CoreContext) error {
 			resource.POST("/rent-again", rentAgain)
 			resource.POST("/delete-resource", deleteResource)
 			resource.GET("/receive-income-judge", receiveIncomeJudge)
+		}
+
+		thegraph := v1.Group("/thegraph")
+		{
+			thegraph.POST("/deploy", deployTheGraph)
+			thegraph.GET("/ws", execHandler)
+			thegraph.GET("/wslog", logHandler)
+			thegraph.GET("/status", deployStatus)
 		}
 	}
 	//r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

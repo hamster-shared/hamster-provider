@@ -1,4 +1,4 @@
-package vm
+package docker
 
 import (
 	"context"
@@ -9,8 +9,9 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
+	"github.com/hamster-shared/hamster-provider/core/modules/provider"
 	"github.com/hamster-shared/hamster-provider/core/modules/utils"
-	log "github.com/sirupsen/logrus"
+	"github.com/hamster-shared/hamster-provider/log"
 	"io"
 	"os"
 	"os/exec"
@@ -19,7 +20,7 @@ import (
 )
 
 type DockerManager struct {
-	template *Template
+	template *provider.Template
 	//access port
 	accessPort int
 	// docker client
@@ -31,10 +32,10 @@ type DockerManager struct {
 	image string
 }
 
-func NewDockerManager(t Template) (*DockerManager, error) {
+func NewDockerManager(t provider.Template) (*DockerManager, error) {
 	cli, err := client.NewClientWithOpts(client.WithVersion("1.38"))
 	if err != nil {
-		log.Error(err)
+		log.GetLogger().Error(err)
 		return nil, err
 	}
 	manager := &DockerManager{
@@ -45,14 +46,14 @@ func NewDockerManager(t Template) (*DockerManager, error) {
 	return manager, err
 }
 
-func (d *DockerManager) SetTemplate(t Template) error {
+func (d *DockerManager) SetTemplate(t provider.Template) error {
 	d.template = &t
 	d.image = t.Image
 	d.accessPort = 22
 	return nil
 }
 
-func (d *DockerManager) Status(name string) (*Status, error) {
+func (d *DockerManager) Status(name string) (*provider.Status, error) {
 	containers, err := d.cli.ContainerList(d.ctx, types.ContainerListOptions{
 		All:     true,
 		Filters: filters.NewArgs(filters.Arg("name", name)),
@@ -61,27 +62,27 @@ func (d *DockerManager) Status(name string) (*Status, error) {
 		return nil, err
 	}
 	if len(containers) == 0 {
-		return &Status{}, errors.New("container not exists")
+		return &provider.Status{}, errors.New("container not exists")
 	}
 
 	// status Status 0: Off, 1: On, 2: Paused, 3, other
-	var status int
+	var status provider.StatusValue
 
 	switch containers[0].State {
 	case "created":
-		status = 0
+		status = provider.STOP
 		break
 	case "restarting":
-		status = 3
+		status = provider.OTHER
 		break
 	case "running":
-		status = 1
+		status = provider.RUNNING
 		break
 	case "removing":
-		status = 3
+		status = provider.OTHER
 		break
 	case "paused":
-		status = 2
+		status = provider.OTHER
 		break
 	case "exited":
 	case "dead":
@@ -89,9 +90,9 @@ func (d *DockerManager) Status(name string) (*Status, error) {
 		break
 	}
 
-	return &Status{
-		status: status,
-		id:     containers[0].ID,
+	return &provider.Status{
+		Status: status,
+		Id:     containers[0].ID,
 	}, nil
 }
 
@@ -103,11 +104,11 @@ func (d *DockerManager) GetIp(name string) (string, error) {
 	//	return "", err
 	//}
 	//
-	//if status.id == "" {
+	//if status.Id == "" {
 	//	return "", errors.New("container id cannot be empty")
 	//}
 	//
-	//containerJson, err := d.cli.ContainerInspect(d.ctx, status.id)
+	//containerJson, err := d.cli.ContainerInspect(d.ctx, status.Id)
 	//if err != nil {
 	//	return "", err
 	//}
@@ -140,14 +141,14 @@ func (d *DockerManager) Create(name string) (string, error) {
 		Filters: filters.NewArgs(filters.Arg("reference", d.image)),
 	})
 	if err != nil {
-		log.Println(err)
+		log.GetLogger().Error(err)
 		return "", err
 	}
 	if len(imageLists) == 0 {
 		// pull image
 		out, err := d.cli.ImagePull(d.ctx, d.image, types.ImagePullOptions{})
 		if err != nil {
-			log.Println(err)
+			log.GetLogger().Error(err)
 			return "", err
 		}
 		_, err = io.Copy(os.Stdout, out)
@@ -159,13 +160,13 @@ func (d *DockerManager) Create(name string) (string, error) {
 	// determine whether there is a repeated start
 	status, err := d.Status(name)
 	if err != nil {
-		log.Info(err.Error())
+		log.GetLogger().Error(err.Error())
 	}
 
-	if status.id != "" {
-		err = d.cli.ContainerRemove(d.ctx, status.id, types.ContainerRemoveOptions{Force: true})
+	if status.Id != "" {
+		err = d.cli.ContainerRemove(d.ctx, status.Id, types.ContainerRemoveOptions{Force: true})
 		if err != nil {
-			return status.id, err
+			return status.Id, err
 		}
 	}
 
@@ -197,11 +198,11 @@ func (d *DockerManager) Create(name string) (string, error) {
 		}, nil, nil, name)
 
 	if err != nil {
-		log.Println(err)
+		log.GetLogger().Error(err)
 		return resp.ID, err
 	}
 
-	log.WithField("containerId", resp.ID).Info("container created")
+	log.GetLogger().WithField("containerId", resp.ID).Info("container created")
 
 	return resp.ID, err
 }
@@ -213,9 +214,9 @@ func (d *DockerManager) Start(name string) error {
 		return err
 	}
 
-	id := status.id
+	id := status.Id
 
-	if status.status == 0 && id != "" {
+	if status.Status == 0 && id != "" {
 		err = d.cli.ContainerStart(d.ctx, id, types.ContainerStartOptions{})
 		return err
 	} else {
@@ -256,17 +257,17 @@ func (d *DockerManager) CreateAndStartAndInjectionPublicKey(name, publicKey stri
 
 func (d *DockerManager) Stop(name string) error {
 	status, err := d.Status(name)
-	if status.status != 1 {
+	if status.Status != 1 {
 		return errors.New("invalid container status")
 	}
 	if err != nil {
 		return err
 	}
-	id := status.id
+	id := status.Id
 
 	timeout := time.Second * 3
 	if id != "" {
-		return d.cli.ContainerStop(d.ctx, status.id, &timeout)
+		return d.cli.ContainerStop(d.ctx, status.Id, &timeout)
 	} else {
 		return errors.New("container id is invalid")
 	}
@@ -277,11 +278,11 @@ func (d *DockerManager) Reboot(name string) error {
 	if err != nil {
 		return err
 	}
-	id := status.id
+	id := status.Id
 
 	timeout := time.Second * 3
 	if id != "" {
-		return d.cli.ContainerRestart(d.ctx, status.id, &timeout)
+		return d.cli.ContainerRestart(d.ctx, status.Id, &timeout)
 	} else {
 		return errors.New("container id is invalid")
 	}
@@ -289,16 +290,16 @@ func (d *DockerManager) Reboot(name string) error {
 
 func (d *DockerManager) Shutdown(name string) error {
 	status, err := d.Status(name)
-	if status.status != 1 {
+	if status.Status != 1 {
 		return errors.New("invalid container status")
 	}
 	if err != nil {
 		return err
 	}
-	id := status.id
+	id := status.Id
 	timeout := time.Second * 3
 	if id != "" {
-		return d.cli.ContainerStop(d.ctx, status.id, &timeout)
+		return d.cli.ContainerStop(d.ctx, status.Id, &timeout)
 	} else {
 		return errors.New("container id is invalid")
 	}
@@ -310,10 +311,10 @@ func (d *DockerManager) Destroy(name string) error {
 	if err != nil {
 		return err
 	}
-	id := status.id
+	id := status.Id
 
 	if id != "" {
-		return d.cli.ContainerRemove(d.ctx, status.id, types.ContainerRemoveOptions{Force: true})
+		return d.cli.ContainerRemove(d.ctx, status.Id, types.ContainerRemoveOptions{Force: true})
 	} else {
 		return errors.New("container id is invalid")
 	}
@@ -329,7 +330,7 @@ func (d *DockerManager) InjectionPublicKey(name, publicKey string) error {
 	if err != nil {
 		return err
 	}
-	id := status.id
+	id := status.Id
 	if id != "" {
 		cmd := fmt.Sprintf("echo %s  > /root/.ssh/authorized_keys", publicKey)
 		command := exec.Command("docker", "exec", id, "bash", "-c", cmd)

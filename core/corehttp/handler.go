@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
 	"github.com/hamster-shared/hamster-provider/core/modules/config"
-	"github.com/sirupsen/logrus"
+	"github.com/hamster-shared/hamster-provider/log"
 	"net/http"
 	"strconv"
 )
@@ -55,91 +55,6 @@ func deleteContainer(c *MyContext) {
 	c.String(http.StatusOK, "delete container success")
 }
 
-// @Summary grant key
-// @Description grant key
-// @Tags key operation
-// @Accept json
-// @Produce json
-// @Param param body Keys true "the key need upload"
-// @Success 200 {string} grantKey
-// @Router /pk/grantKey [POST]
-func grantKey(gin *MyContext) {
-
-	name := gin.Query("name")
-	json := Keys{}
-	if err := gin.BindJSON(&json); err != nil {
-		gin.String(http.StatusBadRequest, "err:%v", err)
-		return
-	}
-
-	if err := gin.CoreContext.PkManager.AddPublicKey(json.PublicKey); err != nil {
-		gin.String(http.StatusBadRequest, "err:%v", err)
-		return
-	}
-
-	if err := gin.CoreContext.VmManager.InjectionPublicKey(name, json.PublicKey); err != nil {
-		gin.String(http.StatusBadRequest, "err:%v", err)
-		return
-	}
-
-	gin.String(http.StatusOK, "you public key is :%s\n", json.PublicKey)
-	gin.String(http.StatusOK, "public key upload success \n")
-}
-
-// @Summary delete key
-// @Description delete key
-// @Tags key operation
-// @Accept json
-// @Produce json
-// @Param param body Keys true "the key want delete"
-// @Success 200 {string} grantKey
-// @Router /pk/deleteKey [POST]
-func deleteKey(gin *MyContext) {
-
-	json := Keys{}
-	if err := gin.BindJSON(&json); err != nil {
-		gin.String(http.StatusBadRequest, "err:%v", err)
-		return
-	}
-
-	if err := gin.CoreContext.PkManager.DeletePublicKey(json.PublicKey); err != nil {
-		gin.String(http.StatusBadRequest, "err:%v", err)
-		return
-	}
-	gin.String(http.StatusOK, "the key you want delete is :%s\n", json.PublicKey)
-	gin.String(http.StatusOK, "the key delete success\n")
-}
-
-// @Summary query key
-// @Description uery key
-// @Tags key operation
-// @Accept json
-// @Produce json
-// @Param param body Keys true "the key you want query"
-// @Success 200 {string} queryKey
-// @Router /pk/queryKey [POST]
-func queryKey(gin *MyContext) {
-	json := Keys{}
-	if err := gin.BindJSON(&json); err != nil {
-		gin.String(http.StatusBadRequest, "err:%v", err)
-		return
-	}
-
-	res, err := gin.CoreContext.PkManager.QueryPublicKey(json.PublicKey)
-	if err != nil {
-		gin.String(http.StatusBadRequest, "err:%v", err)
-		return
-	}
-
-	gin.String(http.StatusOK, "the key you query is :%s\n", json.PublicKey)
-
-	if res == true {
-		gin.String(http.StatusOK, "the key you query is  exists")
-	} else {
-		gin.String(http.StatusOK, "the key you query is not exists")
-	}
-}
-
 // @Summary p2p port listen
 // @Description p2p port listen
 // @Tags p2p
@@ -153,21 +68,22 @@ func listenP2p(gin *MyContext) {
 	portStr := gin.Query("port")
 	port, err := strconv.Atoi(portStr)
 	if err != nil {
-		logrus.Error("port format is invalid")
+		log.GetLogger().Error("port format is invalid")
 		gin.String(400, "port is not integer")
 		return
 	}
 
 	if port > 65535 || port <= 0 {
-		logrus.Error("port range invalid ，getter 65535 or smaller 0")
+		log.GetLogger().Error("port range invalid ，getter 65535 or smaller 0")
 		gin.String(400, "port range invalid ，getter 65535 or smaller 0")
 		return
 	}
 
 	target := fmt.Sprintf("/ip4/127.0.0.1/tcp/%d", port)
-	err = gin.CoreContext.P2pClient.Listen(target)
+	protocol := gin.DefaultQuery("protocol", "/x/ssh")
+	err = gin.CoreContext.P2pClient.Listen(protocol, target)
 	if err != nil {
-		logrus.Error("p2p port create fail")
+		log.GetLogger().Error("p2p port create fail")
 		gin.String(400, "p2p port create fail")
 		return
 	}
@@ -188,22 +104,24 @@ func forwardP2p(gin *MyContext) {
 	portStr := gin.Query("port")
 	port, err := strconv.Atoi(portStr)
 	if err != nil {
-		logrus.Error("port format is invalid")
+		log.GetLogger().Error("port format is invalid")
 		gin.String(400, "port is not integer")
 		return
 	}
 
 	if port > 65535 || port <= 0 {
-		logrus.Error("port range invalid ，getter 65535 or smaller 0")
+		log.GetLogger().Error("port range invalid ，getter 65535 or smaller 0")
 		gin.String(400, "port range invalid ，getter 65535 or smaller 0")
 		return
 	}
 
 	targetPeerId := gin.Query("peerId")
 
-	err = gin.CoreContext.P2pClient.Forward(port, targetPeerId)
+	protocol := gin.DefaultQuery("protocol", "/x/ssh")
+
+	err = gin.CoreContext.P2pClient.Forward(protocol, port, targetPeerId)
 	if err != nil {
-		logrus.Error("p2p port create fail")
+		log.GetLogger().Error("p2p port create fail")
 		gin.String(400, "p2p port create fail")
 		return
 	}
@@ -254,8 +172,9 @@ func closeP2p(gin *MyContext) {
 // @Router /p2p/check [POST]
 func checkP2p(gin *MyContext) {
 	targetPeerId := gin.Query("peerId")
+	protocol := gin.DefaultQuery("protocol", "/x/ssh")
 
-	err := gin.CoreContext.P2pClient.CheckForwardHealth(targetPeerId)
+	err := gin.CoreContext.P2pClient.CheckForwardHealth(protocol, targetPeerId)
 	if err != nil {
 		gin.String(http.StatusBadRequest, "p2p connection is not ready")
 	} else {
@@ -267,11 +186,11 @@ func checkP2p(gin *MyContext) {
 func createVm(gin *MyContext) {
 	name := gin.Query("name")
 	manage := gin.CoreContext.VmManager
-	logrus.Info("create virtual machine  start")
+	log.GetLogger().Info("create virtual machine  start")
 	_, err := manage.Create(name)
-	logrus.Info("create virtual machine  end")
+	log.GetLogger().Info("create virtual machine  end")
 	if err != nil {
-		logrus.Error("create virtual machine  fail")
+		log.GetLogger().Error("create virtual machine  fail")
 		fmt.Println(err)
 	}
 }

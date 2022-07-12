@@ -1,9 +1,10 @@
-package vm
+package docker
 
 import (
 	"fmt"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/hamster-shared/hamster-provider/core/modules/provider"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -13,8 +14,8 @@ const (
 	publicKey     = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCWCDS4Io8+PFqGepqy0YNrtw3B7g7lhg7WNcH2VyJmmHlvft69N3S4EzDugEUDgPbgihiL56wyq56GtOG6+RuRuqkEU983MRC6j0yazem/KPs2nAS0NW5A8Nzxm9ixXnF9Bw6qHpO+L8ZbKdsIR+xux5QVriWTmDd/FeaovzRa/Ogr/BdShsp5H1s8aKkj2ygm16rlWAuQcoPQJPDWJVLM9cub8wj/AGrOzRDQCMnbcm69BZT7GPbodVmBIlugICuSVVvKSpZEa0QHCdQW2z2kIan7EwEI7LPYyDpCRAAI2mYEsl9WIIzae1ACK7dKwp9DKfLlKU4YRNfvR5stGgNezelz2pbN0TvK0T6NrqlKDo1eZQbHzRzvUKtDCiwSBdauJVus5Zowqy8lXr9wVosbra8z8cd+vM+e5+82fEjnE3BQm6NUHatOfxe/1MtYeem1Zlru5ISc25ceCXJd/l6qUrlIamHKgMpxvAt8g9pcPpPH2YozLkRlohcdWrhA+kk= gr@gr-Lenovo"
 )
 
-func getTemplate() Template {
-	return Template{
+func getTemplate() provider.Template {
+	return provider.Template{
 		Cpu:        1,
 		Memory:     1,
 		Disk:       50,
@@ -65,8 +66,8 @@ func TestStart(t *testing.T) {
 	status, err := client.Status(containerName)
 	assert.NoError(t, err)
 
-	assert.Equal(t, 1, status.status)
-	assert.Equal(t, id, status.id)
+	assert.Equal(t, 1, status.Status)
+	assert.Equal(t, id, status.Id)
 }
 
 func TestCreateAndStart(t *testing.T) {
@@ -80,8 +81,8 @@ func TestCreateAndStart(t *testing.T) {
 	status, err := client.Status(containerName)
 	assert.NoError(t, err)
 
-	assert.Equal(t, 1, status.status)
-	assert.Equal(t, id, status.id)
+	assert.Equal(t, 1, status.Status)
+	assert.Equal(t, id, status.Id)
 }
 
 func TestCreateAndStartAndInjectionPublicKey(t *testing.T) {
@@ -95,8 +96,8 @@ func TestCreateAndStartAndInjectionPublicKey(t *testing.T) {
 	status, err := client.Status(containerName)
 	assert.NoError(t, err)
 
-	assert.Equal(t, 1, status.status)
-	assert.Equal(t, id, status.id)
+	assert.Equal(t, 1, status.Status)
+	assert.Equal(t, id, status.Id)
 }
 
 func TestStop(t *testing.T) {
@@ -112,7 +113,7 @@ func TestStop(t *testing.T) {
 
 	status, err := client.Status(containerName)
 	assert.NoError(t, err)
-	assert.Equal(t, 0, status.status)
+	assert.Equal(t, 0, status.Status)
 }
 
 func TestReboot(t *testing.T) {
@@ -126,7 +127,7 @@ func TestReboot(t *testing.T) {
 
 	status, err := client.Status(containerName)
 	assert.NoError(t, err)
-	assert.Equal(t, 1, status.status)
+	assert.Equal(t, 1, status.Status)
 }
 
 func TestShutdown(t *testing.T) {
@@ -139,14 +140,14 @@ func TestShutdown(t *testing.T) {
 
 	status, err := client.Status(containerName)
 	assert.NoError(t, err)
-	assert.Equal(t, 1, status.status)
+	assert.Equal(t, 1, status.Status)
 
 	err = client.Shutdown(containerName)
 	assert.NoError(t, err)
 
 	status, err = client.Status(containerName)
 	assert.NoError(t, err)
-	assert.Equal(t, 0, status.status)
+	assert.Equal(t, 0, status.Status)
 }
 
 func TestDestroy(t *testing.T) {
@@ -173,21 +174,21 @@ func TestStatus(t *testing.T) {
 
 	status, err := client.Status(containerName)
 	assert.NoError(t, err)
-	assert.Equal(t, 0, status.status)
+	assert.Equal(t, 0, status.Status)
 
 	err = client.Start(containerName)
 	assert.NoError(t, err)
 
 	status, err = client.Status(containerName)
 	assert.NoError(t, err)
-	assert.Equal(t, 1, status.status)
+	assert.Equal(t, 1, status.Status)
 
 	err = client.Stop(containerName)
 	assert.NoError(t, err)
 
 	status, err = client.Status(containerName)
 	assert.NoError(t, err)
-	assert.Equal(t, 0, status.status)
+	assert.Equal(t, 0, status.Status)
 }
 
 func TestGetIp(t *testing.T) {

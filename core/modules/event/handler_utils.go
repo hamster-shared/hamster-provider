@@ -2,7 +2,7 @@ package event
 
 import (
 	"fmt"
-	log "github.com/sirupsen/logrus"
+	"github.com/hamster-shared/hamster-provider/log"
 	"time"
 )
 
@@ -36,7 +36,7 @@ func successDealOrder(ctx EventContext, orderNo uint64, name string) error {
 func getVmTargetAddress(ctx EventContext, name string) string {
 	ip, err := ctx.VmManager.GetIp(name)
 	if err != nil {
-		log.Error(err)
+		log.GetLogger().Error(err)
 	}
 
 	return fmt.Sprintf("/ip4/%s/tcp/%d", ip, ctx.VmManager.GetAccessPort(name))
@@ -45,7 +45,7 @@ func getVmTargetAddress(ctx EventContext, name string) string {
 func forwardSSHToP2p(ctx EventContext, name string) error {
 	// P2P listen port exposure
 	targetOpt := getVmTargetAddress(ctx, name)
-	err := ctx.P2pClient.Listen(targetOpt)
+	err := ctx.P2pClient.Listen("/x/ssh", targetOpt)
 	if err != nil {
 		fmt.Println(err)
 		return err

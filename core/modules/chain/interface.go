@@ -48,4 +48,6 @@ type ReportClient interface {
 	ReceiveIncomeJudge() bool
 
 	GetGatewayNodes() ([]string, error)
+
+	ProcessApplyFreeResource(index uint64, peerId string) error
 }
