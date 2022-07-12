@@ -264,8 +264,19 @@ func setConfig(gin *MyContext) {
 
 	cfg.SeedOrPhrase = reqBody.SeedOrPhrase
 	cfg.ConfigFlag = config.DONE
-	cfg.Bootstraps = reqBody.Bootstraps
+	bootstraps := reqBody.Bootstraps
 
+	err = gin.CoreContext.Cm.Save(cfg)
+
+	err = gin.CoreContext.InitSubstrate()
+	if err != nil {
+		gin.JSON(http.StatusBadRequest, BadRequest(err.Error()))
+		return
+	}
+	data, err := gin.CoreContext.ReportClient.GetGatewayNodes()
+	if len(bootstraps) == 0 {
+		cfg.Bootstraps = data
+	}
 	err = gin.CoreContext.Cm.Save(cfg)
 	if err != nil {
 		gin.JSON(http.StatusBadRequest, BadRequest("save config fail"))
@@ -284,6 +295,14 @@ func setBootState(gin *MyContext) {
 		return
 	}
 
+	if gin.CoreContext.ReportClient == nil {
+		err := gin.CoreContext.InitSubstrate()
+		if err != nil {
+			gin.JSON(http.StatusBadRequest, BadRequest(err.Error()))
+			return
+		}
+	}
+
 	if err := gin.CoreContext.ChainListener.SetState(op.Option); err != nil {
 		gin.JSON(http.StatusBadRequest, BadRequest(err.Error()))
 		return
@@ -298,6 +317,11 @@ func getBootState(gin *MyContext) {
 
 func getChainResource(gin *MyContext) {
 	resourceIndex := gin.CoreContext.GetConfig().ChainRegInfo.ResourceIndex
+	if gin.CoreContext.ReportClient == nil {
+		gin.JSON(http.StatusBadRequest, BadRequest("please save initialization first"))
+		return
+	}
+
 	info, err := gin.CoreContext.ReportClient.GetResource(resourceIndex)
 	if err != nil {
 		gin.JSON(http.StatusBadRequest, BadRequest("query resource fail"))
@@ -378,6 +402,10 @@ func deleteResource(gin *MyContext) {
 }
 
 func receiveIncomeJudge(gin *MyContext) {
+	if gin.CoreContext.ReportClient == nil {
+		gin.JSON(http.StatusBadRequest, BadRequest("please save initialization first"))
+		return
+	}
 	judge := gin.CoreContext.ReportClient.ReceiveIncomeJudge()
 	gin.JSON(http.StatusOK, Success(judge))
 }
