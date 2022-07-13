@@ -21,3 +21,8 @@ func TestStartDockerCompose(t *testing.T) {
 	err := startDockerCompose()
 	assert.NoError(t, err)
 }
+
+func Test_getDockerComposeStatus(t *testing.T) {
+	_, err := getDockerComposeStatus()
+	assert.NoError(t, err)
+}

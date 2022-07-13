@@ -1,12 +1,16 @@
 package thegraph
 
 import (
+	"context"
 	"github.com/ThomasRooney/gexpect"
+	commands "github.com/docker/compose/v2/cmd/compose"
+	"github.com/docker/compose/v2/pkg/api"
+	"github.com/hamster-shared/hamster-provider/core/modules/compose/client"
 	"github.com/hamster-shared/hamster-provider/core/modules/config"
 	"github.com/hamster-shared/hamster-provider/log"
 	"os"
 	"os/exec"
-	"strings"
+	"path/filepath"
 	"text/template"
 )
 
@@ -90,7 +94,7 @@ func templateInstance(data DeployParams) error {
 		return err
 	}
 	//create file in .hamster-provider
-	url := strings.Join([]string{config.DefaultConfigDir(), "docker-compose.yml"}, string(os.PathSeparator))
+	url := filepath.Join(config.DefaultConfigDir(), "docker-compose.yml")
 	file, createErr := os.Create(url)
 	if createErr != nil {
 		log.GetLogger().Errorf("create file failed %s\n", err)
@@ -106,16 +110,22 @@ func templateInstance(data DeployParams) error {
 
 // StartDockerCompose exec docker-compose
 func startDockerCompose() error {
-	cmd := exec.Command("docker", "compose", "up", "-d")
-	println(config.DefaultConfigDir())
-	cmd.Dir = config.DefaultConfigDir()
-	return cmd.Run()
+	composeFilePathName := filepath.Join(config.DefaultConfigDir(), "docker-compose.yml")
+	return client.Compose(context.Background(), []string{"-f", composeFilePathName, "up", "-d"})
 }
 
 // StopDockerCompose  停止docker compose 服务
 func stopDockerCompose() error {
-	cmd := exec.Command("docker", "compose", "down", "-v")
-	println(config.DefaultConfigDir())
-	cmd.Dir = config.DefaultConfigDir()
-	return cmd.Run()
+	composeFilePathName := filepath.Join(config.DefaultConfigDir(), "docker-compose.yml")
+	return client.Compose(context.Background(), []string{"-f", composeFilePathName, "down", "-v"})
+}
+
+func getDockerComposeStatus(containerIDs ...string) ([]api.ContainerSummary, error) {
+	composeFilePathName := filepath.Join(config.DefaultConfigDir(), "docker-compose.yml")
+	args := append([]string{"-f", composeFilePathName, "ps"}, containerIDs...)
+	err := client.Compose(context.Background(), args)
+	if err != nil {
+		return nil, err
+	}
+	return commands.PsCmdResult, nil
 }
