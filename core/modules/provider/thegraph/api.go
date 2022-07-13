@@ -23,7 +23,8 @@ func Deploy(data DeployParams) error {
 		return err
 	}
 
-	if RUNNING != GetStatus() {
+	status, err := GetDockerComposeStatus()
+	if RUNNING != status || err != nil {
 		err = startDockerCompose()
 		return err
 	}
@@ -93,26 +94,32 @@ const (
 	SOME_EXITED = 2
 )
 
-// 查询docker compose 启动状态
-func GetStatus(containerIds ...string) ComposeStatus {
-
-	if len(containerIds) == 0 {
-		containerIds = []string{"graph-node", "postgres", "index-service", "index-agent", "index-cli"}
+func GetDockerComposeStatus(containerIDs ...string) (ComposeStatus, error) {
+	statusResult, err := getDockerComposeStatus(containerIDs...)
+	if err != nil {
+		return STOP, err
 	}
-
-	allStatus := true
-	allCheck := false
-
-	for _, containerId := range containerIds {
-		status := dockerStatus(containerId)
-		allStatus = allStatus && status.IsRunning()
-		allCheck = allCheck || status.IsRunning()
+	// 如果都运行，则返回running
+	// 如果都没有运行，则返回stop
+	// 如果部分运行，则返回some exited
+	if len(statusResult) == 0 {
+		return STOP, nil
 	}
-
-	if allStatus {
-		return RUNNING
-	} else if allCheck {
-		return SOME_EXITED
+	running := 0
+	exited := 0
+	for _, status := range statusResult {
+		switch status.State {
+		case "running":
+			running++
+		case "exited":
+			exited++
+		}
 	}
-	return STOP
+	if running == len(statusResult) {
+		return RUNNING, nil
+	} else if exited == len(statusResult) {
+		return STOP, nil
+	} else {
+		return SOME_EXITED, nil
+	}
 }
