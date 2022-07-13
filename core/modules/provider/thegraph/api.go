@@ -99,9 +99,6 @@ func GetDockerComposeStatus(containerIDs ...string) (ComposeStatus, error) {
 	if err != nil {
 		return STOP, err
 	}
-	// 如果都运行，则返回running
-	// 如果都没有运行，则返回stop
-	// 如果部分运行，则返回some exited
 	if len(statusResult) == 0 {
 		return STOP, nil
 	}

@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-	"fmt"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/flags"
 	commands "github.com/docker/compose/v2/cmd/compose"
@@ -48,7 +47,6 @@ func initComposeCommand() error {
 }
 
 func Compose(ctx context.Context, args []string) error {
-	fmt.Println(args)
 	err := initComposeCommand()
 	if err != nil {
 		return err
