@@ -70,7 +70,11 @@ func deployStatus(c *MyContext) {
 	containerName := c.Query("serviceName")
 
 	if containerName == "" {
-		c.JSON(http.StatusOK, Success(thegraph.GetStatus(containerName)))
+		status, err := thegraph.GetDockerComposeStatus(containerName)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, BadRequest(err.Error()))
+		}
+		c.JSON(http.StatusOK, Success(status))
 	}
 
 }
