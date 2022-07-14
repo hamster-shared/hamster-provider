@@ -10,3 +10,5 @@ POST http://59.80.40.149:38888/api/v1/config/settting
 Content-Type: application/json
 
 {"chainApi":"ws://183.66.65.207:49944","seedOrPhrase":"tomato denial broccoli video correct spring link oval ostrich category stereo beauty","publicIp":"59.80.40.149","publicPort":34001}
+
+

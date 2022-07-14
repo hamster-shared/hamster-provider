@@ -240,7 +240,8 @@ func (cc *ChainClient) GetEvent(blockNumber uint64) (*MyEventRecords, error) {
 	}
 	// Decode the event records
 	events := MyEventRecords{}
-	err = types.EventRecordsRaw(*raw).DecodeEventRecords(meta, &events)
+
+	err = DecodeEventRecordsWithIgnoreError(types.EventRecordsRaw(*raw), meta, &events)
 
 	return &events, err
 }

@@ -88,5 +88,4 @@ type MyEventRecords struct {
 	ResourceOrder_WithdrawLockedOrderPriceSuccess []EventResourceOrderWithdrawLockedOrderPriceSuccess
 	ResourceOrder_FreeResourceProcessed           []EventResourceOrderFreeResourceProcessed
 	ResourceOrder_FreeResourceApplied             []EventResourceOrderFreeResourceApplied
-	Market_Money                                  []EventMarketMoney
 }
