@@ -3,3 +3,12 @@ POST http://localhost:10771/api/v1/thegraph/deploy
 Content-Type: application/json
 
 {"nodeEthereumUrl":"mainnet:https://eth-mainnet.alchemyapi.io/v2/wHl5-FZKD68DlhCuUiOXgYh4Z0q0L5fh ","ethereumUrl":"https://rinkeby.infura.io/v3/af7a79eb36f64e609b5dda130cd62946","ethereumNetwork":"rinkeby","indexerAddress":"0x9438BbE4E7AF1ec6b13f75ECd1f53391506A12DF","mnemonic":"please output text solve glare exit divert boil nerve eagle attack turkey"}
+
+
+### POST
+POST http://59.80.40.149:38888/api/v1/config/settting
+Content-Type: application/json
+
+{"chainApi":"ws://183.66.65.207:49944","seedOrPhrase":"tomato denial broccoli video correct spring link oval ostrich category stereo beauty","publicIp":"59.80.40.149","publicPort":34001}
+
+

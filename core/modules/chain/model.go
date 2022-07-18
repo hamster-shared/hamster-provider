@@ -9,18 +9,19 @@ import (
 
 // ResourceInfo 资源信息
 type ResourceInfo struct {
-	PeerId     string    `json:"peerId"`
-	Cpu        uint64    `json:"cpu"`
-	Memory     uint64    `json:"memory"`
-	System     string    `json:"system"`
-	Image      string    `json:"image"`
-	CpuModel   string    `json:"cpuModel"`
-	VmType     string    `json:"vmType"`
-	Creator    string    `json:"creator"`
-	ExpireTime time.Time `json:"expireTime"`
-	User       string    `json:"user"`
-	Status     int       `json:"status"`
-	Price      uint64    `json:"price"`
+	PeerId        string    `json:"peerId"`
+	Cpu           uint64    `json:"cpu"`
+	Memory        uint64    `json:"memory"`
+	System        string    `json:"system"`
+	Image         string    `json:"image"`
+	CpuModel      string    `json:"cpuModel"`
+	VmType        string    `json:"vmType"`
+	Creator       string    `json:"creator"`
+	ExpireTime    time.Time `json:"expireTime"`
+	User          string    `json:"user"`
+	Status        int       `json:"status"`
+	Price         uint64    `json:"price"`
+	ResourceIndex uint64    `json:"resource_index"`
 }
 
 type RentalAgreement struct {
@@ -211,3 +212,9 @@ func (m *OrderStatus) Encode(encoder scale.Encoder) error {
 	}
 	return nil
 }
+
+type MarketUser struct {
+	StakedAmount types.U128
+}
+
+const Provider_MarketUserStatus = types.U8(0)

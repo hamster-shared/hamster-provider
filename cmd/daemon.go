@@ -17,14 +17,11 @@ package cmd
 
 import (
 	"fmt"
-	gsrpc "github.com/centrifuge/go-substrate-rpc-client/v4"
 	"github.com/hamster-shared/hamster-provider/core"
 	context2 "github.com/hamster-shared/hamster-provider/core/context"
-	chain2 "github.com/hamster-shared/hamster-provider/core/modules/chain"
 	"github.com/hamster-shared/hamster-provider/core/modules/config"
 	"github.com/hamster-shared/hamster-provider/core/modules/event"
 	"github.com/hamster-shared/hamster-provider/core/modules/listener"
-	"github.com/hamster-shared/hamster-provider/core/modules/p2p"
 	"github.com/hamster-shared/hamster-provider/core/modules/provider"
 	"github.com/hamster-shared/hamster-provider/core/modules/provider/docker"
 	"github.com/hamster-shared/hamster-provider/core/modules/utils"
@@ -50,7 +47,6 @@ to quickly create a Cobra application.`,
 
 		context := NewContext()
 		server := core.NewServer(context)
-		saveGatewayNodes(context)
 		server.Run()
 	},
 }
@@ -58,11 +54,6 @@ to quickly create a Cobra application.`,
 func NewContext() context2.CoreContext {
 	cm := config.NewConfigManager()
 	cfg, err := cm.GetConfig()
-	if err != nil {
-		log.GetLogger().Error(err)
-		return context2.CoreContext{}
-	}
-	p2pClient, err := p2p.NewP2pClient(34001, cfg.Identity.PrivKey, cfg.Identity.SwarmKey, cfg.Bootstraps)
 	if err != nil {
 		log.GetLogger().Error(err)
 		return context2.CoreContext{}
@@ -86,37 +77,22 @@ func NewContext() context2.CoreContext {
 		return context2.CoreContext{}
 	}
 
-	substrateApi, err := gsrpc.NewSubstrateAPI(cfg.ChainApi)
-	if err != nil {
-		log.GetLogger().Error(err)
-		os.Exit(1)
-	}
-	reportClient, err := chain2.NewChainClient(cm, substrateApi)
-	if err != nil {
-		log.GetLogger().Error(err)
-		return context2.CoreContext{}
-	}
 	timeService := utils.NewTimerService()
 
 	ec := event.EventContext{
-		P2pClient:    p2pClient,
 		VmManager:    vmManager,
 		Cm:           cm,
-		ReportClient: reportClient,
 		TimerService: timeService,
 	}
 
 	eventService := event.NewEventService(ec)
 
 	context := context2.CoreContext{
-		P2pClient:     p2pClient,
 		VmManager:     vmManager,
 		Cm:            cm,
-		ReportClient:  reportClient,
-		SubstrateApi:  substrateApi,
 		TimerService:  timeService,
 		EventService:  eventService,
-		ChainListener: listener.NewChainListener(eventService, substrateApi, cm, reportClient),
+		ChainListener: listener.NewChainListener(eventService, cm),
 	}
 	return context
 }

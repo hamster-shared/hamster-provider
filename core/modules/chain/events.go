@@ -73,6 +73,12 @@ type EventResourceOrderFreeResourceApplied struct {
 	Topics     []types.Hash
 }
 
+type EventMarketMoney struct {
+	Phase  types.Phase
+	Money  types.U128
+	Topics []types.Hash
+}
+
 type MyEventRecords struct {
 	types.EventRecords
 	Provider_RegisterResourceSuccess              []EventProviderRegisterResourceSuccess //nolint:stylecheck,golint

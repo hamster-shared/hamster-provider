@@ -635,3 +635,25 @@ func TestAccountAmount(t *testing.T) {
 	}
 
 }
+
+func TestGetQueryMarket(t *testing.T) {
+	api, err := gsrpc.NewSubstrateAPI(config.Default().RPCURL)
+	if err != nil {
+		panic(err)
+	}
+
+	meta, err := api.RPC.State.GetMetadataLatest()
+	if err != nil {
+		panic(err)
+	}
+	param, err := types.EncodeToBytes(types.NewU8(0))
+	keypair := signature.TestKeyringPairAlice
+
+	key, err := types.CreateStorageKey(meta, "Market", "StakerInfo", param, keypair.PublicKey)
+	fmt.Println(key.Hex())
+	var data MarketUser
+	ok, err := api.RPC.State.GetStorageLatest(key, &data)
+	assert.True(t, ok)
+	assert.NoError(t, err)
+	fmt.Printf("data: %+v\n ", data)
+}

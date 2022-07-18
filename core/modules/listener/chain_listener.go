@@ -21,13 +21,16 @@ type ChainListener struct {
 	ctx2         ctx2.Context
 }
 
-func NewChainListener(eventService event.IEventService, api *gsrpc.SubstrateAPI, cm *config.ConfigManager, reportClient chain2.ReportClient) *ChainListener {
+func NewChainListener(eventService event.IEventService, cm *config.ConfigManager) *ChainListener {
 	return &ChainListener{
 		eventService: eventService,
-		api:          api,
 		cm:           cm,
-		reportClient: reportClient,
 	}
+}
+
+func (l *ChainListener) SetChainApi(api *gsrpc.SubstrateAPI, reportClient chain2.ReportClient) {
+	l.api = api
+	l.reportClient = reportClient
 }
 
 func (l *ChainListener) GetState() bool {
@@ -51,14 +54,24 @@ func (l *ChainListener) start() error {
 	if err != nil {
 		return err
 	}
+
+	_, err = l.reportClient.GetMarketUser()
+	if err != nil {
+		err := l.reportClient.CrateMarketAccount()
+		if err != nil {
+			return err
+		}
+	}
+
 	resource := chain2.ResourceInfo{
-		PeerId:     cfg.Identity.PeerID,
-		Cpu:        cfg.Vm.Cpu,
-		Memory:     cfg.Vm.Mem,
-		System:     cfg.Vm.System,
-		CpuModel:   utils.GetCpuModel(),
-		Price:      cfg.ChainRegInfo.Price,
-		ExpireTime: time.Now().AddDate(0, 0, 10),
+		PeerId:        cfg.Identity.PeerID,
+		Cpu:           cfg.Vm.Cpu,
+		Memory:        cfg.Vm.Mem,
+		System:        cfg.Vm.System,
+		CpuModel:      utils.GetCpuModel(),
+		Price:         cfg.ChainRegInfo.Price,
+		ExpireTime:    time.Now().AddDate(0, 0, 10),
+		ResourceIndex: cfg.ChainRegInfo.ResourceIndex,
 	}
 	err = l.reportClient.RegisterResource(resource)
 
