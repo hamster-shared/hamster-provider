@@ -19,6 +19,7 @@ services:
       postgres_db: graph-node
       ipfs: 'https://ipfs.network.thegraph.com'
       # ethereum: 'rinkeby:https://rinkeby.infura.io/v3/af7a79eb36f64e609b5dda130cd62946'
+      # ethereum: "mainnet:https://mainnet.infura.io/v3/d3f7edb87f094011b579715740bcf9f8"
       ethereum: "{{ .NodeEthereumUrl }}"
       GRAPH_LOG: info
 
@@ -52,8 +53,6 @@ services:
       - "{{ .IndexerAddress }}"
       - --mnemonic
       - "{{ .Mnemonic }}"
-      - --network-subgraph-deployment
-      - "QmYnGeUXVNZd3MupWqPwZekCriF2CVkpoXZbuSZB9t7eQS"
       - --network-subgraph-endpoint
       - "https://gateway.testnet.thegraph.com/network"
       - --client-signer-address
@@ -107,8 +106,6 @@ services:
       - "graph-node"
       - --postgres-password
       - "let-me-in"
-      - --network-subgraph-deployment
-      - "QmYnGeUXVNZd3MupWqPwZekCriF2CVkpoXZbuSZB9t7eQS"
       - --network-subgraph-endpoint 
       - "https://gateway.testnet.thegraph.com/network" 
       - --dai-contract 
@@ -136,3 +133,4 @@ services:
 
 volumes:
   postgresql:       
+
