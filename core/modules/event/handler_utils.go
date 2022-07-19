@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func successDealOrder(ctx EventContext, orderNo uint64, name string) error {
+func successDealOrder(ctx *EventContext, orderNo uint64, name string) error {
 	err := forwardSSHToP2p(ctx, name)
 	if err != nil {
 		fmt.Println(err)
@@ -33,7 +33,7 @@ func successDealOrder(ctx EventContext, orderNo uint64, name string) error {
 	return nil
 }
 
-func getVmTargetAddress(ctx EventContext, name string) string {
+func getVmTargetAddress(ctx *EventContext, name string) string {
 	ip, err := ctx.VmManager.GetIp(name)
 	if err != nil {
 		log.GetLogger().Error(err)
@@ -42,7 +42,7 @@ func getVmTargetAddress(ctx EventContext, name string) string {
 	return fmt.Sprintf("/ip4/%s/tcp/%d", ip, ctx.VmManager.GetAccessPort(name))
 }
 
-func forwardSSHToP2p(ctx EventContext, name string) error {
+func forwardSSHToP2p(ctx *EventContext, name string) error {
 	// P2P listen port exposure
 	targetOpt := getVmTargetAddress(ctx, name)
 	err := ctx.P2pClient.Listen("/x/ssh", targetOpt)
@@ -54,7 +54,7 @@ func forwardSSHToP2p(ctx EventContext, name string) error {
 	return nil
 }
 
-func dealOverdueOrder(ctx EventContext, agreementIndex uint64, name string) bool {
+func dealOverdueOrder(ctx *EventContext, agreementIndex uint64, name string) bool {
 	// calculate instance expiration time
 	overdue := ctx.ReportClient.CalculateInstanceOverdue(ctx.GetConfig().ChainRegInfo.OrderIndex)
 	instanceTimer := time.NewTimer(overdue)

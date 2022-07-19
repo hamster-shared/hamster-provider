@@ -822,3 +822,18 @@ func (cc *ChainClient) GetMarketUser() (MarketUser, error) {
 	return data, err
 
 }
+
+func (cc *ChainClient) ReleaseApplyFreeResource(index uint64) error {
+	meta, err := cc.api.RPC.State.GetMetadataLatest()
+	if err != nil {
+		return err
+	}
+
+	c, err := types.NewCall(meta, "ResourceOrder.release_apply_free_resource", types.NewU64(index))
+
+	if err != nil {
+		return err
+	}
+
+	return cc.callAndWatch(c, meta, hook)
+}

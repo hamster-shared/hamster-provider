@@ -79,7 +79,7 @@ func NewContext() context2.CoreContext {
 
 	timeService := utils.NewTimerService()
 
-	ec := event.EventContext{
+	ec := &event.EventContext{
 		VmManager:    vmManager,
 		Cm:           cm,
 		TimerService: timeService,
@@ -91,6 +91,7 @@ func NewContext() context2.CoreContext {
 		VmManager:     vmManager,
 		Cm:            cm,
 		TimerService:  timeService,
+		EventContext:  ec,
 		EventService:  eventService,
 		ChainListener: listener.NewChainListener(eventService, cm),
 	}

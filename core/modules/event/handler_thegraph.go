@@ -8,7 +8,7 @@ import (
 
 type TheGraphHandler struct {
 	AbstractHandler
-	CoreContext EventContext
+	CoreContext *EventContext
 }
 
 func (h *TheGraphHandler) HandlerEvent(e *VmRequest) {
@@ -43,6 +43,7 @@ func (h *TheGraphHandler) HandlerEvent(e *VmRequest) {
 		if err != nil {
 			thegraph.SetIsServer(false)
 		}
+		_ = h.CoreContext.ReportClient.ReleaseApplyFreeResource(orderNo)
 	}(instanceTimer)
 }
 

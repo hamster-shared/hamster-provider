@@ -6,7 +6,7 @@ import (
 
 type RecoverVmHandler struct {
 	AbstractHandler
-	CoreContext EventContext
+	CoreContext *EventContext
 }
 
 func (h *RecoverVmHandler) HandlerEvent(e *VmRequest) {

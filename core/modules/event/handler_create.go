@@ -6,7 +6,7 @@ import (
 
 type CreateVmHandler struct {
 	AbstractHandler
-	CoreContext EventContext
+	CoreContext *EventContext
 }
 
 func (h *CreateVmHandler) HandlerEvent(e *VmRequest) {

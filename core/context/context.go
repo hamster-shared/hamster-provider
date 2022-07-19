@@ -20,6 +20,7 @@ type CoreContext struct {
 	ReportClient  chain.ReportClient
 	SubstrateApi  *gsrpc.SubstrateAPI
 	TimerService  *utils.TimerService
+	EventContext  *event.EventContext
 	EventService  event.IEventService
 	ChainListener *listener.ChainListener
 }
@@ -61,5 +62,9 @@ func (c *CoreContext) InitSubstrate() error {
 		return err
 	}
 	c.P2pClient = p2pClient
+
+	c.EventContext.P2pClient = p2pClient
+	c.EventContext.ReportClient = c.ReportClient
+	c.ChainListener.SetChainApi(c.SubstrateApi, c.ReportClient)
 	return nil
 }

@@ -6,7 +6,7 @@ import (
 
 type RenewVmHandler struct {
 	AbstractHandler
-	CoreContext EventContext
+	CoreContext *EventContext
 }
 
 func (h *RenewVmHandler) HandlerEvent(e *VmRequest) {

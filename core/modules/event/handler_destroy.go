@@ -6,7 +6,7 @@ import (
 
 type DestroyVmHandler struct {
 	AbstractHandler
-	CoreContext EventContext
+	CoreContext *EventContext
 }
 
 func (h *DestroyVmHandler) HandlerEvent(e *VmRequest) {

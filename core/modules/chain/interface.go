@@ -49,9 +49,11 @@ type ReportClient interface {
 
 	GetGatewayNodes() ([]string, error)
 
-	ProcessApplyFreeResource(index uint64, peerId string) error
-
 	CrateMarketAccount() error
 
 	GetMarketUser() (MarketUser, error)
+
+	ProcessApplyFreeResource(index uint64, peerId string) error
+
+	ReleaseApplyFreeResource(index uint64) error
 }
