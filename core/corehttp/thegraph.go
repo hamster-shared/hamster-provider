@@ -25,6 +25,8 @@ func deployTheGraph(c *MyContext) {
 		return
 	}
 
+	log.GetLogger().Info("received deploy command:", data)
+
 	//data := thegraph.DeployParams{}
 	err = thegraph.Deploy(data)
 	if err != nil {
@@ -67,14 +69,16 @@ func logHandler(c *MyContext) {
 }
 
 func deployStatus(c *MyContext) {
-	containerName := c.Query("serviceName")
+	containerNames := c.QueryArray("serviceName")
 
-	if containerName == "" {
-		status, err := thegraph.GetDockerComposeStatus(containerName)
+	if len(containerNames) > 0 {
+		status, err := thegraph.GetDockerComposeStatus(containerNames...)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, BadRequest(err.Error()))
+			c.JSON(http.StatusBadRequest, BadRequest(err.Error()))
+			return
 		}
 		c.JSON(http.StatusOK, Success(status))
+	} else {
+		c.JSON(http.StatusBadRequest, BadRequest("not found serviceName"))
 	}
-
 }

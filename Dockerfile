@@ -1,7 +1,5 @@
 FROM golang:1.17.3 as builder
 
-ADD ./sources.list /etc/apt/sources.list
-
 # install cgo-related dependencies
 RUN set -eux; \
 	apt-get update; \
@@ -24,8 +22,6 @@ RUN set -eux; \
 
 
 FROM docker:20
-
-ADD ./repositories /etc/apk/repositories
 
 RUN set -eux; \
     apk update ; \
