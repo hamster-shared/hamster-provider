@@ -310,7 +310,7 @@ func (cc *ChainClient) RemoveResource(index uint64) error {
 		return err
 	}
 
-	c, err := types.NewCall(meta, "Provider.remove_resource", types.NewU64(index))
+	c, err := types.NewCall(meta, "Provider.withdraw", types.NewU64(index))
 
 	if err != nil {
 		return err
