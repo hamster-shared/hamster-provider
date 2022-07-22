@@ -3,9 +3,6 @@
     <a-spin :spinning="state.allLoading">
       <PageWrapper :title="t('resourceDetail.detail.resourceDetail')" contentBackground>
         <template #extra>
-          <a-button type="primary" @click="changePriceModal" :disabled="state.disabled">
-            {{ t('resourceDetail.detail.changePrice') }}
-          </a-button>
           <a-button type="primary" @click="increaseDurationModal" :disabled="state.disabled">
             {{ t('resourceDetail.detail.increaseDuration') }}
           </a-button>
@@ -14,9 +11,6 @@
           >
           <a-button type="primary" @click="deleteResource" :disabled="state.disabled">
             {{ t('resourceDetail.detail.deleteResource') }}</a-button
-          >
-          <a-button type="primary" @click="receiveIncome" :disabled="state.receiveJudge">
-            {{ t('resourceDetail.detail.receiveBenefits') }}</a-button
           >
         </template>
         <div class="pt-4 m-4 desc-wrap">
@@ -37,9 +31,6 @@
             <a-descriptions-item :label="t('resourceDetail.detail.cpuModel')">
               {{ resourceData.config ? resourceData.config.cpuModel : '' }}
             </a-descriptions-item>
-            <a-descriptions-item :label="t('resourceDetail.detail.unitPrice')">
-              {{ resourceData.rentalInfo ? priceFormat(resourceData.rentalInfo.rentUnitPrice) : '' }}
-            </a-descriptions-item>
             <a-descriptions-item :label="t('resourceDetail.detail.cpuCounts')">
               {{ resourceData.config ? resourceData.config.cpu + 'Core' : '' }}
             </a-descriptions-item>
@@ -53,48 +44,6 @@
         </div>
       </PageWrapper>
     </a-spin>
-    <a-modal
-      v-model:visible="state.changePriceVisible"
-      :title="t('resourceDetail.detail.changeUnitPrice')"
-      :maskClosable="false"
-      :footer="null"
-      :centered="true"
-      :closable="false"
-    >
-      <a-spin :spinning="state.changePriceLoading">
-        <div class="staking-content">
-          <span class="title">{{ t('resourceDetail.detail.unitPriceTitle') }}</span>
-          <a-input
-            v-model:value="state.value"
-            :placeholder="t('resourceDetail.detail.unitPriceText')"
-            @change="checkPrice('changePrice')"
-          >
-            <template #addonAfter>
-              <a-select style="width: 90px" v-model:value="state.uintPower">
-                <a-select-option
-                  v-for="(item, index) in state.uintOptions"
-                  v-model:value="item.power"
-                  :key="index"
-                >
-                  {{ item.text }}
-                </a-select-option>
-              </a-select>
-            </template>
-          </a-input>
-        </div>
-        <span class="form-error-tip" v-if="state.changePriceTip">{{
-          t('resourceDetail.detail.inputUnitPrice')
-        }}</span>
-        <div class="staking-footer">
-          <a-button class="staking-btn-close" @click="changePriceCancel">{{
-            t('resourceDetail.detail.cancel')
-          }}</a-button>
-          <a-button class="staking-btn-ok" @click="changePriceOk">{{
-            t('resourceDetail.detail.determine')
-          }}</a-button>
-        </div>
-      </a-spin>
-    </a-modal>
     <a-modal
       v-model:visible="state.increaseDurationVisible"
       :title="t('resourceDetail.detail.increaseDuration')"
@@ -155,9 +104,6 @@
   const { t } = useI18n();
   const resourceData = ref({});
   const state = reactive({
-    changePriceVisible: false,
-    changePriceLoading: false,
-    changePriceTip: false,
     increaseDurationVisible: false,
     increaseDurationLoading: false,
     increaseDurationTip: false,
@@ -210,7 +156,6 @@
       });
   }
   function getUintOptions() {
-    state.uintOptions = formatBalance.getOptions();
     state.uintOptions.unshift({ power: -3, text: 'milli', value: '-' });
     state.uintOptions.unshift({ power: -6, text: 'micro', value: '-' });
     state.uintOptions.unshift({ power: -9, text: 'nano', value: '-' });
@@ -222,25 +167,9 @@
       .times(new BigNumber(Math.pow(10, 12)))
       .toNumber();
   }
-  function changePriceModal() {
-    state.changePriceVisible = true;
-    state.changePriceTip = false;
-  }
   function increaseDurationModal() {
     state.increaseDurationVisible = true;
     state.increaseDurationTip = false;
-  }
-  function receiveIncome() {
-    state.allLoading = true;
-    receiveIncomeApi()
-      .then(() => {
-        createMessage.success(t('resourceDetail.detail.receiveIncomeSuccess'));
-        state.allLoading = false;
-      })
-      .catch(() => {
-        createMessage.error(t('resourceDetail.detail.receiveIncomeFailed'));
-        state.allLoading = false;
-      });
   }
   function judge() {
     judgeReceiveIncomeApi().then((data) => {
@@ -291,31 +220,9 @@
       state.allLoading = false;
     }
   }
-  function changePriceCancel() {
-    state.changePriceVisible = false;
-    state.value = '';
-    state.uintPower = 0;
-  }
   function increaseDurationCancel() {
     state.increaseDurationVisible = false;
     state.duration = '';
-  }
-  function changePriceOk() {
-    checkPrice('changePrice');
-    state.changePriceLoading = true;
-    let price = getPrice();
-    changePriceApi(price)
-      .then(() => {
-        state.changePriceLoading = false;
-        createMessage.success(t('resourceDetail.detail.changPriceSuccess'));
-        changePriceCancel();
-        getResource();
-      })
-      .catch(() => {
-        state.changePriceLoading = false;
-        changePriceCancel();
-        createMessage.error(t('resourceDetail.detail.changPriceError'));
-      });
   }
   function increaseDurationOk() {
     checkPrice('changeDuration');

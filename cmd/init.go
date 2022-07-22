@@ -18,7 +18,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/hamster-shared/hamster-provider/core/modules/config"
-	log "github.com/sirupsen/logrus"
+	"github.com/hamster-shared/hamster-provider/log"
 	"github.com/spf13/cobra"
 	"os"
 	"path/filepath"
@@ -38,19 +38,19 @@ var initCmd = &cobra.Command{
 
 		err := os.MkdirAll(filepath.Dir(path), os.ModeDir)
 		if err != nil {
-			log.Fatal(err)
+			log.GetLogger().Error(err)
 		}
 
 		err = os.Chmod(filepath.Dir(path), os.ModePerm)
 		if err != nil {
-			log.Fatal(err)
+			log.GetLogger().Error(err)
 		}
 
 		// init config
-		log.Info("init context")
+		log.GetLogger().Info("init context")
 		err = config.NewConfigManagerWithPath(path).Save(&cfg)
 		if err != nil {
-			log.Error(err)
+			log.GetLogger().Error(err)
 			return
 		}
 
@@ -75,7 +75,7 @@ func getDefaultConfig() config.Config {
 	identity, err := config.CreateIdentity()
 
 	if err != nil {
-		log.Error("create identity error")
+		log.GetLogger().Error("create identity error")
 		os.Exit(0)
 	}
 

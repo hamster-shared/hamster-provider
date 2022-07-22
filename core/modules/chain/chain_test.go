@@ -99,3 +99,14 @@ func TestResource(t *testing.T) {
 	assert.NoError(t, err)
 	fmt.Println(resource)
 }
+
+func TestChainClient_ProcessApplyFreeResource(t *testing.T) {
+	cm := config.NewConfigManager()
+	cfg, _ := cm.GetConfig()
+	substrateApi, err := gsrpc.NewSubstrateAPI(cfg.ChainApi)
+	cc, err := NewChainClient(cm, substrateApi)
+	assert.NoError(t, err)
+
+	err = cc.ProcessApplyFreeResource(3, "abcd")
+	assert.NoError(t, err)
+}

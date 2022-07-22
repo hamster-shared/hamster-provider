@@ -4,6 +4,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/hamster-shared/hamster-provider/core/modules/config"
+	"github.com/hamster-shared/hamster-provider/log"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -39,7 +40,7 @@ var (
 				c.Bootstraps = append(c.Bootstraps, args[0])
 				err = cm.Save(c)
 				if err != nil {
-					logrus.Error(err)
+					log.GetLogger().Error(err)
 					return
 				}
 

@@ -9,6 +9,7 @@ const ResourceOrder_CreateOrderSuccess = "resource.create_order.cmd"
 const ResourceOrder_ReNewOrderSuccess = "resource.renew_order.cmd"
 const ResourceOrder_WithdrawLockedOrderPriceSuccess = "resource.cancel_order.cmd"
 const ResourceOrder_Recover = "resource.recover_order.cmd"
+const ResourceOrder_TheGraph = "resource.thegraph"
 
 type EventHandleFunc func(e string, args interface{})
 

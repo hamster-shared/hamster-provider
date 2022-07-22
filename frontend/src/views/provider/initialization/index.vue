@@ -226,10 +226,10 @@ import {computed, defineComponent, reactive, onMounted, h, ref, toRefs} from 'vu
         ok,
         showAddModel,
         handleSubmit: () => {
-          if (state.bootstraps.length === 0) {
-            createMessage.error(t('initialization.initialization.gatewayNodeTip'));
-            return;
-          }
+          // if (state.bootstraps.length === 0) {
+          //   createMessage.error(t('initialization.initialization.gatewayNodeTip'));
+          //   return;
+          // }
           Promise.all([validateFields(), chainValidateFields()])
             .then((data) => {
               let values = data[0];

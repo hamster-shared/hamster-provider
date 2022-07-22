@@ -2,14 +2,13 @@ package listener
 
 import (
 	ctx2 "context"
-	"fmt"
 	gsrpc "github.com/centrifuge/go-substrate-rpc-client/v4"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/types"
 	chain2 "github.com/hamster-shared/hamster-provider/core/modules/chain"
 	"github.com/hamster-shared/hamster-provider/core/modules/config"
 	"github.com/hamster-shared/hamster-provider/core/modules/event"
 	"github.com/hamster-shared/hamster-provider/core/modules/utils"
-	log "github.com/sirupsen/logrus"
+	"github.com/hamster-shared/hamster-provider/log"
 	"time"
 )
 
@@ -22,13 +21,16 @@ type ChainListener struct {
 	ctx2         ctx2.Context
 }
 
-func NewChainListener(eventService event.IEventService, api *gsrpc.SubstrateAPI, cm *config.ConfigManager, reportClient chain2.ReportClient) *ChainListener {
+func NewChainListener(eventService event.IEventService, cm *config.ConfigManager) *ChainListener {
 	return &ChainListener{
 		eventService: eventService,
-		api:          api,
 		cm:           cm,
-		reportClient: reportClient,
 	}
+}
+
+func (l *ChainListener) SetChainApi(api *gsrpc.SubstrateAPI, reportClient chain2.ReportClient) {
+	l.api = api
+	l.reportClient = reportClient
 }
 
 func (l *ChainListener) GetState() bool {
@@ -52,14 +54,24 @@ func (l *ChainListener) start() error {
 	if err != nil {
 		return err
 	}
+
+	_, err = l.reportClient.GetMarketUser()
+	if err != nil {
+		err := l.reportClient.CrateMarketAccount()
+		if err != nil {
+			return err
+		}
+	}
+
 	resource := chain2.ResourceInfo{
-		PeerId:     cfg.Identity.PeerID,
-		Cpu:        cfg.Vm.Cpu,
-		Memory:     cfg.Vm.Mem,
-		System:     cfg.Vm.System,
-		CpuModel:   utils.GetCpuModel(),
-		Price:      cfg.ChainRegInfo.Price,
-		ExpireTime: time.Now().AddDate(0, 0, 10),
+		PeerId:        cfg.Identity.PeerID,
+		Cpu:           cfg.Vm.Cpu,
+		Memory:        cfg.Vm.Mem,
+		System:        cfg.Vm.System,
+		CpuModel:      utils.GetCpuModel(),
+		Price:         cfg.ChainRegInfo.Price,
+		ExpireTime:    time.Now().AddDate(0, 0, 10),
+		ResourceIndex: cfg.ChainRegInfo.ResourceIndex,
 	}
 	err = l.reportClient.RegisterResource(resource)
 
@@ -109,7 +121,7 @@ func (l *ChainListener) watchEvent(ctx ctx2.Context) {
 		case <-ctx.Done():
 			return
 		case set := <-sub.Chan():
-			fmt.Println("监听链区块：", set.Block.Hex())
+			log.GetLogger().Info("监听链区块：", set.Block.Hex())
 			for _, chng := range set.Changes {
 				if !types.Eq(chng.StorageKey, key) || !chng.HasStorageData {
 					// skip, we are only interested in events with content
@@ -121,8 +133,7 @@ func (l *ChainListener) watchEvent(ctx ctx2.Context) {
 				meta, err := l.api.RPC.State.GetMetadataLatest()
 				err = types.EventRecordsRaw(storageData).DecodeEventRecords(meta, &evt)
 				if err != nil {
-					fmt.Println(err)
-					log.Error(err)
+					log.GetLogger().Error(err)
 					continue
 				}
 				for _, e := range evt.ResourceOrder_CreateOrderSuccess {
@@ -137,8 +148,15 @@ func (l *ChainListener) watchEvent(ctx ctx2.Context) {
 
 				for _, e := range evt.ResourceOrder_WithdrawLockedOrderPriceSuccess {
 					// order cancelled successfully
+					log.GetLogger().Info("deal ResourceOrder_WithdrawLockedOrderPriceSuccess")
 					l.dealCancelOrderSuccess(e)
 				}
+
+				for _, e := range evt.ResourceOrder_FreeResourceApplied {
+					log.GetLogger().Info("deal ResourceOrder_FreeResourceApplied")
+					l.dealFreeResourceApplied(e)
+				}
+
 			}
 		}
 	}
@@ -150,11 +168,11 @@ func (l *ChainListener) dealCreateOrderSuccess(e chain2.EventResourceOrderCreate
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("\tResourceOrder:CreateOrderSuccess:: (phase=%#v)\n", e.Phase)
+	log.GetLogger().Infof("\tResourceOrder:CreateOrderSuccess:: (phase=%#v)\n", e.Phase)
 
 	if e.ResourceIndex == types.NewU64(cfg.ChainRegInfo.ResourceIndex) {
 		// process the order
-		fmt.Println("deal order", e.OrderIndex)
+		log.GetLogger().Info("deal order", e.OrderIndex)
 		// record the id of the processed order
 		cfg.ChainRegInfo.OrderIndex = uint64(e.OrderIndex)
 		_ = l.cm.Save(cfg)
@@ -171,7 +189,7 @@ func (l *ChainListener) dealCreateOrderSuccess(e chain2.EventResourceOrderCreate
 		l.eventService.Create(evt)
 
 	} else {
-		fmt.Println("resourceIndex is not equals ")
+		log.GetLogger().Warn("resourceIndex is not equals ")
 	}
 }
 
@@ -205,5 +223,28 @@ func (l *ChainListener) dealCancelOrderSuccess(e chain2.EventResourceOrderWithdr
 			Image:   cfg.Vm.Image,
 		}
 		l.eventService.Destroy(evt)
+	}
+}
+
+func (l *ChainListener) dealFreeResourceApplied(e chain2.EventResourceOrderFreeResourceApplied) {
+	cfg, err := l.cm.GetConfig()
+	if err != nil {
+		log.GetLogger().Error(err)
+		return
+	}
+
+	if e.DeployType == 1 {
+		evt := &event.VmRequest{
+			Tag:       event.OPFreeResourceApply,
+			Cpu:       cfg.Vm.Cpu,
+			Mem:       cfg.Vm.Mem,
+			Disk:      cfg.Vm.Disk,
+			OrderNo:   uint64(e.OrderIndex),
+			System:    cfg.Vm.System,
+			PublicKey: e.PublicKey,
+			Image:     cfg.Vm.Image,
+			Duration:  uint64(e.Duration),
+		}
+		l.eventService.Create(evt)
 	}
 }

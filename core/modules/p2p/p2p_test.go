@@ -43,7 +43,7 @@ func TestList(t *testing.T) {
 	assert.Empty(t, output.Listeners)
 
 	targetOpt := "/ip4/127.0.0.1/tcp/8080"
-	err = p2pClient.Listen(targetOpt)
+	err = p2pClient.Listen("/x/ssh", targetOpt)
 	output = p2pClient.List()
 	assert.NotEmpty(t, output.Listeners)
 	assert.Equal(t, 1, len(output.Listeners))
@@ -55,7 +55,7 @@ func TestListen(t *testing.T) {
 	assert.NoError(t, err)
 
 	targetOpt := "/ip4/127.0.0.1/tcp/8080"
-	err = p2pClient.Listen(targetOpt)
+	err = p2pClient.Listen("/x/ssh", targetOpt)
 	assert.NoError(t, err)
 	output := p2pClient.List()
 	listen := output.Listeners[0]
@@ -64,7 +64,7 @@ func TestListen(t *testing.T) {
 
 	checkClient, err := newTestP2pClient()
 	assert.NoError(t, err)
-	err = checkClient.Forward(8081, listen.ListenAddress)
+	err = checkClient.Forward("/x/ssh", 8081, listen.ListenAddress)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, checkClient.List().Listeners)
 	assert.Equal(t, listen.ListenAddress, checkClient.List().Listeners[0].TargetAddress)
@@ -77,7 +77,7 @@ func TestForward(t *testing.T) {
 
 	targetOpt := fmt.Sprintf("/p2p/%s", test_peer)
 
-	err = p2pClient.Forward(8081, targetOpt)
+	err = p2pClient.Forward("/x/ssh", 8081, targetOpt)
 	assert.NotEmpty(t, p2pClient.List().Listeners)
 
 }
@@ -85,7 +85,7 @@ func TestForward(t *testing.T) {
 func TestForwardHealth(t *testing.T) {
 	p2pClient, err := newTestP2pClient()
 	assert.NoError(t, err)
-	err = p2pClient.CheckForwardHealth(test_peer)
+	err = p2pClient.CheckForwardHealth("/x/ssh", test_peer)
 	assert.NoError(t, err)
 }
 
@@ -93,7 +93,7 @@ func TestClose(t *testing.T) {
 	p2pClient, err := newTestP2pClient()
 	assert.NoError(t, err)
 	targetOpt := fmt.Sprintf("/p2p/%s", test_peer)
-	err = p2pClient.Forward(8081, targetOpt)
+	err = p2pClient.Forward("/x/ssh", 8081, targetOpt)
 	assert.NoError(t, err)
 
 	count, err := p2pClient.Close(targetOpt)

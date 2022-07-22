@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/hamster-shared/hamster-provider/log"
 	"github.com/jbenet/goprocess"
 	goprocessctx "github.com/jbenet/goprocess/context"
 	periodicproc "github.com/jbenet/goprocess/periodic"
@@ -11,7 +12,6 @@ import (
 	"github.com/libp2p/go-libp2p-core/routing"
 	"github.com/sirupsen/logrus"
 	"io"
-	"log"
 	"math/rand"
 	"sync"
 	"time"
@@ -80,7 +80,7 @@ func convertPeers(peers []string) []peer.AddrInfo {
 		maddr := ma.StringCast(addr)
 		p, err := peer.AddrInfoFromP2pAddr(maddr)
 		if err != nil {
-			log.Fatalln(err)
+			log.GetLogger().Error(err)
 		}
 		pinfos[i] = *p
 	}
@@ -188,18 +188,18 @@ func bootstrapConnect(ctx context.Context, ph host.Host, peers []peer.AddrInfo) 
 		wg.Add(1)
 		go func(p peer.AddrInfo) {
 			defer wg.Done()
-			defer log.Println(ctx, "bootstrapDial", ph.ID(), p.ID)
-			log.Printf("%s bootstrapping to %s", ph.ID(), p.ID)
+			defer log.GetLogger().Info(ctx, "bootstrapDial", ph.ID(), p.ID)
+			log.GetLogger().Info("%s bootstrapping to %s", ph.ID(), p.ID)
 
 			ph.Peerstore().AddAddrs(p.ID, p.Addrs, peerstore.PermanentAddrTTL)
 			if err := ph.Connect(ctx, p); err != nil {
-				log.Println(ctx, "bootstrapDialFailed", p.ID)
-				log.Printf("failed to bootstrap with %v: %s", p.ID, err)
+				log.GetLogger().Info(ctx, "bootstrapDialFailed", p.ID)
+				log.GetLogger().Infof("failed to bootstrap with %v: %s", p.ID, err)
 				errs <- err
 				return
 			}
-			log.Println(ctx, "bootstrapDialSuccess", p.ID)
-			log.Printf("bootstrapped with %v", p.ID)
+			log.GetLogger().Info(ctx, "bootstrapDialSuccess", p.ID)
+			log.GetLogger().Infof("bootstrapped with %v", p.ID)
 		}(p)
 	}
 	wg.Wait()
