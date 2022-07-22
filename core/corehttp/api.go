@@ -4,7 +4,11 @@ import (
 	"fmt"
 	"github.com/gin-contrib/static"
 	"github.com/hamster-shared/hamster-provider/core/context"
+	"golang.org/x/sync/errgroup"
+	"net/http"
 )
+
+var g errgroup.Group
 
 func StartApi(ctx *context.CoreContext) error {
 	r := NewMyServer(ctx)
@@ -16,8 +20,8 @@ func StartApi(ctx *context.CoreContext) error {
 		// basic configuration
 		config := v1.Group("/config")
 		{
-			config.GET("/settting", getConfig)
-			config.POST("/settting", setConfig)
+			config.GET("/setting", getConfig)
+			config.POST("/setting", setConfig)
 			config.POST("/boot", setBootState)
 			config.GET("/boot", getBootState)
 		}
@@ -60,19 +64,28 @@ func StartApi(ctx *context.CoreContext) error {
 			resource.POST("/delete-resource", deleteResource)
 			resource.GET("/receive-income-judge", receiveIncomeJudge)
 		}
-
-		thegraph := v1.Group("/thegraph")
-		{
-			thegraph.POST("/deploy", deployTheGraph)
-			thegraph.GET("/ws", execHandler)
-			thegraph.GET("/wslog", logHandler)
-			thegraph.GET("/status", deployStatus)
-		}
 	}
 	//r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+	thegraph := NewMyServer(ctx)
+	thegraphGroup := thegraph.Group("/api/v1/thegraph")
+	{
+		thegraphGroup.POST("/deploy", deployTheGraph)
+		thegraphGroup.GET("/ws", execHandler)
+		thegraphGroup.GET("/wslog", logHandler)
+		thegraphGroup.GET("/status", deployStatus)
+	}
 
 	r.Use(static.Serve("/", static.LocalFile("./frontend/dist", false)))
 	// listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 	port := ctx.GetConfig().ApiPort
-	return r.Run(fmt.Sprintf("0.0.0.0:%d", port))
+
+	g.Go(func() error {
+		return http.ListenAndServe(fmt.Sprintf(":%d", port), r)
+	})
+	g.Go(func() error {
+		return http.ListenAndServe(fmt.Sprintf(":%d", port+1), thegraph)
+	})
+
+	return g.Wait()
 }
