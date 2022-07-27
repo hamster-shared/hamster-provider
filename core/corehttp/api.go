@@ -30,6 +30,8 @@ func StartApi(ctx *context.CoreContext) error {
 			chain.POST("/pledge", stakingAmount)
 			chain.POST("/withdraw-amount", withdrawAmount)
 			chain.POST("/price", changeUnitPrice)
+			chain.GET("/reward", queryReward)
+			chain.POST("/reward", payoutReward)
 		}
 		// container routing
 		container := v1.Group("/container")

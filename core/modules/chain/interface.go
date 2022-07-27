@@ -41,6 +41,8 @@ type ReportClient interface {
 
 	GetStakingInfo() (*StakingAmount, error)
 
+	GetMarketStackInfo() (*StakingAmount, error)
+
 	StakingAmount(unitPrice int64) error
 
 	WithdrawStakingAmount(unitPrice int64) error
@@ -56,4 +58,8 @@ type ReportClient interface {
 	ProcessApplyFreeResource(index uint64, peerId string) error
 
 	ReleaseApplyFreeResource(index uint64) error
+
+	GetReward() (*MarketIncome, error)
+
+	PayoutReward() error
 }

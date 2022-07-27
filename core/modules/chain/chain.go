@@ -713,6 +713,35 @@ func (cc *ChainClient) GetStakingInfo() (*StakingAmount, error) {
 	return &stakingInfo, nil
 }
 
+func (cc *ChainClient) GetMarketStackInfo() (*StakingAmount, error) {
+	meta, err := cc.api.RPC.State.GetMetadataLatest()
+	if err != nil {
+		panic(err)
+	}
+	param, err := types.EncodeToBytes(Provider_MarketUserStatus)
+	cf, err := cc.cm.GetConfig()
+	if err != nil {
+		return nil, err
+	}
+	keypair, err := signature.KeyringPairFromSecret(cf.SeedOrPhrase, 42)
+	key, err := types.CreateStorageKey(meta, "Market", "StakerInfo", param, keypair.PublicKey)
+	if err != nil {
+		return nil, err
+	}
+
+	var data MarketUser
+	ok, err := cc.api.RPC.State.GetStorageLatest(key, &data)
+	if !ok || err != nil {
+		return nil, err
+	}
+
+	return &StakingAmount{
+		Amount:       data.StakedAmount,
+		ActiveAmount: types.NewU128(*big.NewInt(0)),
+		LockAmount:   types.NewU128(*big.NewInt(0)),
+	}, nil
+}
+
 func (cc *ChainClient) StakingAmount(unitPrice int64) error {
 	meta, err := cc.api.RPC.State.GetMetadataLatest()
 	if err != nil {
@@ -830,6 +859,47 @@ func (cc *ChainClient) ReleaseApplyFreeResource(index uint64) error {
 	}
 
 	c, err := types.NewCall(meta, "ResourceOrder.release_apply_free_resource", types.NewU64(index))
+
+	if err != nil {
+		return err
+	}
+
+	return cc.callAndWatch(c, meta, hook)
+}
+
+func (cc *ChainClient) GetReward() (*MarketIncome, error) {
+	meta, err := cc.api.RPC.State.GetMetadataLatest()
+	if err != nil {
+		return nil, err
+	}
+	cf, err := cc.cm.GetConfig()
+	if err != nil {
+		return nil, err
+	}
+	keypair, err := signature.KeyringPairFromSecret(cf.SeedOrPhrase, 42)
+	if err != nil {
+		return nil, err
+	}
+	key, err := types.CreateStorageKey(meta, "Market", "ProviderReward", keypair.PublicKey)
+	if err != nil {
+		return nil, err
+	}
+
+	var data MarketIncome
+	ok, err := cc.api.RPC.State.GetStorageLatest(key, &data)
+	if !ok || err != nil {
+		return nil, err
+	}
+	return &data, nil
+}
+
+func (cc *ChainClient) PayoutReward() error {
+	meta, err := cc.api.RPC.State.GetMetadataLatest()
+	if err != nil {
+		return err
+	}
+
+	c, err := types.NewCall(meta, "Market.payout_provider_nodes")
 
 	if err != nil {
 		return err

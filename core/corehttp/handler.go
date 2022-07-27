@@ -371,7 +371,7 @@ func getAccountInfo(gin *MyContext) {
 }
 
 func getStakingInfo(gin *MyContext) {
-	info, err := gin.CoreContext.ReportClient.GetStakingInfo()
+	info, err := gin.CoreContext.ReportClient.GetMarketStackInfo()
 	if err != nil {
 		gin.JSON(http.StatusBadRequest, BadRequest(fmt.Sprintf("Failed to get pledge information: %s", err)))
 	} else {
@@ -388,6 +388,19 @@ func rentAgain(gin *MyContext) {
 	} else {
 		gin.JSON(http.StatusOK, Success("Successfully rented again"))
 	}
+}
+
+func queryReward(gin *MyContext) {
+	reward, err := gin.CoreContext.ReportClient.GetReward()
+	if err != nil {
+		gin.JSON(http.StatusBadRequest, BadRequest("Failed to query income"))
+	}
+	gin.JSON(http.StatusOK, Success(reward))
+}
+
+func payoutReward(gin *MyContext) {
+	gin.CoreContext.ReportClient.PayoutReward()
+	gin.JSON(http.StatusOK, Success(""))
 }
 
 func deleteResource(gin *MyContext) {

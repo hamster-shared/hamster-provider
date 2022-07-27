@@ -218,3 +218,8 @@ type MarketUser struct {
 }
 
 const Provider_MarketUserStatus = types.U8(0)
+
+type MarketIncome struct {
+	LastEraIndex types.U32
+	TotalIncome  types.U128
+}

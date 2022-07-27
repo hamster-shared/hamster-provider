@@ -6,6 +6,7 @@ import (
 	"github.com/centrifuge/go-substrate-rpc-client/v4/config"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/types"
+	"github.com/hamster-shared/hamster-provider/core/modules/utils"
 	"github.com/minio/blake2b-simd"
 	"github.com/mr-tron/base58"
 	"github.com/stretchr/testify/assert"
@@ -646,12 +647,36 @@ func TestGetQueryMarket(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	param, err := types.EncodeToBytes(types.NewU8(0))
-	keypair := signature.TestKeyringPairAlice
+	param, err := types.EncodeToBytes(Provider_MarketUserStatus)
+	pk, err := utils.AddressToPublicKey("5Ck8UKvwPkx6ALYib5gZCQu95se6VgDMEvohfQS6gvQ4LtqQ")
+	assert.NoError(t, err)
+	key, err := types.CreateStorageKey(meta, "Market", "StakerInfo", param, pk)
+	assert.NoError(t, err)
 
-	key, err := types.CreateStorageKey(meta, "Market", "StakerInfo", param, keypair.PublicKey)
-	fmt.Println(key.Hex())
 	var data MarketUser
+	ok, err := api.RPC.State.GetStorageLatest(key, &data)
+	assert.True(t, ok)
+	assert.NoError(t, err)
+	fmt.Printf("data: %+v\n ", data)
+}
+
+func TestQueryReward(t *testing.T) {
+	api, err := gsrpc.NewSubstrateAPI("ws://183.66.65.207:49944")
+	if err != nil {
+		panic(err)
+	}
+
+	meta, err := api.RPC.State.GetMetadataLatest()
+	if err != nil {
+		panic(err)
+	}
+	pk, err := utils.AddressToPublicKey("5Ck8UKvwPkx6ALYib5gZCQu95se6VgDMEvohfQS6gvQ4LtqQ")
+	assert.NoError(t, err)
+	key, err := types.CreateStorageKey(meta, "Market", "ProviderReward", pk)
+	fmt.Println(key.Hex())
+	assert.NoError(t, err)
+
+	var data MarketIncome
 	ok, err := api.RPC.State.GetStorageLatest(key, &data)
 	assert.True(t, ok)
 	assert.NoError(t, err)

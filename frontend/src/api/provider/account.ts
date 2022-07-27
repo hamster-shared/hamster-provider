@@ -5,6 +5,7 @@ enum Api {
   StakingInfo = '/v1/chain/staking-info',
   StakingAmount = '/v1/chain/pledge',
   WithdrawAmount = '/v1/chain/withdraw-amount',
+  RewardInfo = "/v1/chain/reward"
 }
 
 //get account info
@@ -25,4 +26,17 @@ export const stakingAmountApi = (price: number) => {
 //withdraw amount
 export const withdrawAmountApi = (price: number) => {
   return defHttp.post({ url: Api.WithdrawAmount, data: { price: price } });
+};
+
+
+// get reward info
+export const getRewardInfoApi = () => {
+  return defHttp.get({
+    url: Api.RewardInfo
+  })
+}
+
+// payout reward
+export const payoutRewardApi = () => {
+  return defHttp.post({ url: Api.RewardInfo, data: { } });
 };
