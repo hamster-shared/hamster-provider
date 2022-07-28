@@ -28,9 +28,9 @@ func (h *TheGraphHandler) HandlerEvent(e *VmRequest) {
 	err := h.CoreContext.ReportClient.ProcessApplyFreeResource(orderNo, peerId)
 
 	if err != nil {
-		thegraph.SetIsServer(true)
+		return
 	}
-
+	//thegraph.SetIsServer(true)
 	overdue := time.Hour * time.Duration(e.Duration)
 	log.GetLogger().Infof("overdue is： %s", overdue)
 	instanceTimer := time.NewTimer(overdue)

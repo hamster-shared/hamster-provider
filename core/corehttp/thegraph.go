@@ -5,6 +5,7 @@ import (
 	"github.com/hamster-shared/hamster-provider/core/modules/provider/thegraph"
 	"github.com/hamster-shared/hamster-provider/log"
 	"net/http"
+	"os"
 )
 
 var upgrader = websocket.Upgrader{
@@ -40,6 +41,7 @@ func deployTheGraph(c *MyContext) {
 
 func execHandler(c *MyContext) {
 
+	_ = os.Setenv("DOCKER_API_VERSION", "1.41")
 	containerName := c.Query("serviceName")
 
 	// websocket握手
