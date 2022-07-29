@@ -278,6 +278,12 @@ func setConfig(gin *MyContext) {
 		cfg.Bootstraps = data
 	}
 	err = gin.CoreContext.Cm.Save(cfg)
+
+	err = gin.CoreContext.InitP2p()
+	if err != nil {
+		gin.JSON(http.StatusBadRequest, BadRequest(err.Error()))
+		return
+	}
 	if err != nil {
 		gin.JSON(http.StatusBadRequest, BadRequest("save config fail"))
 		return

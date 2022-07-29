@@ -48,6 +48,10 @@ func (c *CoreContext) InitSubstrate() error {
 	c.ReportClient = reportClient
 	c.ChainListener.SetChainApi(substrateApi, reportClient)
 
+	return nil
+}
+
+func (c *CoreContext) InitP2p() error {
 	if c.P2pClient != nil {
 		_ = c.P2pClient.Destroy()
 		c.P2pClient = nil
@@ -65,6 +69,6 @@ func (c *CoreContext) InitSubstrate() error {
 
 	c.EventContext.P2pClient = p2pClient
 	c.EventContext.ReportClient = c.ReportClient
-	c.ChainListener.SetChainApi(c.SubstrateApi, c.ReportClient)
+
 	return nil
 }
