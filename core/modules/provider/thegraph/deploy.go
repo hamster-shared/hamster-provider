@@ -86,7 +86,8 @@ import (
 // TemplateInstance Docker compose file instantiation
 func templateInstance(data DeployParams) error {
 
-	path := filepath.Join("./templates/graph-docker-compose.text")
+	pathExecutable, _ := os.Executable()
+	path := filepath.Join(filepath.Dir(pathExecutable), "templates/graph-docker-compose.text")
 	t, err := template.ParseFiles(path)
 	if err != nil {
 		log.GetLogger().Errorf("template failed with %s\n", err)

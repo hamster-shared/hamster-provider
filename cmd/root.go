@@ -17,6 +17,10 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/hamster-shared/hamster-provider/core"
+	"github.com/hamster-shared/hamster-provider/core/modules/config"
+	"github.com/hamster-shared/hamster-provider/core/modules/utils"
+	"github.com/hamster-shared/hamster-provider/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
@@ -44,7 +48,22 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+	Run: func(cmd *cobra.Command, args []string) {
+		// check if initialize
+		configPath := config.DefaultConfigPath()
+
+		if !utils.CheckFileExists(configPath) {
+			err := initHamster()
+			if err != nil {
+				log.GetLogger().Error("hamster init fail:", err.Error())
+				return
+			}
+		}
+
+		context := NewContext()
+		server := core.NewServer(context)
+		server.Run()
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

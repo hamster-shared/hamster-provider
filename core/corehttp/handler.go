@@ -367,6 +367,14 @@ func getCalculateInstanceOverdue(gin *MyContext) {
 }
 
 func getAccountInfo(gin *MyContext) {
+	if gin.CoreContext.ReportClient == nil {
+		err := gin.CoreContext.InitSubstrate()
+		if err != nil {
+			gin.JSON(http.StatusBadRequest, BadRequest(err.Error()))
+			return
+		}
+	}
+
 	info, err := gin.CoreContext.ReportClient.GetAccountInfo()
 	if err != nil {
 		gin.JSON(http.StatusBadRequest, BadRequest(fmt.Sprintf("Failed to get account information: %s", err)))
@@ -377,6 +385,14 @@ func getAccountInfo(gin *MyContext) {
 }
 
 func getStakingInfo(gin *MyContext) {
+	if gin.CoreContext.ReportClient == nil {
+		err := gin.CoreContext.InitSubstrate()
+		if err != nil {
+			gin.JSON(http.StatusBadRequest, BadRequest(err.Error()))
+			return
+		}
+	}
+
 	info, err := gin.CoreContext.ReportClient.GetMarketStackInfo()
 	if err != nil {
 		gin.JSON(http.StatusBadRequest, BadRequest(fmt.Sprintf("Failed to get pledge information: %s", err)))
@@ -397,6 +413,11 @@ func rentAgain(gin *MyContext) {
 }
 
 func queryReward(gin *MyContext) {
+
+	if gin.CoreContext.ReportClient == nil {
+		_ = gin.CoreContext.InitSubstrate()
+	}
+
 	reward, err := gin.CoreContext.ReportClient.GetReward()
 	if err != nil {
 		gin.JSON(http.StatusBadRequest, BadRequest("Failed to query income"))
@@ -405,11 +426,24 @@ func queryReward(gin *MyContext) {
 }
 
 func payoutReward(gin *MyContext) {
-	gin.CoreContext.ReportClient.PayoutReward()
+
+	if gin.CoreContext.ReportClient == nil {
+		_ = gin.CoreContext.InitSubstrate()
+	}
+
+	err := gin.CoreContext.ReportClient.PayoutReward()
+	if err != nil {
+		gin.JSON(http.StatusBadRequest, BadRequest(err.Error()))
+		return
+	}
 	gin.JSON(http.StatusOK, Success(""))
 }
 
 func deleteResource(gin *MyContext) {
+	if gin.CoreContext.ReportClient == nil {
+		_ = gin.CoreContext.InitSubstrate()
+	}
+
 	reportClient := gin.CoreContext.ReportClient
 	ri := gin.CoreContext.GetConfig().ChainRegInfo.ResourceIndex
 	err := reportClient.RemoveResource(ri)
@@ -422,9 +456,9 @@ func deleteResource(gin *MyContext) {
 
 func receiveIncomeJudge(gin *MyContext) {
 	if gin.CoreContext.ReportClient == nil {
-		gin.JSON(http.StatusBadRequest, BadRequest("please save initialization first"))
-		return
+		_ = gin.CoreContext.InitSubstrate()
 	}
+
 	judge := gin.CoreContext.ReportClient.ReceiveIncomeJudge()
 	gin.JSON(http.StatusOK, Success(judge))
 }

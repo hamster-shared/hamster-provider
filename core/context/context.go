@@ -10,6 +10,7 @@ import (
 	"github.com/hamster-shared/hamster-provider/core/modules/p2p"
 	"github.com/hamster-shared/hamster-provider/core/modules/provider"
 	"github.com/hamster-shared/hamster-provider/core/modules/utils"
+	"sync"
 )
 
 // CoreContext the application context , wrapped with some bean
@@ -31,6 +32,18 @@ func (c *CoreContext) GetConfig() *config.Config {
 }
 
 func (c *CoreContext) InitSubstrate() error {
+	var mu sync.Mutex
+	mu.Lock()
+	defer mu.Unlock()
+
+	if c.SubstrateApi == nil {
+		return c.resetSubstrate()
+	} else {
+		return nil
+	}
+}
+
+func (c *CoreContext) resetSubstrate() error {
 	substrateApi, err := gsrpc.NewSubstrateAPI(c.GetConfig().ChainApi)
 	if err != nil {
 		return err
