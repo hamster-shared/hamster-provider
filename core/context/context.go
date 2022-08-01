@@ -37,13 +37,13 @@ func (c *CoreContext) InitSubstrate() error {
 	defer mu.Unlock()
 
 	if c.SubstrateApi == nil {
-		return c.resetSubstrate()
+		return c.ResetSubstrate()
 	} else {
 		return nil
 	}
 }
 
-func (c *CoreContext) resetSubstrate() error {
+func (c *CoreContext) ResetSubstrate() error {
 	substrateApi, err := gsrpc.NewSubstrateAPI(c.GetConfig().ChainApi)
 	if err != nil {
 		return err

@@ -268,7 +268,7 @@ func setConfig(gin *MyContext) {
 
 	err = gin.CoreContext.Cm.Save(cfg)
 
-	err = gin.CoreContext.InitSubstrate()
+	err = gin.CoreContext.ResetSubstrate()
 	if err != nil {
 		gin.JSON(http.StatusBadRequest, BadRequest(err.Error()))
 		return
