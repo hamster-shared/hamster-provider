@@ -38,6 +38,7 @@ var initCmd = &cobra.Command{
 }
 
 func init() {
+	cobra.MousetrapHelpText = ""
 	rootCmd.AddCommand(initCmd)
 
 	// Here you will define your flags and configuration settings.
