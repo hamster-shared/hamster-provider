@@ -87,10 +87,10 @@ func StartApi(ctx *context.CoreContext) error {
 	err := OpenWeb(port)
 
 	if err != nil {
-		log.GetLogger().Warn("cannot open Explore, http://127.0.0.1:10771, error is :", err.Error())
+		log.GetLogger().Warnf("cannot open Explore, http://127.0.0.1:%d, error is :%s", port, err.Error())
 	}
 
-	err = r.Run(fmt.Sprintf("0.0.0.0:%d", port))
+	err = r.Run(fmt.Sprintf(":%d", port))
 
 	return err
 }

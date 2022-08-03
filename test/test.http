@@ -1,3 +1,12 @@
+# curl RPC_URL -H 'Content-Type: application/json' -X POST --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}'
+#POST https://main-light.eth.linkpool.io
+POST https://eth-mainnet.public.blastapi.io
+Content-Type: application/json
+
+{"jsonrpc":"2.0","method":"eth_getTransactionReceipt","params":["0x01aae536f2af204cf49bce218cc4fcb668037866124c80316ea4dbd234991292"],"id":1}
+
+###
+
 # curl -H "Content-Type: application/json" -X POST --data '{"jsonrpc":"2.0","method":"eth_syncing","params":[],"id":1}' http://127.0.0.1:8546
 POST http://164.92.80.238:8546
 Content-Type: application/json
@@ -18,5 +27,9 @@ POST http://59.80.40.149:38888/api/v1/config/settting
 Content-Type: application/json
 
 {"chainApi":"ws://183.66.65.207:49944","seedOrPhrase":"tomato denial broccoli video correct spring link oval ostrich category stereo beauty","publicIp":"59.80.40.149","publicPort":34001}
+
+###
+# # curl https://main-light.eth.linkpool.io -H 'Content-Type: application/json' -X POST --data '{"jsonrpc":"2.0","method":"eth_getTransactionReceipt","params":["0x01aae536f2af204cf49bce218cc4fcb668037866124c80316ea4dbd234991292"],"id":1}'
+
 
 

@@ -16,6 +16,7 @@ func (h *TheGraphHandler) HandlerEvent(e *VmRequest) {
 	log.GetLogger().Info("the graph register")
 
 	if thegraph.IsServer() {
+		log.GetLogger().Info("current provider is working, cannot accept this request!!")
 		return
 	}
 	orderNo := e.OrderNo
@@ -30,7 +31,7 @@ func (h *TheGraphHandler) HandlerEvent(e *VmRequest) {
 	if err != nil {
 		return
 	}
-	//thegraph.SetIsServer(true)
+	thegraph.SetIsServer(true)
 	overdue := time.Hour * time.Duration(e.Duration)
 	log.GetLogger().Infof("overdue is： %s", overdue)
 	instanceTimer := time.NewTimer(overdue)
