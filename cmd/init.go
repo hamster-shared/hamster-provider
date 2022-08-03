@@ -38,6 +38,7 @@ var initCmd = &cobra.Command{
 }
 
 func init() {
+	cobra.MousetrapHelpText = ""
 	rootCmd.AddCommand(initCmd)
 
 	// Here you will define your flags and configuration settings.
@@ -60,7 +61,7 @@ func getDefaultConfig() config.Config {
 	}
 
 	return config.Config{
-		ApiPort:      10771,
+		ApiPort:      34002,
 		Identity:     identity,
 		Keys:         []config.PublicKey{},
 		LinkApi:      CONFIG_DEFAULT_LINK_API,

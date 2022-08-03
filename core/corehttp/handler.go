@@ -309,6 +309,14 @@ func setBootState(gin *MyContext) {
 		}
 	}
 
+	if gin.CoreContext.P2pClient == nil {
+		err := gin.CoreContext.InitP2p()
+		if err != nil {
+			gin.JSON(http.StatusBadRequest, BadRequest(err.Error()))
+			return
+		}
+	}
+
 	if err := gin.CoreContext.ChainListener.SetState(op.Option); err != nil {
 		gin.JSON(http.StatusBadRequest, BadRequest(err.Error()))
 		return

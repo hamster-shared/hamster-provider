@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-contrib/static"
 	"github.com/hamster-shared/hamster-provider/core/context"
+	"github.com/hamster-shared/hamster-provider/log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -83,9 +84,13 @@ func StartApi(ctx *context.CoreContext) error {
 	// listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 	port := ctx.GetConfig().ApiPort
 
-	_ = OpenWeb(port)
+	err := OpenWeb(port)
 
-	err := r.Run(fmt.Sprintf("0.0.0.0:%d", port))
+	if err != nil {
+		log.GetLogger().Warnf("cannot open Explore, http://127.0.0.1:%d, error is :%s", port, err.Error())
+	}
+
+	err = r.Run(fmt.Sprintf(":%d", port))
 
 	return err
 }
@@ -102,6 +107,12 @@ func OpenWeb(port int) error {
 		return fmt.Errorf("don't know how to open things on %s platform", runtime.GOOS)
 	}
 
-	cmd := exec.Command(run, fmt.Sprintf("http://127.0.0.1:%d", port))
+	var cmd *exec.Cmd
+
+	if runtime.GOOS == "windows" {
+		cmd = exec.Command("cmd.exe", "/c", fmt.Sprintf("start http://127.0.0.1:%d", port))
+	} else {
+		cmd = exec.Command(run, fmt.Sprintf("http://127.0.0.1:%d", port))
+	}
 	return cmd.Start()
 }
