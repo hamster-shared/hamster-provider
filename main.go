@@ -18,9 +18,14 @@ package main
 import (
 	"github.com/hamster-shared/hamster-provider/cmd"
 	golog "github.com/ipfs/go-log/v2"
+	log "github.com/sirupsen/logrus"
+	"os"
 )
 
 func main() {
 	golog.SetAllLoggers(golog.LevelInfo) // Change to INFO for extra info
+	log.SetOutput(os.Stdout)
+	log.SetLevel(log.InfoLevel)
+	log.Info("hello logrus")
 	cmd.Execute()
 }

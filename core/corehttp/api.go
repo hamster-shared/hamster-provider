@@ -4,10 +4,15 @@ import (
 	"fmt"
 	"github.com/gin-contrib/static"
 	"github.com/hamster-shared/hamster-provider/core/context"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"runtime"
 )
 
 func StartApi(ctx *context.CoreContext) error {
 	r := NewMyServer(ctx)
+
 	// router
 	v1 := r.Group("/api/v1")
 	{
@@ -29,20 +34,14 @@ func StartApi(ctx *context.CoreContext) error {
 			chain.POST("/pledge", stakingAmount)
 			chain.POST("/withdraw-amount", withdrawAmount)
 			chain.POST("/price", changeUnitPrice)
+			chain.GET("/reward", queryReward)
+			chain.POST("/reward", payoutReward)
 		}
 		// container routing
 		container := v1.Group("/container")
 		{
 			container.GET("/start", startContainer)
 			container.GET("/delete", deleteContainer)
-		}
-
-		pk := v1.Group("/pk")
-		// publick key
-		{
-			pk.POST("/grantKey", grantKey)
-			pk.POST("/deleteKey", deleteKey)
-			pk.POST("/queryKey", queryKey)
 		}
 
 		p2p := v1.Group("/p2p")
@@ -67,11 +66,42 @@ func StartApi(ctx *context.CoreContext) error {
 			resource.POST("/delete-resource", deleteResource)
 			resource.GET("/receive-income-judge", receiveIncomeJudge)
 		}
+
+		thegraph := v1.Group("/thegraph")
+		{
+			thegraph.POST("/deploy", deployTheGraph)
+			thegraph.GET("/ws", execHandler)
+			thegraph.GET("/wslog", logHandler)
+			thegraph.GET("/status", deployStatus)
+		}
 	}
 	//r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	r.Use(static.Serve("/", static.LocalFile("./frontend/dist", false)))
+	path, _ := os.Getwd()
+	fmt.Println("static path: ", filepath.Join(path, "frontend/dist"))
+	r.Use(static.Serve("/", static.LocalFile(filepath.Join(path, "frontend/dist"), true)))
 	// listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 	port := ctx.GetConfig().ApiPort
-	return r.Run(fmt.Sprintf("0.0.0.0:%d", port))
+
+	_ = OpenWeb(port)
+
+	err := r.Run(fmt.Sprintf("0.0.0.0:%d", port))
+
+	return err
+}
+
+var commands = map[string]string{
+	"windows": "start",
+	"darwin":  "open",
+	"linux":   "xdg-open",
+}
+
+func OpenWeb(port int) error {
+	run, ok := commands[runtime.GOOS]
+	if !ok {
+		return fmt.Errorf("don't know how to open things on %s platform", runtime.GOOS)
+	}
+
+	cmd := exec.Command(run, fmt.Sprintf("http://127.0.0.1:%d", port))
+	return cmd.Start()
 }

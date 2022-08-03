@@ -2,11 +2,11 @@ package chain
 
 import (
 	"errors"
-	"fmt"
 	gsrpc "github.com/centrifuge/go-substrate-rpc-client/v4"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/types"
 	"github.com/hamster-shared/hamster-provider/core/modules/config"
+	"github.com/hamster-shared/hamster-provider/log"
 	"github.com/sirupsen/logrus"
 	"math/big"
 	"time"
@@ -119,8 +119,6 @@ func (cc *ChainClient) callAndWatch(c types.Call, meta *types.Metadata, hook fun
 	}
 
 	keypair, err := signature.KeyringPairFromSecret(cf.SeedOrPhrase, 42)
-	address := keypair.Address
-	println(address)
 	if err != nil {
 		return err
 	}
@@ -159,17 +157,17 @@ func (cc *ChainClient) callAndWatch(c types.Call, meta *types.Metadata, hook fun
 
 	sub, err := cc.api.RPC.Author.SubmitAndWatchExtrinsic(ext)
 	if err != nil {
-		fmt.Println(err)
+		log.GetLogger().Info(err)
 		return err
 	}
 	defer sub.Unsubscribe()
 
 	for {
 		status := <-sub.Chan()
-		fmt.Printf("Transaction status: %#v\n", status)
+		log.GetLogger().Infof("Transaction status: %#v\n", status)
 
 		if status.IsInBlock {
-			fmt.Printf("Completed at block hash: %#x\n", status.AsInBlock)
+			log.GetLogger().Infof("Completed at block hash: %#x\n", status.AsInBlock)
 
 			if hook != nil {
 				hh, err := cc.api.RPC.Chain.GetHeader(status.AsInBlock)
@@ -194,20 +192,20 @@ func (cc *ChainClient) getBlock(blockNumber uint64) {
 	meta, err := cc.api.RPC.State.GetMetadataLatest()
 	hash, err := cc.api.RPC.Chain.GetBlockHash(uint64(blockNumber))
 	if err != nil {
-		err = fmt.Errorf("get block hash error: %s", err)
+		log.GetLogger().Errorf("get block hash error: %s", err)
 		return
 	}
 	block, err := cc.api.RPC.Chain.GetBlock(hash)
 	if err != nil {
-		err = fmt.Errorf("get block error: %s", err)
+		log.GetLogger().Errorf("get block error: %s", err)
 		return
 	}
-	fmt.Println("blocknumber", block.Block.Header.Number)
+	log.GetLogger().Info("blocknumber", block.Block.Header.Number)
 	for _, ext := range block.Block.Extrinsics {
 		//callIndex, err := meta.FindCallIndex("ResourceOrder.order_exec")
 		callIndex, err := meta.FindCallIndex("ResourceOrder.staking_amount")
 		if err != nil {
-			fmt.Println(err)
+			log.GetLogger().Info(err)
 			continue
 		}
 		if ext.Method.CallIndex != callIndex {
@@ -217,9 +215,9 @@ func (cc *ChainClient) getBlock(blockNumber uint64) {
 		if string(ext.Signature.Signer.AsID[:]) != string(kp.PublicKey) {
 			continue
 		}
-		fmt.Println("callIndex:", ext.Method.CallIndex.SectionIndex)
-		fmt.Println("args:", ext.Method.Args)
-		fmt.Println()
+		log.GetLogger().Info("callIndex:", ext.Method.CallIndex.SectionIndex)
+		log.GetLogger().Info("args:", ext.Method.Args)
+		log.GetLogger().Info()
 	}
 }
 
@@ -242,7 +240,8 @@ func (cc *ChainClient) GetEvent(blockNumber uint64) (*MyEventRecords, error) {
 	}
 	// Decode the event records
 	events := MyEventRecords{}
-	err = types.EventRecordsRaw(*raw).DecodeEventRecords(meta, &events)
+
+	err = DecodeEventRecordsWithIgnoreError(types.EventRecordsRaw(*raw), meta, &events)
 
 	return &events, err
 }
@@ -255,19 +254,17 @@ func (cc *ChainClient) RegisterResource(r ResourceInfo) error {
 		return err
 	}
 
-	cf, err := cc.cm.GetConfig()
-
-	if cf.ChainRegInfo.ResourceIndex > 0 {
-		resource, err := cc.GetResource(cf.ChainRegInfo.ResourceIndex)
+	if r.ResourceIndex > 0 {
+		resource, err := cc.GetResource(r.ResourceIndex)
 		if err != nil {
-			fmt.Println(err)
+			log.GetLogger().Info(err)
 		}
 		if resource != nil {
 			return nil
 		}
 	}
 
-	peerId := cf.Identity.PeerID
+	peerId := r.PeerId
 	cpu := types.NewU64(r.Cpu)
 	memory := types.NewU64(r.Memory)
 	system := r.System
@@ -275,8 +272,9 @@ func (cc *ChainClient) RegisterResource(r ResourceInfo) error {
 	price := types.NewU128(*big.NewInt(int64(r.Price)))
 	hours := r.ExpireTime.Sub(time.Now()).Hours()
 	rentDurationHour := types.NewU32(uint32(hours))
+	resourceIndex := types.U64(r.ResourceIndex)
 
-	c, err := types.NewCall(meta, "Provider.register_resource", peerId, cpu, memory, system, cpuModel, price, rentDurationHour)
+	c, err := types.NewCall(meta, "Provider.register_resource", peerId, cpu, memory, system, cpuModel, price, rentDurationHour, resourceIndex)
 
 	if err != nil {
 		return err
@@ -290,6 +288,10 @@ func (cc *ChainClient) RegisterResource(r ResourceInfo) error {
 		if len(events.Provider_RegisterResourceSuccess) > 0 {
 			for _, e := range events.Provider_RegisterResourceSuccess {
 				if e.PeerId == cc.getPeerId() {
+					cf, err := cc.cm.GetConfig()
+					if err != nil {
+						return err
+					}
 					cf.ChainRegInfo.ResourceIndex = uint64(e.Index)
 					return cc.cm.Save(cf)
 				}
@@ -308,7 +310,7 @@ func (cc *ChainClient) RemoveResource(index uint64) error {
 		return err
 	}
 
-	c, err := types.NewCall(meta, "Provider.remove_resource", types.NewU64(index))
+	c, err := types.NewCall(meta, "Provider.withdraw", types.NewU64(index))
 
 	if err != nil {
 		return err
@@ -390,7 +392,7 @@ func (cc *ChainClient) ReportStatus() error {
 // OrderExec order execution
 func (cc *ChainClient) OrderExec(orderIndex uint64) error {
 
-	fmt.Printf("orderExec : %d\n", orderIndex)
+	log.GetLogger().Infof("orderExec : %d\n", orderIndex)
 
 	meta, err := cc.api.RPC.State.GetMetadataLatest()
 	if err != nil {
@@ -440,7 +442,7 @@ func (cc *ChainClient) OrderExec(orderIndex uint64) error {
 // CheckExtrinsicSuccess verify that the transaction is successful
 func (cc *ChainClient) CheckExtrinsicSuccess(header *types.Header, call string) error {
 
-	fmt.Printf("check tx exec Success, blockNumber : %d\n", header.Number)
+	log.GetLogger().Infof("check tx exec Success, blockNumber : %d\n", header.Number)
 
 	cf, _ := cc.cm.GetConfig()
 	kp, _ := signature.KeyringPairFromSecret(cf.SeedOrPhrase, 42)
@@ -517,7 +519,7 @@ func (cc *ChainClient) GetResource(resourceIndex uint64) (*ComputingResource, er
 
 	meta, err := cc.api.RPC.State.GetMetadataLatest()
 	if err != nil {
-		fmt.Println(err)
+		log.GetLogger().Info(err)
 		return nil, err
 	}
 	bytes, err := types.EncodeToBytes(types.NewU64(resourceIndex))
@@ -527,21 +529,21 @@ func (cc *ChainClient) GetResource(resourceIndex uint64) (*ComputingResource, er
 	key, err := types.CreateStorageKey(meta, "Provider", "Resources", bytes)
 
 	if err != nil {
-		fmt.Println(err)
+		log.GetLogger().Info(err)
 		return nil, err
 	}
-	fmt.Println(key.Hex())
+	log.GetLogger().Info(key.Hex())
 
 	rows, err := cc.api.RPC.State.GetStorageRawLatest(key)
-	fmt.Println("rows", len(*rows))
-	fmt.Println("err:", err)
-	fmt.Println("row:", rows)
+	log.GetLogger().Info("rows", len(*rows))
+	log.GetLogger().Info("err:", err)
+	log.GetLogger().Info("row:", rows)
 
 	var computingResource ComputingResource
 
 	ok, err := cc.api.RPC.State.GetStorageLatest(key, &computingResource)
 	if !ok {
-		fmt.Println(err)
+		log.GetLogger().Info(err)
 		return nil, errors.New("cannot get state with computingResource")
 	}
 
@@ -592,7 +594,7 @@ func (cc *ChainClient) GetOrder(orderIndex uint64) (*ComputingOrder, error) {
 
 	meta, err := cc.api.RPC.State.GetMetadataLatest()
 	if err != nil {
-		fmt.Println(err)
+		log.GetLogger().Info(err)
 		return nil, err
 	}
 	bytes, err := types.EncodeToBytes(types.NewU64(orderIndex))
@@ -602,10 +604,10 @@ func (cc *ChainClient) GetOrder(orderIndex uint64) (*ComputingOrder, error) {
 	key, err := types.CreateStorageKey(meta, "ResourceOrder", "ResourceOrders", bytes)
 
 	if err != nil {
-		fmt.Println(err)
+		log.GetLogger().Info(err)
 		return nil, err
 	}
-	fmt.Println(key.Hex())
+	log.GetLogger().Info(key.Hex())
 
 	var order ComputingOrder
 	ok, err := cc.api.RPC.State.GetStorageLatest(key, &order)
@@ -711,6 +713,35 @@ func (cc *ChainClient) GetStakingInfo() (*StakingAmount, error) {
 	return &stakingInfo, nil
 }
 
+func (cc *ChainClient) GetMarketStackInfo() (*StakingAmount, error) {
+	meta, err := cc.api.RPC.State.GetMetadataLatest()
+	if err != nil {
+		panic(err)
+	}
+	param, err := types.EncodeToBytes(Provider_MarketUserStatus)
+	cf, err := cc.cm.GetConfig()
+	if err != nil {
+		return nil, err
+	}
+	keypair, err := signature.KeyringPairFromSecret(cf.SeedOrPhrase, 42)
+	key, err := types.CreateStorageKey(meta, "Market", "StakerInfo", param, keypair.PublicKey)
+	if err != nil {
+		return nil, err
+	}
+
+	var data MarketUser
+	ok, err := cc.api.RPC.State.GetStorageLatest(key, &data)
+	if !ok || err != nil {
+		return nil, err
+	}
+
+	return &StakingAmount{
+		Amount:       data.StakedAmount,
+		ActiveAmount: types.NewU128(*big.NewInt(0)),
+		LockAmount:   types.NewU128(*big.NewInt(0)),
+	}, nil
+}
+
 func (cc *ChainClient) StakingAmount(unitPrice int64) error {
 	meta, err := cc.api.RPC.State.GetMetadataLatest()
 	if err != nil {
@@ -755,4 +786,124 @@ func (cc *ChainClient) ReceiveIncomeJudge() bool {
 		return true
 	}
 	return false
+}
+
+func (cc *ChainClient) ProcessApplyFreeResource(index uint64, peerId string) error {
+	meta, err := cc.api.RPC.State.GetMetadataLatest()
+	if err != nil {
+		return err
+	}
+
+	c, err := types.NewCall(meta, "ResourceOrder.process_apply_free_resource", types.NewU64(index), peerId)
+
+	if err != nil {
+		return err
+	}
+
+	return cc.callAndWatch(c, meta, hook)
+}
+
+func hook(header *types.Header) error {
+	log.GetLogger().Info(header.Number)
+	return nil
+}
+
+func (cc *ChainClient) CrateMarketAccount() error {
+	meta, err := cc.api.RPC.State.GetMetadataLatest()
+	if err != nil {
+		return err
+	}
+
+	c, err := types.NewCall(meta, "Market.crate_market_account", Provider_MarketUserStatus)
+
+	if err != nil {
+		return err
+	}
+
+	return cc.callAndWatch(c, meta, hook)
+}
+
+func (cc *ChainClient) GetMarketUser() (MarketUser, error) {
+
+	meta, err := cc.api.RPC.State.GetMetadataLatest()
+	if err != nil {
+		panic(err)
+	}
+
+	param, err := types.EncodeToBytes(Provider_MarketUserStatus)
+
+	cf, err := cc.cm.GetConfig()
+	if err != nil {
+		return MarketUser{}, err
+	}
+	keypair, err := signature.KeyringPairFromSecret(cf.SeedOrPhrase, 42)
+	if err != nil {
+		return MarketUser{}, err
+	}
+
+	key, err := types.CreateStorageKey(meta, "Market", "StakerInfo", param, keypair.PublicKey)
+	var data MarketUser
+	ok, err := cc.api.RPC.State.GetStorageLatest(key, &data)
+	if !ok {
+		return data, errors.New("cannot find stacking from chain")
+	}
+
+	return data, err
+
+}
+
+func (cc *ChainClient) ReleaseApplyFreeResource(index uint64) error {
+	meta, err := cc.api.RPC.State.GetMetadataLatest()
+	if err != nil {
+		return err
+	}
+
+	c, err := types.NewCall(meta, "ResourceOrder.release_apply_free_resource", types.NewU64(index))
+
+	if err != nil {
+		return err
+	}
+
+	return cc.callAndWatch(c, meta, hook)
+}
+
+func (cc *ChainClient) GetReward() (*MarketIncome, error) {
+	meta, err := cc.api.RPC.State.GetMetadataLatest()
+	if err != nil {
+		return nil, err
+	}
+	cf, err := cc.cm.GetConfig()
+	if err != nil {
+		return nil, err
+	}
+	keypair, err := signature.KeyringPairFromSecret(cf.SeedOrPhrase, 42)
+	if err != nil {
+		return nil, err
+	}
+	key, err := types.CreateStorageKey(meta, "Market", "ProviderReward", keypair.PublicKey)
+	if err != nil {
+		return nil, err
+	}
+
+	var data MarketIncome
+	ok, err := cc.api.RPC.State.GetStorageLatest(key, &data)
+	if !ok || err != nil {
+		return nil, err
+	}
+	return &data, nil
+}
+
+func (cc *ChainClient) PayoutReward() error {
+	meta, err := cc.api.RPC.State.GetMetadataLatest()
+	if err != nil {
+		return err
+	}
+
+	c, err := types.NewCall(meta, "Market.payout_provider_nodes")
+
+	if err != nil {
+		return err
+	}
+
+	return cc.callAndWatch(c, meta, hook)
 }

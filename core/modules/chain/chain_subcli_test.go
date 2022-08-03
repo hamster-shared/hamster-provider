@@ -6,6 +6,9 @@ import (
 	"github.com/centrifuge/go-substrate-rpc-client/v4/config"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/types"
+	"github.com/hamster-shared/hamster-provider/core/modules/utils"
+	"github.com/minio/blake2b-simd"
+	"github.com/mr-tron/base58"
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"testing"
@@ -278,12 +281,26 @@ func TestStorageOrder(t *testing.T) {
 	//}
 }
 
+type EventSomethingStored struct {
+	Phase     types.Phase
+	Something types.U32
+	Who       types.AccountID
+	Topics    []types.Hash
+}
+
+type EventBalancesWithdraw struct {
+	Phase   types.Phase
+	Who     types.AccountID
+	Balance types.U128
+	Topics  []types.Hash
+}
+
 func TestDisplaySystemEvents(t *testing.T) {
 	// Create our API with a default connection to the local node
 	api, err := gsrpc.NewSubstrateAPI(config.Default().RPCURL)
 	if err != nil {
+		panic(err)
 	}
-	panic(err)
 
 	meta, err := api.RPC.State.GetMetadataLatest()
 	if err != nil {
@@ -312,15 +329,10 @@ func TestDisplaySystemEvents(t *testing.T) {
 				continue
 			}
 
-			type EventParamReceived struct {
-				Phase  types.Phase
-				Size   types.U64
-				Topics []types.Hash
-			}
-
 			type MyEventRecords struct {
 				types.EventRecords
-				StorageOrder_ParamReceived []EventParamReceived //nolint:stylecheck,golint
+				TemplateModule_SomethingStored []EventSomethingStored //nolint:stylecheck,golint
+				Balances_Withdraw              []EventBalancesWithdraw
 			}
 
 			// Decode the event records
@@ -419,96 +431,86 @@ func TestDisplaySystemEvents(t *testing.T) {
 				fmt.Printf("\tSystem:KilledAccount:: (phase=%#v)\n", e.Phase)
 				fmt.Printf("\t\t%#X\n", e.Who)
 			}
-			for _, e := range events.StorageOrder_ParamReceived {
-				fmt.Printf("\tStorageOrder:ParamReceived:: (phase=%#v)\n", e.Phase)
-				fmt.Printf("\t\t%d\n", e.Size)
+			for _, e := range events.TemplateModule_SomethingStored {
+				fmt.Printf("\tTemplateModule:SomethingStored:: (phase=%#v)\n", e.Phase)
+				fmt.Printf("\t\t%d\n", e.Who)
+			}
+			for _, e := range events.Balances_Withdraw {
+				fmt.Printf("\t\t%d\n", e.Who)
 			}
 		}
 	}
 }
 
-type AccountInfo struct {
-	Nonce       types.U32
-	Consumers   types.U32
-	Providers   types.U32
-	Sufficients types.U32
-	Data        struct {
-		Free       types.U128
-		Reserved   types.U128
-		MiscFrozen types.U128
-		FreeFrozen types.U128
-	}
-}
-
-func TestListenToBalanceChange(t *testing.T) {
-	api, err := gsrpc.NewSubstrateAPI(config.Default().RPCURL)
-	if err != nil {
-		panic(err)
-	}
-
-	meta, err := api.RPC.State.GetMetadataLatest()
-	if err != nil {
-		panic(err)
-	}
-
-	alice := signature.TestKeyringPairAlice.PublicKey
-	key, err := types.CreateStorageKey(meta, "System", "Account", alice)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(key.Hex())
-
-	var accountInfo AccountInfo
-	ok, err := api.RPC.State.GetStorageLatest(key, &accountInfo)
-	if err != nil || !ok {
-		panic(err)
-	}
-
-	previous := accountInfo.Data.Free
-	fmt.Printf("%#x has a balance of %v\n", alice, previous)
-	fmt.Println(previous.Bytes())
-
-	latest, err := api.RPC.State.GetStorageRawLatest(key)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(latest.Hex())
-	fmt.Printf("You may leave this example running and transfer any value to %#x\n", alice)
-
-	//Here we subscribe to any balance changes
-	sub, err := api.RPC.State.SubscribeStorageRaw([]types.StorageKey{key})
-	if err != nil {
-		panic(err)
-	}
-	defer sub.Unsubscribe()
-
-	//outer for loop for subscription notifications
-	for {
-		// inner loop for the changes within one of those notifications
-		for _, chng := range (<-sub.Chan()).Changes {
-			if !chng.HasStorageData {
-				continue
-			}
-
-			var acc AccountInfo
-			if err = types.DecodeFromBytes(chng.StorageData, &acc); err != nil {
-				panic(err)
-			}
-
-			// Calculate the delta
-			current := acc.Data.Free
-			var change = types.U128{Int: big.NewInt(0).Sub(current.Int, previous.Int)}
-
-			// Only display positive value changes (Since we are pulling `previous` above already,
-			// the initial balance change will also be zero)
-			if change.Cmp(big.NewInt(0)) != 0 {
-				fmt.Printf("New balance change of: %v %v %v\n", change, previous, current)
-				previous = current
-				return
-			}
-		}
-	}
-}
+//func TestListenToBalanceChange(t *testing.T) {
+//	api, err := gsrpc.NewSubstrateAPI(config.Default().RPCURL)
+//	if err != nil {
+//		panic(err)
+//	}
+//
+//	meta, err := api.RPC.State.GetMetadataLatest()
+//	if err != nil {
+//		panic(err)
+//	}
+//
+//	alice := signature.TestKeyringPairAlice.PublicKey
+//	key, err := types.CreateStorageKey(meta, "System", "Account", alice)
+//	if err != nil {
+//		panic(err)
+//	}
+//	fmt.Println(key.Hex())
+//
+//	var accountInfo AccountInfo
+//	ok, err := api.RPC.State.GetStorageLatest(key, &accountInfo)
+//	if err != nil || !ok {
+//		panic(err)
+//	}
+//
+//	previous := accountInfo.Data.Free
+//	fmt.Printf("%#x has a balance of %v\n", alice, previous)
+//	fmt.Println(previous.Bytes())
+//
+//	latest, err := api.RPC.State.GetStorageRawLatest(key)
+//	if err != nil {
+//		panic(err)
+//	}
+//	fmt.Println(latest.Hex())
+//	fmt.Printf("You may leave this example running and transfer any value to %#x\n", alice)
+//
+//	//Here we subscribe to any balance changes
+//	sub, err := api.RPC.State.SubscribeStorageRaw([]types.StorageKey{key})
+//	if err != nil {
+//		panic(err)
+//	}
+//	defer sub.Unsubscribe()
+//
+//	//outer for loop for subscription notifications
+//	for {
+//		// inner loop for the changes within one of those notifications
+//		for _, chng := range (<-sub.Chan()).Changes {
+//			if !chng.HasStorageData {
+//				continue
+//			}
+//
+//			var acc AccountInfo
+//			if err = types.DecodeFromBytes(chng.StorageData, &acc); err != nil {
+//				panic(err)
+//			}
+//
+//			// Calculate the delta
+//			current := acc.Data.Free
+//			var change = types.U128{Int: big.NewInt(0).Sub(current.Int, previous.Int)}
+//
+//			// Only display positive value changes (Since we are pulling `previous` above already,
+//			// the initial balance change will also be zero)
+//			if change.Cmp(big.NewInt(0)) != 0 {
+//				fmt.Printf("New balance change of: %v %v %v\n", change, previous, current)
+//				previous = current
+//				return
+//			}
+//		}
+//	}
+//}
 
 func TestResourceList(t *testing.T) {
 	api, err := gsrpc.NewSubstrateAPI(config.Default().RPCURL)
@@ -567,41 +569,45 @@ func TestSomeEvent(t *testing.T) {
 	meta, err := api.RPC.State.GetMetadataLatest()
 	assert.NoError(t, err)
 
-	bh, err := api.RPC.Chain.GetBlockHash(1751)
+	bh, err := api.RPC.Chain.GetBlockHash(493888)
 	assert.NoError(t, err)
 	key, err := types.CreateStorageKey(meta, "System", "Events", nil)
 	assert.NoError(t, err)
 	raw, err := api.RPC.State.GetStorageRaw(key, bh)
 	/// [accountId, index, peerId, cpu, memory, system, cpu_model, price_hour, rent_duration_hour]
 	//RegisterResourceSuccess(T::AccountId, u64, Vec<u8>, u64, u64, Vec<u8>, Vec<u8>, Balance, u32),
-	type EventRegisterResourceSuccess struct {
-		Phase            types.Phase
-		AccountId        types.AccountID
-		Index            types.U64
-		PeerId           string
-		Cpu              types.U64
-		Memory           types.U64
-		System           string
-		CpuModel         string
-		PriceHour        types.U128
-		RentDurationHour types.U32
-		Topics           []types.Hash
-	}
-
-	type MyEventRecords struct {
-		types.EventRecords
-		Provider_RegisterResourceSuccess []EventRegisterResourceSuccess //nolint:stylecheck,golint
-	}
 
 	// Decode the event records
 	events := MyEventRecords{}
 	err = types.EventRecordsRaw(*raw).DecodeEventRecords(meta, &events)
 
-	if len(events.Provider_RegisterResourceSuccess) > 0 {
-		for _, e := range events.Provider_RegisterResourceSuccess {
-			fmt.Println(e.CpuModel, e.PeerId)
-		}
+	if err != nil {
+		fmt.Println(err)
+		return
+
 	}
+	fmt.Println(len(events.Balances_Transfer))
+
+}
+
+// 连接2个比特数组
+func concatBytes(a, b []byte) []byte {
+	s := make([]byte, 0)
+	for _, n := range a {
+		s = append(s, n)
+	}
+	for _, n := range b {
+		s = append(s, n)
+	}
+	return s
+}
+
+// 将types.AccountId　转换为 string 类型的地址
+func AccountIdToAddress(id types.AccountID) string {
+	s := concatBytes([]byte{42}, id[:])
+	hash := blake2b.Sum512(concatBytes([]byte("SS58PRE"), s))
+	address := base58.Encode(concatBytes(s, hash[0:2]))
+	return address
 }
 
 func TestAccountAmount(t *testing.T) {
@@ -629,5 +635,50 @@ func TestAccountAmount(t *testing.T) {
 		panic(err)
 	}
 
-	fmt.Println(accountInfo.Data)
+}
+
+func TestGetQueryMarket(t *testing.T) {
+	api, err := gsrpc.NewSubstrateAPI(config.Default().RPCURL)
+	if err != nil {
+		panic(err)
+	}
+
+	meta, err := api.RPC.State.GetMetadataLatest()
+	if err != nil {
+		panic(err)
+	}
+	param, err := types.EncodeToBytes(Provider_MarketUserStatus)
+	pk, err := utils.AddressToPublicKey("5Ck8UKvwPkx6ALYib5gZCQu95se6VgDMEvohfQS6gvQ4LtqQ")
+	assert.NoError(t, err)
+	key, err := types.CreateStorageKey(meta, "Market", "StakerInfo", param, pk)
+	assert.NoError(t, err)
+
+	var data MarketUser
+	ok, err := api.RPC.State.GetStorageLatest(key, &data)
+	assert.True(t, ok)
+	assert.NoError(t, err)
+	fmt.Printf("data: %+v\n ", data)
+}
+
+func TestQueryReward(t *testing.T) {
+	api, err := gsrpc.NewSubstrateAPI("ws://183.66.65.207:49944")
+	if err != nil {
+		panic(err)
+	}
+
+	meta, err := api.RPC.State.GetMetadataLatest()
+	if err != nil {
+		panic(err)
+	}
+	pk, err := utils.AddressToPublicKey("5Ck8UKvwPkx6ALYib5gZCQu95se6VgDMEvohfQS6gvQ4LtqQ")
+	assert.NoError(t, err)
+	key, err := types.CreateStorageKey(meta, "Market", "ProviderReward", pk)
+	fmt.Println(key.Hex())
+	assert.NoError(t, err)
+
+	var data MarketIncome
+	ok, err := api.RPC.State.GetStorageLatest(key, &data)
+	assert.True(t, ok)
+	assert.NoError(t, err)
+	fmt.Printf("data: %+v\n ", data)
 }

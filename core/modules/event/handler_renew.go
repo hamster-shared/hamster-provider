@@ -1,12 +1,12 @@
 package event
 
 import (
-	log "github.com/sirupsen/logrus"
+	"github.com/hamster-shared/hamster-provider/log"
 )
 
 type RenewVmHandler struct {
 	AbstractHandler
-	CoreContext EventContext
+	CoreContext *EventContext
 }
 
 func (h *RenewVmHandler) HandlerEvent(e *VmRequest) {
@@ -23,7 +23,7 @@ func (h *RenewVmHandler) HandlerEvent(e *VmRequest) {
 	timer.Reset(overdue)
 	err := h.CoreContext.ReportClient.OrderExec(orderNo)
 	if err != nil {
-		log.Error("report order exec fail")
+		log.GetLogger().Error("report order exec fail")
 	}
 }
 

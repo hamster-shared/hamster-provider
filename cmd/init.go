@@ -18,7 +18,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/hamster-shared/hamster-provider/core/modules/config"
-	log "github.com/sirupsen/logrus"
+	"github.com/hamster-shared/hamster-provider/log"
 	"github.com/spf13/cobra"
 	"os"
 	"path/filepath"
@@ -32,27 +32,7 @@ var initCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Printf("init hamster provider")
 
-		path := config.DefaultConfigPath()
-
-		cfg := getDefaultConfig()
-
-		err := os.MkdirAll(filepath.Dir(path), os.ModeDir)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		err = os.Chmod(filepath.Dir(path), os.ModePerm)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		// init config
-		log.Info("init context")
-		err = config.NewConfigManagerWithPath(path).Save(&cfg)
-		if err != nil {
-			log.Error(err)
-			return
-		}
+		_ = initHamster()
 
 	},
 }
@@ -75,7 +55,7 @@ func getDefaultConfig() config.Config {
 	identity, err := config.CreateIdentity()
 
 	if err != nil {
-		log.Error("create identity error")
+		log.GetLogger().Error("create identity error")
 		os.Exit(0)
 	}
 
@@ -115,4 +95,31 @@ func getDockerDefaultConfig() config.VmOption {
 		AccessPort: 22,
 		Type:       "docker",
 	}
+}
+
+func initHamster() error {
+	path := config.DefaultConfigPath()
+
+	cfg := getDefaultConfig()
+
+	err := os.MkdirAll(filepath.Dir(path), os.ModeDir)
+	if err != nil {
+		log.GetLogger().Error(err)
+		return err
+	}
+
+	err = os.Chmod(filepath.Dir(path), os.ModePerm)
+	if err != nil {
+		log.GetLogger().Error(err)
+		return err
+	}
+
+	// init config
+	log.GetLogger().Info("init context")
+	err = config.NewConfigManagerWithPath(path).Save(&cfg)
+	if err != nil {
+		log.GetLogger().Error(err)
+		return err
+	}
+	return nil
 }

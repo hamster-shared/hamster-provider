@@ -1,14 +1,14 @@
 <template>
   <div>
     <PageWrapper :title="t('accountInfo.info.accountInfo')" contentBackground>
-      <template #extra>
-        <a-button type="primary" @click="showStakingModal('staking')">
-          {{ t('accountInfo.info.pledge') }}
-        </a-button>
-        <a-button type="primary" @click="showStakingModal('withdraw')">
-          {{ t('accountInfo.info.reclaimPledge') }}
-        </a-button>
-      </template>
+<!--      <template #extra>-->
+<!--        <a-button type="primary" @click="showStakingModal('staking')">-->
+<!--          {{ t('accountInfo.info.pledge') }}-->
+<!--        </a-button>-->
+<!--        <a-button type="primary" @click="showStakingModal('withdraw')">-->
+<!--          {{ t('accountInfo.info.reclaimPledge') }}-->
+<!--        </a-button>-->
+<!--      </template>-->
       <div class="pt-4 m-4 desc-wrap">
         <a-descriptions :title="t('accountInfo.info.accountInfo')" size="small" :column="2">
           <a-descriptions-item :label="t('accountInfo.info.accountAddress')">
@@ -23,13 +23,16 @@
           <a-descriptions-item :label="t('accountInfo.info.totalPledgeAmount')">
             {{ pledgeAmount }} Unit
           </a-descriptions-item>
-          <a-descriptions-item :label="t('accountInfo.info.activePledgeAmount')">
-            {{ activeAmount }} Unit
-          </a-descriptions-item>
-          <a-descriptions-item :label="t('accountInfo.info.lockedPledgeAmount')">
-            {{ lockAmount }} Unit
+        </a-descriptions>
+
+        <a-divider />
+
+        <a-descriptions :title="t('accountInfo.income.incomeInfo')" size="small" :column="2">
+          <a-descriptions-item :label="t('accountInfo.income.income')">
+            {{ reward }} Unit   <AButton style="margin-left: 1rem;" type="primary" size="small" shape="round" :loading="rewardLoading" @click="payoutReward"> {{t('accountInfo.income.withdraw')}} </AButton>
           </a-descriptions-item>
         </a-descriptions>
+
       </div>
     </PageWrapper>
     <a-modal
@@ -66,17 +69,19 @@
 </template>
 
 <script lang="ts">
-  import { getAccountInfoApi, getStakingInfoApi, stakingAmountApi, withdrawAmountApi} from '/@/api/provider/account';
+  import { getAccountInfoApi, getStakingInfoApi, stakingAmountApi, withdrawAmountApi,getRewardInfoApi,payoutRewardApi} from '/@/api/provider/account';
   import { PageWrapper } from '/@/components/Page';
   import BalanceInput from '../../../components/BalanceInput/index.vue';
   import { useI18n } from '/@/hooks/web/useI18n';
   import { defineComponent, getCurrentInstance, onMounted, reactive, toRefs } from 'vue';
   import BigNumber from 'bignumber.js';
   import { useMessage } from '/@/hooks/web/useMessage';
+  import AButton from "/@/components/Button/src/BasicButton.vue";
   // eslint-disable-next-line vue/no-export-in-script-setup
   export default defineComponent({
     name: 'center',
     components: {
+      AButton,
       BalanceInput,
       PageWrapper,
     },
@@ -90,16 +95,19 @@
         stakingLoading: false,
         placeholder: '',
         stakingAmountTip: false,
+        rewardLoading: false,
         activeModal: '',
         amount: '',
         address: '',
         pledgeAmount: '0.0000',
         activeAmount: '0.0000',
         lockAmount: '0.0000',
+        reward: '0.0000',
       });
       onMounted(() => {
         getAccountInfo();
         getStaking();
+        getRewardInfo();
       });
       function getAccountInfo() {
         getAccountInfoApi().then((data) => {
@@ -205,12 +213,29 @@
           state.activeModal = 'withdraw';
         }
       }
+      function getRewardInfo(){
+        getRewardInfoApi().then(data => {
+          state.reward = new BigNumber(data.TotalIncome)
+            .div(new BigNumber(Math.pow(10, 12)))
+            .toNumber()
+            .toFixed(4);
+        })
+      }
+      function payoutReward(){
+        state.rewardLoading = true
+        payoutRewardApi().then(() => {
+          getRewardInfo()
+        }).finally(() => {
+          state.rewardLoading = false
+        })
+      }
       return {
         BalanceInput,
         checkStakingAmount,
         ok,
         close,
         showStakingModal,
+        payoutReward,
         t,
         ...toRefs(state),
       };

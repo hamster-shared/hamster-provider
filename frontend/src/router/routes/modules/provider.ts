@@ -7,7 +7,7 @@ const dashboard: AppRouteModule = {
   path: '/provider',
   name: 'Provider',
   component: LAYOUT,
-  redirect: '/provider/resource',
+  redirect: '/provider/initialization',
   meta: {
     orderNo: 10,
     icon: 'mdi:desktop-classic',
