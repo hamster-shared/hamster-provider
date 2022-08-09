@@ -7,6 +7,7 @@ import (
 	chain2 "github.com/hamster-shared/hamster-provider/core/modules/chain"
 	"github.com/hamster-shared/hamster-provider/core/modules/config"
 	"github.com/hamster-shared/hamster-provider/core/modules/event"
+	"github.com/hamster-shared/hamster-provider/core/modules/provider/thegraph"
 	"github.com/hamster-shared/hamster-provider/core/modules/utils"
 	"github.com/hamster-shared/hamster-provider/log"
 	"time"
@@ -93,6 +94,7 @@ func (l *ChainListener) stop() error {
 	if err != nil {
 		return err
 	}
+	thegraph.SetIsServer(false)
 	return l.reportClient.RemoveResource(cfg.ChainRegInfo.ResourceIndex)
 }
 
@@ -172,7 +174,7 @@ func (l *ChainListener) dealCreateOrderSuccess(e chain2.EventResourceOrderCreate
 
 	if e.ResourceIndex == types.NewU64(cfg.ChainRegInfo.ResourceIndex) {
 		// process the order
-		log.GetLogger().Info("deal order", e.OrderIndex)
+		log.GetLogger().Info("deal order: ", e.OrderIndex)
 		// record the id of the processed order
 		cfg.ChainRegInfo.OrderIndex = uint64(e.OrderIndex)
 		_ = l.cm.Save(cfg)

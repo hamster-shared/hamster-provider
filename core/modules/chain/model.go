@@ -150,7 +150,6 @@ type ComputingOrder struct {
 		AccountId types.AccountID
 		PublicKey types.Text
 	}
-	Price          types.U128
 	ResourceIndex  types.U64
 	Create         types.U32
 	RentDuration   types.U32

@@ -15,7 +15,7 @@ func successDealOrder(ctx *EventContext, orderNo uint64, name string) error {
 
 	// report heartbeat
 	agreementIndex := ctx.GetConfig().ChainRegInfo.AgreementIndex
-	_ = ctx.ReportClient.Heartbeat(agreementIndex)
+	//_ = ctx.ReportClient.Heartbeat(agreementIndex)
 
 	// send timed heartbeats
 	go func() {

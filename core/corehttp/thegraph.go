@@ -39,6 +39,15 @@ func deployTheGraph(c *MyContext) {
 	c.JSON(http.StatusOK, Success(""))
 }
 
+func pullImage(c *MyContext) {
+	err := thegraph.PullImage()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, err.Error())
+		return
+	}
+	c.JSON(http.StatusOK, Success(""))
+}
+
 func execHandler(c *MyContext) {
 
 	_ = os.Setenv("DOCKER_API_VERSION", "1.41")

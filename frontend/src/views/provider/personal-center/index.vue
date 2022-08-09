@@ -1,14 +1,14 @@
 <template>
   <div>
     <PageWrapper :title="t('accountInfo.info.accountInfo')" contentBackground>
-<!--      <template #extra>-->
-<!--        <a-button type="primary" @click="showStakingModal('staking')">-->
-<!--          {{ t('accountInfo.info.pledge') }}-->
-<!--        </a-button>-->
-<!--        <a-button type="primary" @click="showStakingModal('withdraw')">-->
-<!--          {{ t('accountInfo.info.reclaimPledge') }}-->
-<!--        </a-button>-->
-<!--      </template>-->
+      <template #extra>
+        <a-button type="primary" @click="showStakingModal('staking')">
+          {{ t('accountInfo.info.pledge') }}
+        </a-button>
+        <a-button type="primary" @click="showStakingModal('withdraw')">
+          {{ t('accountInfo.info.reclaimPledge') }}
+        </a-button>
+      </template>
       <div class="pt-4 m-4 desc-wrap">
         <a-descriptions :title="t('accountInfo.info.accountInfo')" size="small" :column="2">
           <a-descriptions-item :label="t('accountInfo.info.accountAddress')">

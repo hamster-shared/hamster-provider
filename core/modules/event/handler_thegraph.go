@@ -1,6 +1,9 @@
 package event
 
 import (
+	"context"
+	"fmt"
+	"github.com/docker/docker/client"
 	"github.com/hamster-shared/hamster-provider/core/modules/provider/thegraph"
 	"github.com/hamster-shared/hamster-provider/log"
 	"time"
@@ -21,21 +24,43 @@ func (h *TheGraphHandler) HandlerEvent(e *VmRequest) {
 	}
 	orderNo := e.OrderNo
 
-	cm := h.CoreContext.Cm
-	cfg, _ := cm.GetConfig()
+	//cm := h.CoreContext.Cm
+	//cfg, _ := cm.GetConfig()
 
-	peerId := cfg.Identity.PeerID
+	//peerId := cfg.Identity.PeerID
 
-	err := h.CoreContext.ReportClient.ProcessApplyFreeResource(orderNo, peerId)
+	err := h.CoreContext.ReportClient.OrderExec(orderNo)
 
 	if err != nil {
 		return
 	}
 	thegraph.SetIsServer(true)
-	overdue := time.Hour * time.Duration(e.Duration)
+	overdue := h.CoreContext.ReportClient.CalculateInstanceOverdue(orderNo)
 	log.GetLogger().Infof("overdue is： %s", overdue)
 	instanceTimer := time.NewTimer(overdue)
 	h.CoreContext.TimerService.SubTimer(orderNo, instanceTimer)
+
+	cli, err := client.NewClientWithOpts(client.WithVersion("1.38"))
+	inspect, err := cli.ContainerInspect(context.Background(), "index-agent")
+	if err != nil {
+		log.GetLogger().Info("get thegraph cli port fail")
+		thegraph.SetIsServer(false)
+		return
+	}
+	ports := inspect.NetworkSettings.Ports["8500/tcp"]
+	ip := "127.0.0.1"
+	graphCliPort := "8500"
+	if len(ports) > 0 {
+		graphCliPort = ports[0].HostPort
+	} else if val, isKeyExists := inspect.NetworkSettings.Networks["hamster-provider_default"]; isKeyExists {
+		ip = val.IPAddress
+	}
+	err = h.CoreContext.P2pClient.Listen("/x/graph-cli", fmt.Sprintf("/ip4/%s/tcp/%s", ip, graphCliPort))
+	if err != nil {
+		log.GetLogger().Info("setup thegraph cli p2p fail")
+		thegraph.SetIsServer(false)
+		return
+	}
 
 	go func(t *time.Timer) {
 		<-t.C
@@ -44,7 +69,7 @@ func (h *TheGraphHandler) HandlerEvent(e *VmRequest) {
 		if err != nil {
 			thegraph.SetIsServer(false)
 		}
-		_ = h.CoreContext.ReportClient.ReleaseApplyFreeResource(orderNo)
+		_ = h.CoreContext.ReportClient.ChangeResourceStatus(orderNo)
 	}(instanceTimer)
 }
 

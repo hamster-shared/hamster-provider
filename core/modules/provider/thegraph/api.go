@@ -40,7 +40,7 @@ func Uninstall() error {
 func GetWebSocket(conn *websocket.Conn, containerName string) {
 	bean := &DockerBean{
 		ContainerName: containerName,
-		Shell:         "/bin/sh",
+		Shell:         "/bin/bash",
 	}
 	// 执行exec，获取到容器终端的连接
 	hr, err := dockerExec(bean)
@@ -119,4 +119,8 @@ func GetDockerComposeStatus(containerIDs ...string) (ComposeStatus, error) {
 	} else {
 		return SOME_EXITED, nil
 	}
+}
+
+func PullImage() error {
+	return pullImages()
 }

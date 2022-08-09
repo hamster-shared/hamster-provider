@@ -71,6 +71,7 @@ func StartApi(ctx *context.CoreContext) error {
 		thegraph := v1.Group("/thegraph")
 		{
 			thegraph.POST("/deploy", deployTheGraph)
+			thegraph.POST("/pullImage", pullImage)
 			thegraph.GET("/ws", execHandler)
 			thegraph.GET("/wslog", logHandler)
 			thegraph.GET("/status", deployStatus)
