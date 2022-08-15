@@ -75,6 +75,7 @@ func StartApi(ctx *context.CoreContext) error {
 
 	thegraphServer := NewMyServer(ctx)
 	thegraph := thegraphServer.Group("/api/v1/thegraph")
+	thegraph.Use(SS58AuthMiddleware)
 	{
 		thegraph.POST("/deploy", deployTheGraph)
 		thegraph.POST("/pullImage", pullImage)
