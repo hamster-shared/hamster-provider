@@ -5,11 +5,14 @@ import (
 	"github.com/gin-contrib/static"
 	"github.com/hamster-shared/hamster-provider/core/context"
 	"github.com/hamster-shared/hamster-provider/log"
+	"golang.org/x/sync/errgroup"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 )
+
+var g errgroup.Group
 
 func StartApi(ctx *context.CoreContext) error {
 	r := NewMyServer(ctx)
@@ -67,17 +70,18 @@ func StartApi(ctx *context.CoreContext) error {
 			resource.POST("/delete-resource", deleteResource)
 			resource.GET("/receive-income-judge", receiveIncomeJudge)
 		}
-
-		thegraph := v1.Group("/thegraph")
-		{
-			thegraph.POST("/deploy", deployTheGraph)
-			thegraph.POST("/pullImage", pullImage)
-			thegraph.GET("/ws", execHandler)
-			thegraph.GET("/wslog", logHandler)
-			thegraph.GET("/status", deployStatus)
-		}
 	}
 	//r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+	thegraphServer := NewMyServer(ctx)
+	thegraph := thegraphServer.Group("/api/v1/thegraph")
+	{
+		thegraph.POST("/deploy", deployTheGraph)
+		thegraph.POST("/pullImage", pullImage)
+		thegraph.GET("/ws", execHandler)
+		thegraph.GET("/wslog", logHandler)
+		thegraph.GET("/status", deployStatus)
+	}
 
 	path, _ := os.Getwd()
 	fmt.Println("static path: ", filepath.Join(path, "frontend/dist"))
@@ -91,9 +95,14 @@ func StartApi(ctx *context.CoreContext) error {
 		log.GetLogger().Warnf("cannot open Explore, http://127.0.0.1:%d, error is :%s", port, err.Error())
 	}
 
-	err = r.Run(fmt.Sprintf(":%d", port))
+	g.Go(func() error {
+		return r.Run(fmt.Sprintf(":%d", port))
+	})
+	g.Go(func() error {
+		return thegraphServer.Run(fmt.Sprintf(":%d", port+1))
+	})
 
-	return err
+	return g.Wait()
 }
 
 var commands = map[string]string{
