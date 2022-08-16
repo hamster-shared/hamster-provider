@@ -9,6 +9,8 @@ import (
 	"github.com/docker/compose/v2/pkg/compose"
 	"github.com/docker/docker/client"
 	"github.com/spf13/cobra"
+	"io"
+	"os"
 	"sync"
 )
 
@@ -57,4 +59,23 @@ func Compose(ctx context.Context, args []string) error {
 		return err
 	}
 	return nil
+}
+
+func RunCompose(ctx context.Context, args ...string) (output string, err error) {
+	old := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+	err = initComposeCommand()
+	if err != nil {
+		return "", err
+	}
+	composeCommand.SetArgs(args)
+	err = composeCommand.ExecuteContext(ctx)
+	os.Stdout = old
+	w.Close()
+	out, _ := io.ReadAll(r)
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
 }

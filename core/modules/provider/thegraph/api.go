@@ -1,8 +1,14 @@
 package thegraph
 
 import (
+	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/gorilla/websocket"
+	"github.com/hamster-shared/hamster-provider/core/modules/compose/client"
+	log "github.com/sirupsen/logrus"
+	"strings"
 	"time"
 )
 
@@ -123,4 +129,47 @@ func GetDockerComposeStatus(containerIDs ...string) (ComposeStatus, error) {
 
 func PullImage() error {
 	return pullImages()
+}
+
+func ComposeGraphConnect(composeFilePathName string) error {
+	cmd := fmt.Sprintf("-f %s exec index-cli graph indexer connect http://index-agent:8500", composeFilePathName)
+	out, err := client.RunCompose(context.Background(), strings.Split(cmd, " ")...)
+	if err != nil {
+		log.Errorf("ComposeGraphConnect error: %s", err.Error())
+		return err
+	}
+	log.Debugf("ComposeGraphConnect out: %s", out)
+	return nil
+}
+
+func ComposeGraphStart(composeFilePathName string, deploymentID string) error {
+	cmd := fmt.Sprintf("-f %s exec index-cli graph indexer rules start %s", composeFilePathName, deploymentID)
+	out, err := client.RunCompose(context.Background(), strings.Split(cmd, " ")...)
+	if err != nil {
+		log.Errorf("ComposeGraphStart error: %s", err.Error())
+		return err
+	}
+	log.Debugf("ComposeGraphStart out: %s", out)
+	return nil
+}
+
+func ComposeGraphRules(composeFilePathName string) (result []map[string]interface{}, err error) {
+	cmd := fmt.Sprintf("-f %s exec index-cli graph indexer rules get all -o json", composeFilePathName)
+	out, err := client.RunCompose(context.Background(), strings.Split(cmd, " ")...)
+	if err != nil {
+		log.Errorf("ComposeGraphRules error: %s", err.Error())
+		return nil, err
+	}
+	log.Debugf("ComposeGraphRules out: %s", out)
+	s := strings.Split(out, "]")[0]
+	if s == "" {
+		return nil, errors.New("no rules")
+	}
+	s += "]"
+	err = json.Unmarshal([]byte(s), &result)
+	if err != nil {
+		log.Errorf("ComposeGraphRules error: %s", err.Error())
+		return
+	}
+	return
 }
