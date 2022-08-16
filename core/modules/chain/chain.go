@@ -2,6 +2,7 @@ package chain
 
 import (
 	"errors"
+	"fmt"
 	gsrpc "github.com/centrifuge/go-substrate-rpc-client/v4"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/types"
@@ -423,6 +424,7 @@ func (cc *ChainClient) OrderExec(orderIndex uint64) error {
 	}
 
 	hook := func(header *types.Header) error {
+		fmt.Println("order exec hook: ", header.Number)
 		// Determine whether the transaction is successfully executed
 		err := cc.CheckExtrinsicSuccess(header, callName)
 		if err != nil {

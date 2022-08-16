@@ -24,11 +24,6 @@ func (h *TheGraphHandler) HandlerEvent(e *VmRequest) {
 	}
 	orderNo := e.OrderNo
 
-	//cm := h.CoreContext.Cm
-	//cfg, _ := cm.GetConfig()
-
-	//peerId := cfg.Identity.PeerID
-
 	err := h.CoreContext.ReportClient.OrderExec(orderNo)
 
 	if err != nil {
@@ -55,7 +50,8 @@ func (h *TheGraphHandler) HandlerEvent(e *VmRequest) {
 	} else if val, isKeyExists := inspect.NetworkSettings.Networks["hamster-provider_default"]; isKeyExists {
 		ip = val.IPAddress
 	}
-	err = h.CoreContext.P2pClient.Listen("/x/graph-cli", fmt.Sprintf("/ip4/%s/tcp/%s", ip, graphCliPort))
+	targetListen := fmt.Sprintf("/ip4/%s/tcp/%s", ip, graphCliPort)
+	err = h.CoreContext.P2pClient.Listen("/x/graph-cli", targetListen)
 	if err != nil {
 		log.GetLogger().Info("setup thegraph cli p2p fail")
 		thegraph.SetIsServer(false)
@@ -65,6 +61,7 @@ func (h *TheGraphHandler) HandlerEvent(e *VmRequest) {
 	go func(t *time.Timer) {
 		<-t.C
 		log.GetLogger().Printf("over due time is : %d, now  terminal", overdue)
+		_, _ = h.CoreContext.P2pClient.Close(targetListen)
 		err = thegraph.Uninstall()
 		if err != nil {
 			thegraph.SetIsServer(false)
