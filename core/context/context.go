@@ -76,7 +76,7 @@ func (c *CoreContext) InitP2p() error {
 	if err != nil {
 		return err
 	}
-	err = p2pClient.Listen("/x/provider", fmt.Sprintf("/ip4/127.0.0.1/tcp/%d", c.GetConfig().ApiPort))
+	err = p2pClient.Listen("/x/provider", fmt.Sprintf("/ip4/127.0.0.1/tcp/%d", c.GetConfig().ApiPort+1))
 	if err != nil {
 		return err
 	}
