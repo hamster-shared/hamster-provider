@@ -11,7 +11,7 @@ func TestGetDockerComposeStatus(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-var composeFilePathName = "/home/vihv/Desktop/Desktop/docker-compose-thegraph-v0.19.yml"
+var composeFilePathName = "/home/vihv/.hamster-provider/docker-compose.yml"
 
 func TestComposeGraphConnect(t *testing.T) {
 	err := ComposeGraphConnect(composeFilePathName)
