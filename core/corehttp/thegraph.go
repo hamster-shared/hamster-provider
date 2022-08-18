@@ -131,3 +131,35 @@ func parseSS58AuthData(str string) (ss58Address, data, signHex string, ok bool) 
 	}
 	return split[0], split[1], split[2], true
 }
+
+func graphConnect(c *MyContext) {
+	err := thegraph.DefaultComposeGraphConnect()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, BadRequest(err.Error()))
+	} else {
+		c.JSON(http.StatusOK, Success("ok"))
+	}
+}
+
+func graphStart(c *MyContext) {
+	deploymentID := c.QueryArray("deploymentID")
+	if len(deploymentID) == 0 {
+		c.JSON(http.StatusBadRequest, BadRequest("not found deploymentID"))
+		return
+	}
+	err := thegraph.DefaultComposeGraphStart(deploymentID...)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, BadRequest(err.Error()))
+	} else {
+		c.JSON(http.StatusOK, Success("ok"))
+	}
+}
+
+func graphRules(c *MyContext) {
+	result, err := thegraph.DefaultComposeGraphRules()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, BadRequest(err.Error()))
+	} else {
+		c.JSON(http.StatusOK, Success(result))
+	}
+}

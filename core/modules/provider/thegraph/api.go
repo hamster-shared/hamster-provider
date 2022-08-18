@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/hamster-shared/hamster-provider/core/modules/compose/client"
+	"github.com/hamster-shared/hamster-provider/core/modules/config"
 	log "github.com/sirupsen/logrus"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -147,7 +149,7 @@ func ComposeGraphStart(composeFilePathName string, deploymentID string) error {
 	out, err := client.RunCompose(context.Background(), strings.Split(cmd, " ")...)
 	if err != nil {
 		log.Errorf("ComposeGraphStart error: %s", err.Error())
-		return err
+		return fmt.Errorf("ComposeGraphStart error: %s %s", deploymentID, err.Error())
 	}
 	log.Debugf("ComposeGraphStart out: %s", out)
 	return nil
@@ -172,4 +174,29 @@ func ComposeGraphRules(composeFilePathName string) (result []map[string]interfac
 		return
 	}
 	return
+}
+
+func DefaultComposeGraphConnect() error {
+	composeFilePathName := filepath.Join(config.DefaultConfigDir(), "docker-compose.yml")
+	return ComposeGraphConnect(composeFilePathName)
+}
+
+func DefaultComposeGraphStart(deploymentID ...string) error {
+	composeFilePathName := filepath.Join(config.DefaultConfigDir(), "docker-compose.yml")
+	var errorSet []string
+	for _, id := range deploymentID {
+		err := ComposeGraphStart(composeFilePathName, id)
+		if err != nil {
+			errorSet = append(errorSet, err.Error())
+		}
+	}
+	if len(errorSet) == 0 {
+		return nil
+	}
+	return fmt.Errorf("%s", strings.Join(errorSet, ", "))
+}
+
+func DefaultComposeGraphRules() (result []map[string]interface{}, err error) {
+	composeFilePathName := filepath.Join(config.DefaultConfigDir(), "docker-compose.yml")
+	return ComposeGraphRules(composeFilePathName)
 }
