@@ -57,14 +57,6 @@ func (l *ChainListener) start() error {
 		return err
 	}
 
-	_, err = l.reportClient.GetMarketUser()
-	if err != nil {
-		err := l.reportClient.CrateMarketAccount()
-		if err != nil {
-			return err
-		}
-	}
-
 	resource := chain2.ResourceInfo{
 		PeerId:        cfg.Identity.PeerID,
 		Cpu:           cfg.Vm.Cpu,
