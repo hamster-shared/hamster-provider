@@ -2,6 +2,7 @@ package listener
 
 import (
 	ctx2 "context"
+	"fmt"
 	gsrpc "github.com/centrifuge/go-substrate-rpc-client/v4"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/types"
 	chain2 "github.com/hamster-shared/hamster-provider/core/modules/chain"
@@ -100,6 +101,11 @@ func (l *ChainListener) stop() error {
 
 // WatchEvent chain event listener
 func (l *ChainListener) watchEvent(ctx ctx2.Context) {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Println(err)
+		}
+	}()
 
 	meta, err := l.api.RPC.State.GetMetadataLatest()
 	if err != nil {
