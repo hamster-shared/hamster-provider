@@ -1,7 +1,7 @@
 package event
 
 import (
-	"fmt"
+	"github.com/hamster-shared/hamster-provider/log"
 	"sync"
 )
 
@@ -53,7 +53,7 @@ func (me *EventBus) Pub(e string, args interface{}) {
 	handlers, ok := me.items[e]
 	if ok {
 		for _, it := range handlers {
-			fmt.Printf("eventbus.Pub, event=%s, handler=%s", e, it.ID)
+			log.GetLogger().Infof("eventbus.Pub, event=%s, handler=%s", e, it.ID)
 			it.Handler(e, args)
 		}
 	}

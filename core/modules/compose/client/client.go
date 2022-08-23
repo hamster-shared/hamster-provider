@@ -1,7 +1,9 @@
 package client
 
 import (
+	"bytes"
 	"context"
+	"fmt"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/flags"
 	commands "github.com/docker/compose/v2/cmd/compose"
@@ -9,12 +11,8 @@ import (
 	"github.com/docker/compose/v2/pkg/compose"
 	"github.com/docker/docker/client"
 	"github.com/spf13/cobra"
-	"sync"
-)
-
-var (
-	once           sync.Once
-	composeCommand *cobra.Command
+	"io"
+	"os"
 )
 
 func newDockerCli() (*command.DockerCli, error) {
@@ -32,22 +30,19 @@ func newDockerCli() (*command.DockerCli, error) {
 	return cli, nil
 }
 
-func initComposeCommand() error {
-	var err error
-	once.Do(func() {
-		dockerCli, err := newDockerCli()
-		if err != nil {
-			return
-		}
-		lazyInit := api.NewServiceProxy()
-		lazyInit.WithService(compose.NewComposeService(dockerCli))
-		composeCommand = commands.RootCommand(dockerCli, lazyInit)
-	})
-	return err
+func newComposeCommand() (*cobra.Command, error) {
+	dockerCli, err := newDockerCli()
+	if err != nil {
+		return nil, err
+	}
+	lazyInit := api.NewServiceProxy()
+	lazyInit.WithService(compose.NewComposeService(dockerCli))
+	composeCommand := commands.RootCommand(dockerCli, lazyInit)
+	return composeCommand, nil
 }
 
 func Compose(ctx context.Context, args []string) error {
-	err := initComposeCommand()
+	composeCommand, err := newComposeCommand()
 	if err != nil {
 		return err
 	}
@@ -57,4 +52,38 @@ func Compose(ctx context.Context, args []string) error {
 		return err
 	}
 	return nil
+}
+
+func RunCompose(ctx context.Context, args ...string) (output string, err error) {
+	old := os.Stdout
+	r, w, err := os.Pipe()
+	if err != nil {
+		return "", fmt.Errorf("failed to create pipe: %v", err)
+	}
+	os.Stdout = w
+
+	composeCmd, err := newComposeCommand()
+	if err != nil {
+		return "", err
+	}
+	composeCmd.SetArgs(args)
+	err = composeCmd.ExecuteContext(ctx)
+
+	outC := make(chan string)
+	go func() {
+		var buf bytes.Buffer
+		_, err := io.Copy(&buf, r)
+		if err != nil {
+			fmt.Printf("failed to read from pipe: %v", err)
+			return
+		}
+		outC <- buf.String()
+	}()
+	w.Close()
+	if err != nil {
+		return "", err
+	}
+	os.Stdout = old
+	out := <-outC
+	return out, nil
 }

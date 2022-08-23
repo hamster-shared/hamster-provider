@@ -10,6 +10,8 @@ import (
 	"github.com/hamster-shared/hamster-provider/core/modules/p2p"
 	"github.com/hamster-shared/hamster-provider/core/modules/provider"
 	"github.com/hamster-shared/hamster-provider/core/modules/utils"
+	"github.com/hamster-shared/hamster-provider/log"
+	"sync"
 )
 
 // CoreContext the application context , wrapped with some bean
@@ -31,8 +33,21 @@ func (c *CoreContext) GetConfig() *config.Config {
 }
 
 func (c *CoreContext) InitSubstrate() error {
+	var mu sync.Mutex
+	mu.Lock()
+	defer mu.Unlock()
+
+	if c.SubstrateApi == nil {
+		return c.ResetSubstrate()
+	} else {
+		return nil
+	}
+}
+
+func (c *CoreContext) ResetSubstrate() error {
 	substrateApi, err := gsrpc.NewSubstrateAPI(c.GetConfig().ChainApi)
 	if err != nil {
+		log.GetLogger().Error("init substrate error : ", err.Error())
 		return err
 	}
 	reportClient, err := chain.NewChainClient(c.Cm, substrateApi)
@@ -48,6 +63,10 @@ func (c *CoreContext) InitSubstrate() error {
 	c.ReportClient = reportClient
 	c.ChainListener.SetChainApi(substrateApi, reportClient)
 
+	return nil
+}
+
+func (c *CoreContext) InitP2p() error {
 	if c.P2pClient != nil {
 		_ = c.P2pClient.Destroy()
 		c.P2pClient = nil
@@ -57,7 +76,7 @@ func (c *CoreContext) InitSubstrate() error {
 	if err != nil {
 		return err
 	}
-	err = p2pClient.Listen("/x/provider", fmt.Sprintf("/ip4/127.0.0.1/tcp/%d", c.GetConfig().ApiPort))
+	err = p2pClient.Listen("/x/provider", fmt.Sprintf("/ip4/127.0.0.1/tcp/%d", c.GetConfig().ApiPort+1))
 	if err != nil {
 		return err
 	}
@@ -65,6 +84,6 @@ func (c *CoreContext) InitSubstrate() error {
 
 	c.EventContext.P2pClient = p2pClient
 	c.EventContext.ReportClient = c.ReportClient
-	c.ChainListener.SetChainApi(c.SubstrateApi, c.ReportClient)
+
 	return nil
 }

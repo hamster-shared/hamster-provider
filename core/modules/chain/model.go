@@ -70,8 +70,9 @@ type ComputingResource struct {
 		FaultDuration  types.U32 `json:"faultDuration"`
 	} `json:"rentalStatistics"`
 	RentalInfo struct {
-		RentDuration types.U32 `json:"rentDuration"`
-		EndOfRent    types.U32 `json:"endOfRent"`
+		RentPrice    types.U128 `json:"rentPrice"`
+		RentDuration types.U32  `json:"rentDuration"`
+		EndOfRent    types.U32  `json:"endOfRent"`
 	} `json:"rentalInfo"`
 	Status Status `json:"status"`
 }
@@ -150,7 +151,6 @@ type ComputingOrder struct {
 		AccountId types.AccountID
 		PublicKey types.Text
 	}
-	Price          types.U128
 	ResourceIndex  types.U64
 	Create         types.U32
 	RentDuration   types.U32
@@ -213,8 +213,7 @@ func (m *OrderStatus) Encode(encoder scale.Encoder) error {
 	return nil
 }
 
-type MarketUser struct {
-	StakedAmount types.U128
+type MarketIncome struct {
+	LastEraIndex types.U32
+	TotalIncome  types.U128
 }
-
-const Provider_MarketUserStatus = types.U8(0)

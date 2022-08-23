@@ -32,32 +32,13 @@ var initCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Printf("init hamster provider")
 
-		path := config.DefaultConfigPath()
-
-		cfg := getDefaultConfig()
-
-		err := os.MkdirAll(filepath.Dir(path), os.ModeDir)
-		if err != nil {
-			log.GetLogger().Error(err)
-		}
-
-		err = os.Chmod(filepath.Dir(path), os.ModePerm)
-		if err != nil {
-			log.GetLogger().Error(err)
-		}
-
-		// init config
-		log.GetLogger().Info("init context")
-		err = config.NewConfigManagerWithPath(path).Save(&cfg)
-		if err != nil {
-			log.GetLogger().Error(err)
-			return
-		}
+		_ = initHamster()
 
 	},
 }
 
 func init() {
+	cobra.MousetrapHelpText = ""
 	rootCmd.AddCommand(initCmd)
 
 	// Here you will define your flags and configuration settings.
@@ -80,7 +61,7 @@ func getDefaultConfig() config.Config {
 	}
 
 	return config.Config{
-		ApiPort:      10771,
+		ApiPort:      34002,
 		Identity:     identity,
 		Keys:         []config.PublicKey{},
 		LinkApi:      CONFIG_DEFAULT_LINK_API,
@@ -115,4 +96,31 @@ func getDockerDefaultConfig() config.VmOption {
 		AccessPort: 22,
 		Type:       "docker",
 	}
+}
+
+func initHamster() error {
+	path := config.DefaultConfigPath()
+
+	cfg := getDefaultConfig()
+
+	err := os.MkdirAll(filepath.Dir(path), os.ModeDir)
+	if err != nil {
+		log.GetLogger().Error(err)
+		return err
+	}
+
+	err = os.Chmod(filepath.Dir(path), os.ModePerm)
+	if err != nil {
+		log.GetLogger().Error(err)
+		return err
+	}
+
+	// init config
+	log.GetLogger().Info("init context")
+	err = config.NewConfigManagerWithPath(path).Save(&cfg)
+	if err != nil {
+		log.GetLogger().Error(err)
+		return err
+	}
+	return nil
 }
