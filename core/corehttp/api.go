@@ -83,6 +83,7 @@ func StartApi(ctx *context.CoreContext) error {
 		thegraph.GET("/wslog", logHandler)
 		thegraph.GET("/status", deployStatus)
 		thegraph.GET("/start", graphStart)
+		thegraph.GET("/stop", graphStop)
 		thegraph.GET("/rules", graphRules)
 	}
 

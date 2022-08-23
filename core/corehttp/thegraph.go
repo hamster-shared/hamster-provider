@@ -151,6 +151,25 @@ func graphStart(c *MyContext) {
 	}
 }
 
+func graphStop(c *MyContext) {
+	deploymentID := c.QueryArray("deploymentID")
+	if len(deploymentID) == 0 {
+		c.JSON(http.StatusBadRequest, BadRequest("not found deploymentID"))
+		return
+	}
+	err := thegraph.DefaultComposeGraphConnect()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, BadRequest(err.Error()))
+		return
+	}
+	err = thegraph.DefaultComposeGraphStop(deploymentID...)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, BadRequest(err.Error()))
+	} else {
+		c.JSON(http.StatusOK, Success("ok"))
+	}
+}
+
 func graphRules(c *MyContext) {
 	result, err := thegraph.DefaultComposeGraphRules()
 	if err != nil {

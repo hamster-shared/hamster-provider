@@ -155,6 +155,17 @@ func ComposeGraphStart(composeFilePathName string, deploymentID string) error {
 	return nil
 }
 
+func ComposeGraphStop(composeFilePathName string, deploymentID string) error {
+	cmd := fmt.Sprintf("-f %s exec index-cli graph indexer rules stop %s", composeFilePathName, deploymentID)
+	out, err := client.RunCompose(context.Background(), strings.Split(cmd, " ")...)
+	if err != nil {
+		log.Errorf("ComposeGraphStop error: %s", err.Error())
+		return fmt.Errorf("ComposeGraphStop error: %s %s", deploymentID, err.Error())
+	}
+	log.Debugf("ComposeGraphStop out: %s", out)
+	return nil
+}
+
 func ComposeGraphRules(composeFilePathName string) (result []map[string]interface{}, err error) {
 	cmd := fmt.Sprintf("-f %s exec index-cli graph indexer rules get all -o json", composeFilePathName)
 	out, err := client.RunCompose(context.Background(), strings.Split(cmd, " ")...)
@@ -186,6 +197,21 @@ func DefaultComposeGraphStart(deploymentID ...string) error {
 	var errorSet []string
 	for _, id := range deploymentID {
 		err := ComposeGraphStart(composeFilePathName, id)
+		if err != nil {
+			errorSet = append(errorSet, err.Error())
+		}
+	}
+	if len(errorSet) == 0 {
+		return nil
+	}
+	return fmt.Errorf("%s", strings.Join(errorSet, ", "))
+}
+
+func DefaultComposeGraphStop(deploymentID ...string) error {
+	composeFilePathName := filepath.Join(config.DefaultConfigDir(), "docker-compose.yml")
+	var errorSet []string
+	for _, id := range deploymentID {
+		err := ComposeGraphStop(composeFilePathName, id)
 		if err != nil {
 			errorSet = append(errorSet, err.Error())
 		}
