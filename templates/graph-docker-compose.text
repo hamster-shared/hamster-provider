@@ -1,7 +1,7 @@
 version: '3'
 services:
   graph-node:
-    image: graphprotocol/graph-node:v0.26.0
+    image: graphprotocol/graph-node:v0.27.0
     container_name: graph-node
     restart: always
     ports:
@@ -18,8 +18,6 @@ services:
       postgres_pass: let-me-in
       postgres_db: graph-node
       ipfs: 'https://ipfs.network.thegraph.com'
-      # ethereum: 'rinkeby:https://rinkeby.infura.io/v3/af7a79eb36f64e609b5dda130cd62946'
-      # ethereum: "mainnet:https://mainnet.infura.io/v3/d3f7edb87f094011b579715740bcf9f8"
       ethereum: "{{ .NodeEthereumUrl }}"
       GRAPH_LOG: info
 
@@ -38,7 +36,7 @@ services:
       - postgresql:/var/lib/postgresql/data
 
   index-service:
-    image: ghcr.io/graphprotocol/indexer-service:v0.19.0
+    image: ghcr.io/graphprotocol/indexer-service:v0.20.1
     container_name: index-service
     restart: always
     ports:
@@ -73,7 +71,7 @@ services:
       - postgres
 
   index-agent:
-    image: ghcr.io/graphprotocol/indexer-agent:v0.19.0
+    image: ghcr.io/graphprotocol/indexer-agent:v0.20.2
     container_name: index-agent
     restart: always
     ports:
@@ -108,8 +106,8 @@ services:
       - "let-me-in"
       - --network-subgraph-endpoint 
       - "https://gateway.testnet.thegraph.com/network" 
-      - --dai-contract 
-      - "0x9e7e607afd22906f7da6f1ec8f432d6f244278be" 
+      # - --dai-contract 
+      # - "0x9e7e607afd22906f7da6f1ec8f432d6f244278be" 
       - --collect-receipts-endpoint
       - "https://gateway.testnet.thegraph.com/collect-receipts" 
       - --indexer-management-port 
