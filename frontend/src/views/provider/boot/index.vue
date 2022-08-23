@@ -22,7 +22,7 @@
       </div>
     </div>
 
-    <Description @register="register" class="mt-4" />
+    <Description @register="register" class="mt-4" v-show="false"/>
   </PageWrapper>
 </template>
 
