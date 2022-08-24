@@ -152,11 +152,6 @@ func (l *ChainListener) watchEvent(ctx ctx2.Context) {
 					l.dealCancelOrderSuccess(e)
 				}
 
-				for _, e := range evt.ResourceOrder_FreeResourceApplied {
-					log.GetLogger().Info("deal ResourceOrder_FreeResourceApplied")
-					l.dealFreeResourceApplied(e)
-				}
-
 			}
 		}
 	}
@@ -175,6 +170,7 @@ func (l *ChainListener) dealCreateOrderSuccess(e chain2.EventResourceOrderCreate
 		log.GetLogger().Info("deal order: ", e.OrderIndex)
 		// record the id of the processed order
 		cfg.ChainRegInfo.OrderIndex = uint64(e.OrderIndex)
+		cfg.ChainRegInfo.AccountAddress = utils.AccountIdToAddress(e.AccountId)
 		_ = l.cm.Save(cfg)
 		evt := &event.VmRequest{
 			Tag:       event.OPCreatedVm,
@@ -223,28 +219,5 @@ func (l *ChainListener) dealCancelOrderSuccess(e chain2.EventResourceOrderWithdr
 			Image:   cfg.Vm.Image,
 		}
 		l.eventService.Destroy(evt)
-	}
-}
-
-func (l *ChainListener) dealFreeResourceApplied(e chain2.EventResourceOrderFreeResourceApplied) {
-	cfg, err := l.cm.GetConfig()
-	if err != nil {
-		log.GetLogger().Error(err)
-		return
-	}
-
-	if e.DeployType == 1 {
-		evt := &event.VmRequest{
-			Tag:       event.OPFreeResourceApply,
-			Cpu:       cfg.Vm.Cpu,
-			Mem:       cfg.Vm.Mem,
-			Disk:      cfg.Vm.Disk,
-			OrderNo:   uint64(e.OrderIndex),
-			System:    cfg.Vm.System,
-			PublicKey: e.PublicKey,
-			Image:     cfg.Vm.Image,
-			Duration:  uint64(e.Duration),
-		}
-		l.eventService.Create(evt)
 	}
 }

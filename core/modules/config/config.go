@@ -75,6 +75,7 @@ type ChainRegInfo struct {
 	RenewOrderIndex uint64 `json:"renewOrderIndex"`
 	Working         string `json:"working"`
 	Price           uint64 `json:"price"`
+	AccountAddress  string `json:"accountAddress"`
 }
 
 func NewConfigManager() *ConfigManager {

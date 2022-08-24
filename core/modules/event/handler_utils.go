@@ -2,7 +2,6 @@ package event
 
 import (
 	"fmt"
-	"github.com/hamster-shared/hamster-provider/log"
 	"time"
 )
 
@@ -34,12 +33,9 @@ func successDealOrder(ctx *EventContext, orderNo uint64, name string) error {
 }
 
 func getVmTargetAddress(ctx *EventContext, name string) string {
-	ip, err := ctx.VmManager.GetIp(name)
-	if err != nil {
-		log.GetLogger().Error(err)
-	}
-
-	return fmt.Sprintf("/ip4/%s/tcp/%d", ip, ctx.VmManager.GetAccessPort(name))
+	//ip, err := ctx.VmManager.GetIp(name)
+	port := ctx.GetConfig().ApiPort
+	return fmt.Sprintf("/ip4/127.0.0.1/tcp/%d", port+1)
 }
 
 func forwardSSHToP2p(ctx *EventContext, name string) error {

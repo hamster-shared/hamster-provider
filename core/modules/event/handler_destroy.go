@@ -1,6 +1,7 @@
 package event
 
 import (
+	"github.com/hamster-shared/hamster-provider/core/modules/provider/thegraph"
 	"github.com/hamster-shared/hamster-provider/log"
 )
 
@@ -10,18 +11,20 @@ type DestroyVmHandler struct {
 }
 
 func (h *DestroyVmHandler) HandlerEvent(e *VmRequest) {
+	log.GetLogger().Info("handler destory order :", e.OrderNo)
 	orderNo := e.OrderNo
 	agreementNo, err := h.CoreContext.ReportClient.GetAgreementIndex(orderNo)
 	if err != nil {
 		log.GetLogger().Error("query agreementNo fail")
 	}
 
-	_ = h.CoreContext.VmManager.Stop(e.getName())
-	_ = h.CoreContext.VmManager.Destroy(e.getName())
+	_ = thegraph.Uninstall()
+	thegraph.SetIsServer(false)
 	h.CoreContext.TimerService.UnSubTimer(agreementNo)
 	h.CoreContext.TimerService.UnSubTicker(agreementNo)
-	targetAddress := getVmTargetAddress(h.CoreContext, e.getName())
-	_, _ = h.CoreContext.P2pClient.Close(targetAddress)
+	cfg := h.CoreContext.GetConfig()
+	cfg.ChainRegInfo.AccountAddress = ""
+	_ = h.CoreContext.Cm.Save(cfg)
 }
 
 func (h *DestroyVmHandler) Name() string {
