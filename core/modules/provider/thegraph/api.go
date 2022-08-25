@@ -103,6 +103,7 @@ const (
 )
 
 func GetDockerComposeStatus(containerIDs ...string) (ComposeStatus, error) {
+	fmt.Println("get compse status : ", containerIDs)
 	statusResult, err := getDockerComposeStatus(containerIDs...)
 	if err != nil {
 		return STOP, err

@@ -657,12 +657,8 @@ func (cc *ChainClient) ReceiveIncome() error {
 	if err != nil {
 		return err
 	}
-	config, err := cc.cm.GetConfig()
-	if err != nil {
-		return err
-	}
 
-	c, err := types.NewCall(meta, "ResourceOrder.withdraw_rental_amount", types.NewU64(config.ChainRegInfo.AgreementIndex))
+	c, err := types.NewCall(meta, "Market.payout_provider_nodes")
 
 	if err != nil {
 		return err

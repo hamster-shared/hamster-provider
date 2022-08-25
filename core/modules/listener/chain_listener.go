@@ -1,7 +1,7 @@
 package listener
 
 import (
-	ctx2 "context"
+	"context"
 	"fmt"
 	gsrpc "github.com/centrifuge/go-substrate-rpc-client/v4"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/types"
@@ -20,7 +20,7 @@ type ChainListener struct {
 	cm           *config.ConfigManager
 	reportClient chain2.ReportClient
 	cancel       func()
-	ctx2         ctx2.Context
+	ctx          context.Context
 }
 
 func NewChainListener(eventService event.IEventService, cm *config.ConfigManager) *ChainListener {
@@ -73,9 +73,20 @@ func (l *ChainListener) start() error {
 		return err
 	}
 
-	l.ctx2, l.cancel = ctx2.WithCancel(ctx2.Background())
-	go l.watchEvent(l.ctx2)
+	l.ctx, l.cancel = context.WithCancel(context.Background())
+	isPanic := make(chan bool)
+	go l.setWatchEventState(l.ctx, isPanic)
 	return nil
+}
+
+func (l *ChainListener) setWatchEventState(ctx context.Context, isPanic chan bool) {
+	for {
+		go l.watchEvent(ctx, isPanic)
+		select {
+		case <-isPanic:
+			go l.watchEvent(ctx, isPanic)
+		}
+	}
 }
 
 func (l *ChainListener) stop() error {
@@ -92,10 +103,11 @@ func (l *ChainListener) stop() error {
 }
 
 // WatchEvent chain event listener
-func (l *ChainListener) watchEvent(ctx ctx2.Context) {
+func (l *ChainListener) watchEvent(ctx context.Context, channel chan bool) {
 	defer func() {
 		if err := recover(); err != nil {
-			fmt.Println(err)
+			fmt.Println("watchEventError:", err)
+			channel <- true
 		}
 	}()
 
