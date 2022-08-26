@@ -15,7 +15,7 @@ func TestDestroyVm(t *testing.T) {
 		Cm:           context.Cm,
 		P2pClient:    context.P2pClient,
 	}
-	eventService := event.NewEventService(eventContex)
+	eventService := event.NewEventService(&eventContex)
 	cfg := context.GetConfig()
 
 	orderNo := 0

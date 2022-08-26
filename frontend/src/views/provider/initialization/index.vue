@@ -22,7 +22,7 @@
           </a-col>
         </a-row>
       </CollapseContainer>
-      <CollapseContainer class="mt-5" :title="t('initialization.initialization.virtualSpecificationSettings')" :canExpan="false">
+      <CollapseContainer class="mt-5" :title="t('initialization.initialization.virtualSpecificationSettings')" :canExpan="false" v-show="false">
         <a-row :gutter="24">
           <a-col :span="18">
             <BasicForm @register="register" />

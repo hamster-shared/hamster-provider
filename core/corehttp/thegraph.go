@@ -6,6 +6,7 @@ import (
 	"github.com/hamster-shared/hamster-provider/log"
 	"net/http"
 	"os"
+	"strings"
 )
 
 var upgrader = websocket.Upgrader{
@@ -36,6 +37,15 @@ func deployTheGraph(c *MyContext) {
 		return
 	}
 
+	c.JSON(http.StatusOK, Success(""))
+}
+
+func pullImage(c *MyContext) {
+	err := thegraph.PullImage()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, err.Error())
+		return
+	}
 	c.JSON(http.StatusOK, Success(""))
 }
 
@@ -82,5 +92,90 @@ func deployStatus(c *MyContext) {
 		c.JSON(http.StatusOK, Success(status))
 	} else {
 		c.JSON(http.StatusBadRequest, BadRequest("not found serviceName"))
+	}
+}
+
+func SS58AuthMiddleware(c *MyContext) {
+	ss58AuthData := c.Request.Header.Get("SS58AuthData")
+	if ss58AuthData == "" {
+		c.JSON(http.StatusBadRequest, BadRequest("not found SS58AuthData"))
+		c.Abort()
+		return
+	}
+	_, data, signHex, ok := parseSS58AuthData(ss58AuthData)
+	ss58Address := c.CoreContext.GetConfig().ChainRegInfo.AccountAddress
+	if !ok {
+		c.JSON(http.StatusBadRequest, BadRequest("parse SS58AuthData error"))
+		c.Abort()
+		return
+	}
+	if ss58Address == "" || data == "" || signHex == "" {
+		c.JSON(http.StatusBadRequest, BadRequest("SS58AuthData have empty value"))
+		c.Abort()
+		return
+	}
+	if verifyResult := thegraph.VerifyWithSS58AndHexSign(ss58Address, data, signHex); !verifyResult {
+		c.JSON(http.StatusBadRequest, BadRequest("SS58AuthData verify failed"))
+		c.Abort()
+		return
+	}
+	c.Next()
+}
+
+func parseSS58AuthData(str string) (ss58Address, data, signHex string, ok bool) {
+	if str == "" {
+		return
+	}
+	split := strings.Split(str, ":")
+	if len(split) != 3 {
+		return
+	}
+	return split[0], split[1], split[2], true
+}
+
+func graphStart(c *MyContext) {
+	deploymentID := c.QueryArray("deploymentID")
+	if len(deploymentID) == 0 {
+		c.JSON(http.StatusBadRequest, BadRequest("not found deploymentID"))
+		return
+	}
+	err := thegraph.DefaultComposeGraphConnect()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, BadRequest(err.Error()))
+		return
+	}
+	err = thegraph.DefaultComposeGraphStart(deploymentID...)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, BadRequest(err.Error()))
+	} else {
+		c.JSON(http.StatusOK, Success("ok"))
+	}
+}
+
+func graphStop(c *MyContext) {
+	deploymentID := c.QueryArray("deploymentID")
+	if len(deploymentID) == 0 {
+		c.JSON(http.StatusBadRequest, BadRequest("not found deploymentID"))
+		return
+	}
+	err := thegraph.DefaultComposeGraphConnect()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, BadRequest(err.Error()))
+		return
+	}
+	err = thegraph.DefaultComposeGraphStop(deploymentID...)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, BadRequest(err.Error()))
+	} else {
+		c.JSON(http.StatusOK, Success("ok"))
+	}
+}
+
+func graphRules(c *MyContext) {
+	result, err := thegraph.DefaultComposeGraphRules()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, BadRequest(err.Error()))
+	} else {
+		c.JSON(http.StatusOK, Success(result))
 	}
 }

@@ -2,26 +2,37 @@ package client
 
 import (
 	"context"
+	"github.com/stretchr/testify/assert"
+	"strings"
 	"testing"
 )
 
 func TestCompose(t *testing.T) {
-	type args struct {
-		ctx  context.Context
-		args []string
+	cmd := "-f /home/vihv/.hamster-provider/docker-compose.yml exec index-cli graph indexer rules get all -o json"
+	cmd2 := "-f /home/vihv/.hamster-provider/docker-compose.yml exec index-cli echo hello"
+	err := Compose(context.Background(), strings.Split(cmd, " "))
+	if err != nil {
+		t.Errorf("RunCompose error: %s", err.Error())
 	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{"test1", args{context.Background(), []string{"up"}}, false},
+
+	err = Compose(context.Background(), strings.Split(cmd2, " "))
+	if err != nil {
+		t.Errorf("RunCompose error: %s", err.Error())
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := Compose(tt.args.ctx, tt.args.args); (err != nil) != tt.wantErr {
-				t.Errorf("Compose() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
+}
+
+func TestRunCompose(t *testing.T) {
+	cmd := "-f /home/vihv/.hamster-provider/docker-compose.yml exec index-cli graph indexer rules get all -o json"
+	cmd2 := "-f /home/vihv/.hamster-provider/docker-compose.yml exec index-cli echo hello"
+	output, err := RunCompose(context.Background(), strings.Split(cmd, " ")...)
+	if err != nil {
+		t.Errorf("RunCompose error: %s", err.Error())
 	}
+	assert.NotEmpty(t, output)
+
+	output, err = RunCompose(context.Background(), strings.Split(cmd2, " ")...)
+	if err != nil {
+		t.Errorf("RunCompose error: %s", err.Error())
+	}
+	assert.NotEmpty(t, output)
 }

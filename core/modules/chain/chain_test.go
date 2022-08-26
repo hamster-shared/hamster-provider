@@ -84,7 +84,7 @@ func TestDuration(t *testing.T) {
 	cc, err := NewChainClient(cm, substrateApi)
 	assert.NoError(t, err)
 
-	duration := cc.CalculateInstanceOverdue(43)
+	duration := cc.CalculateInstanceOverdue(6)
 	fmt.Println(duration.String())
 }
 
@@ -109,4 +109,8 @@ func TestChainClient_ProcessApplyFreeResource(t *testing.T) {
 
 	err = cc.ProcessApplyFreeResource(3, "abcd")
 	assert.NoError(t, err)
+}
+
+func TestGetAgreementIndex(t *testing.T) {
+
 }

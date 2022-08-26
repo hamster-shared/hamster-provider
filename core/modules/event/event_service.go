@@ -33,11 +33,11 @@ func (s *EventService) init(coreContext *EventContext) {
 }
 
 func (s *EventService) Create(req *VmRequest) {
-	if req.Tag == OPCreatedVm {
-		GlobalEventBus.Pub(ResourceOrder_CreateOrderSuccess, req)
-	} else if req.Tag == OPFreeResourceApply {
-		GlobalEventBus.Pub(ResourceOrder_TheGraph, req)
-	}
+	//if req.Tag == OPCreatedVm {
+	//	GlobalEventBus.Pub(ResourceOrder_CreateOrderSuccess, req)
+	//} else if req.Tag == OPFreeResourceApply {
+	GlobalEventBus.Pub(ResourceOrder_TheGraph, req)
+	//}
 
 }
 

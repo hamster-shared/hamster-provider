@@ -50,26 +50,6 @@ type EventResourceOrderWithdrawLockedOrderPriceSuccess struct {
 	Phase      types.Phase
 	AccountId  types.AccountID
 	OrderIndex types.U64
-	OrderPrice types.U128
-	Topics     []types.Hash
-}
-
-type EventResourceOrderFreeResourceProcessed struct {
-	Phase      types.Phase
-	OrderIndex types.U64
-	PeerId     string
-	Topics     []types.Hash
-}
-
-type EventResourceOrderFreeResourceApplied struct {
-	Phase      types.Phase
-	AccountId  types.AccountID
-	OrderIndex types.U64
-	Cpu        types.U64
-	Memory     types.U64
-	Duration   types.U32
-	DeployType types.U32
-	PublicKey  string
 	Topics     []types.Hash
 }
 
@@ -86,6 +66,4 @@ type MyEventRecords struct {
 	ResourceOrder_OrderExecSuccess                []EventResourceOrderOrderExecSuccess
 	ResourceOrder_ReNewOrderSuccess               []EventResourceOrderReNewOrderSuccess
 	ResourceOrder_WithdrawLockedOrderPriceSuccess []EventResourceOrderWithdrawLockedOrderPriceSuccess
-	ResourceOrder_FreeResourceProcessed           []EventResourceOrderFreeResourceProcessed
-	ResourceOrder_FreeResourceApplied             []EventResourceOrderFreeResourceApplied
 }

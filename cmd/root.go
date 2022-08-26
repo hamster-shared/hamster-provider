@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"github.com/hamster-shared/hamster-provider/core"
 	"github.com/hamster-shared/hamster-provider/core/modules/config"
+	"github.com/hamster-shared/hamster-provider/core/modules/provider/thegraph"
 	"github.com/hamster-shared/hamster-provider/core/modules/utils"
 	"github.com/hamster-shared/hamster-provider/log"
 	"github.com/spf13/cobra"
@@ -59,6 +60,14 @@ to quickly create a Cobra application.`,
 				return
 			}
 		}
+
+		go func() {
+			err := thegraph.PullImage()
+			if err != nil {
+				panic("The Hamster Provider need docker environment. Please make sure your OS has docker installed and started !! " +
+					"You can get help from `https://docs.docker.com/get-docker/` ")
+			}
+		}()
 
 		context := NewContext()
 		server := core.NewServer(context)

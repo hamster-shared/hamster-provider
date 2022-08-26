@@ -10,6 +10,7 @@ import (
 	"github.com/hamster-shared/hamster-provider/core/modules/p2p"
 	"github.com/hamster-shared/hamster-provider/core/modules/provider"
 	"github.com/hamster-shared/hamster-provider/core/modules/utils"
+	"github.com/hamster-shared/hamster-provider/log"
 	"sync"
 )
 
@@ -46,6 +47,7 @@ func (c *CoreContext) InitSubstrate() error {
 func (c *CoreContext) ResetSubstrate() error {
 	substrateApi, err := gsrpc.NewSubstrateAPI(c.GetConfig().ChainApi)
 	if err != nil {
+		log.GetLogger().Error("init substrate error : ", err.Error())
 		return err
 	}
 	reportClient, err := chain.NewChainClient(c.Cm, substrateApi)
@@ -74,7 +76,7 @@ func (c *CoreContext) InitP2p() error {
 	if err != nil {
 		return err
 	}
-	err = p2pClient.Listen("/x/provider", fmt.Sprintf("/ip4/127.0.0.1/tcp/%d", c.GetConfig().ApiPort))
+	err = p2pClient.Listen("/x/provider", fmt.Sprintf("/ip4/127.0.0.1/tcp/%d", c.GetConfig().ApiPort+1))
 	if err != nil {
 		return err
 	}
