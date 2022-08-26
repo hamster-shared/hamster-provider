@@ -102,7 +102,8 @@ func SS58AuthMiddleware(c *MyContext) {
 		c.Abort()
 		return
 	}
-	ss58Address, data, signHex, ok := parseSS58AuthData(ss58AuthData)
+	_, data, signHex, ok := parseSS58AuthData(ss58AuthData)
+	ss58Address := c.CoreContext.GetConfig().ChainRegInfo.AccountAddress
 	if !ok {
 		c.JSON(http.StatusBadRequest, BadRequest("parse SS58AuthData error"))
 		c.Abort()

@@ -11,11 +11,13 @@ type DestroyVmHandler struct {
 }
 
 func (h *DestroyVmHandler) HandlerEvent(e *VmRequest) {
-	log.GetLogger().Info("handler destory order :", e.OrderNo)
+	log.GetLogger().Info("handler destroy order :", e.OrderNo)
 	orderNo := e.OrderNo
 	agreementNo, err := h.CoreContext.ReportClient.GetAgreementIndex(orderNo)
 	if err != nil {
 		log.GetLogger().Error("query agreementNo fail")
+	} else {
+		agreementNo = h.CoreContext.GetConfig().ChainRegInfo.AgreementIndex
 	}
 
 	_ = thegraph.Uninstall()

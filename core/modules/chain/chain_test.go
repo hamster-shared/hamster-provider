@@ -110,3 +110,7 @@ func TestChainClient_ProcessApplyFreeResource(t *testing.T) {
 	err = cc.ProcessApplyFreeResource(3, "abcd")
 	assert.NoError(t, err)
 }
+
+func TestGetAgreementIndex(t *testing.T) {
+
+}
