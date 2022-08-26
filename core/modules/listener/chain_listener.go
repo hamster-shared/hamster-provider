@@ -133,7 +133,7 @@ func (l *ChainListener) watchEvent(ctx context.Context, channel chan bool) {
 		case <-ctx.Done():
 			return
 		case set := <-sub.Chan():
-			log.GetLogger().Info("监听链区块：", set.Block.Hex())
+			log.GetLogger().Info("watch ：", set.Block.Hex())
 			for _, chng := range set.Changes {
 				if !types.Eq(chng.StorageKey, key) || !chng.HasStorageData {
 					// skip, we are only interested in events with content
