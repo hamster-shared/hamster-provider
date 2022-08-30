@@ -2,18 +2,15 @@ version: "3.2"
 
 services:
 
-  ttchain_substrate:
-    container_name: ttchain_substrate
-    image: "registry.ttchain.tntlinking.com/ttchain/ttchain_v2:1.0.1"
+  provider:
+    container_name: hamster-provider
+    image: "hamstershare/hamster-provider:v1.3.0"
     restart: always
-    environment:
-      TZ: Asia/Shanghai
+    privileged: true
+    network_mode: host
     volumes:
-#      - "./substrate/data/:/tmp/db/"
-      - "/usr/share/zoneinfo/Asia/Shanghai:/etc/localtime"
-      - "/etc/timezone:/etc/timezone"
-    ports:
-      - "9933:9933"
-      - "9944:9944"
-      - "30333:30333"
-    command: "/opt/ttchain/node-template  --dev --ws-external"
+      - "config:/root/.hamster-provider"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+volumes:
+  config:

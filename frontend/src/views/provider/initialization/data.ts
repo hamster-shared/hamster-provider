@@ -10,8 +10,8 @@ export const chainSchemas: FormSchema[] = [
     colProps: { span: 12 },
     componentProps: {
       options: [
-        { label: 'dev(ws://127.0.0.1:9944)', value: 'ws://127.0.0.1:9944' },
         { label: 'test(ws://183.66.65.207:49944)', value: 'ws://183.66.65.207:49944' },
+        { label: 'dev(ws://127.0.0.1:9944)', value: 'ws://127.0.0.1:9944' },
       ],
     },
     rules: [{ required: true }],
