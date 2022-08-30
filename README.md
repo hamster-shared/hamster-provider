@@ -64,44 +64,62 @@ We are excited that you are interested in contributing to Hamster. Before submit
 
 # install package dependency
 
-## ubuntu
-sudo apt install qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils virtinst virt-manager libvirt-dev
-sudo systemctl is-active libvirtd
+$ curl -fsSL https://get.docker.com -o get-docker.sh
 
-## centos
-yum install -y qemu-kvm libvirt virt-install libvirt-dev
-systemctl start libvirtd && systemctl enable libvirtd
-
+$ sh get-docker.sh
 
 # clone the project
-git clone https://github.com/hamster-shared/hamster-provider.git
+$ git clone https://github.com/hamster-shared/hamster-provider.git
 
 # open frontend directory
-cd frontend
+$ cd frontend
 
 # install frontend dependency
-npm install
+$ npm install
 
 # build frontend 
-npm run build
+$ npm run build
 
 # go to root directory
-cd ..
+$ cd ..
 
 # use go mod And install the go dependency package
-go mod tidy
+$ go mod tidy
 
 # Compile 
-go build
-
-# Run init config
-./hamster-provider init (windows The run command is hamster-provider.exe)
+$ go build
 
 # Run Daemon 
-./hamster-provider daemon (windows The run command is hamster-provider.exe)
+$ ./hamster-provider (windows The run command is hamster-provider.exe)
 
 ```
 
+### 2.1 docker 
+```shell
+mkdir -p ~/hamster && cd ~/hamster
+
+cat << EOF > ./docker-compose.yml
+version: "3.2"
+
+services:
+
+  provider:
+    container_name: hamster-provider
+    image: "hamstershare/hamster-provider:v1.3.0"
+    restart: always
+    privileged: true
+    network_mode: host
+    volumes:
+      - "config:/root/.hamster-provider"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+volumes:
+  config:
+
+EOF
+
+docker compose up -d
+```
 
 ## 3. Technical selection
 
