@@ -61,7 +61,7 @@ func getDefaultConfig() config.Config {
 	}
 
 	return config.Config{
-		ApiPort:      34002,
+		ApiPort:      35002,
 		Identity:     identity,
 		Keys:         []config.PublicKey{},
 		LinkApi:      CONFIG_DEFAULT_LINK_API,

@@ -99,11 +99,13 @@ func StartApi(ctx *context.CoreContext) error {
 		log.GetLogger().Warnf("cannot open Explore, http://127.0.0.1:%d, error is :%s", port, err.Error())
 	}
 
+	listen_addr := os.Getenv("LISTEN_ADDR")
+
 	g.Go(func() error {
-		return r.Run(fmt.Sprintf(":%d", port))
+		return r.Run(fmt.Sprintf("%s:%d", listen_addr, port))
 	})
 	g.Go(func() error {
-		return thegraphServer.Run(fmt.Sprintf(":%d", port+1))
+		return thegraphServer.Run(fmt.Sprintf("%s:%d", listen_addr, port+1))
 	})
 
 	return g.Wait()
