@@ -110,7 +110,14 @@ func templateInstance(data DeployParams) error {
 
 func pullImages() error {
 	pathExecutable, _ := os.Executable()
-	path := filepath.Join(filepath.Dir(pathExecutable), "templates/graph-docker-compose.text")
+	composeFilePathName := filepath.Join(config.DefaultConfigDir(), "docker-compose.yml")
+	var path string
+	if _, err := os.Stat(composeFilePathName); err != nil {
+		path = filepath.Join(filepath.Dir(pathExecutable), "templates/graph-docker-compose.text")
+	} else {
+		path = composeFilePathName
+	}
+
 	return client.Compose(context.Background(), []string{"-f", path, "pull"})
 }
 

@@ -28,6 +28,7 @@ func StartApi(ctx *context.CoreContext) error {
 			config.POST("/settting", setConfig)
 			config.POST("/boot", setBootState)
 			config.GET("/boot", getBootState)
+			config.GET("/thegraph-status", theGraphStatus)
 		}
 		chain := v1.Group("/chain")
 		{

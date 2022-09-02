@@ -23,6 +23,12 @@
           <a-descriptions-item :label="t('accountInfo.info.totalPledgeAmount')">
             {{ pledgeAmount }} Unit
           </a-descriptions-item>
+          <a-descriptions-item :label="t('accountInfo.info.activePledgeAmount')">
+            {{ activeAmount }} Unit
+          </a-descriptions-item>
+          <a-descriptions-item :label="t('accountInfo.info.lockedPledgeAmount')">
+            {{ lockAmount }} Unit
+          </a-descriptions-item>
         </a-descriptions>
 
         <a-divider />
@@ -59,7 +65,7 @@
           <a-button class="staking-btn-close" @click="close">{{
             t('accountInfo.info.cancel')
           }}</a-button>
-          <a-button class="staking-btn-ok" @click="ok">{{
+          <a-button class="staking-btn-ok" @click="">{{
             t('accountInfo.info.determine')
           }}</a-button>
         </div>
@@ -227,6 +233,9 @@
           getRewardInfo()
         }).finally(() => {
           state.rewardLoading = false
+          getAccountInfo()
+          getRewardInfo()
+
         })
       }
       return {
@@ -237,7 +246,7 @@
         showStakingModal,
         payoutReward,
         t,
-        ...toRefs(state),
+        ...toRefs(state),ok
       };
     },
   });
