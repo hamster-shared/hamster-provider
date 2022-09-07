@@ -102,7 +102,8 @@ func SS58AuthMiddleware(c *MyContext) {
 		c.Abort()
 		return
 	}
-	ss58Address, data, signHex, ok := parseSS58AuthData(ss58AuthData)
+	_, data, signHex, ok := parseSS58AuthData(ss58AuthData)
+	ss58Address := c.CoreContext.GetConfig().ChainRegInfo.AccountAddress
 	if !ok {
 		c.JSON(http.StatusBadRequest, BadRequest("parse SS58AuthData error"))
 		c.Abort()
@@ -144,6 +145,25 @@ func graphStart(c *MyContext) {
 		return
 	}
 	err = thegraph.DefaultComposeGraphStart(deploymentID...)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, BadRequest(err.Error()))
+	} else {
+		c.JSON(http.StatusOK, Success("ok"))
+	}
+}
+
+func graphStop(c *MyContext) {
+	deploymentID := c.QueryArray("deploymentID")
+	if len(deploymentID) == 0 {
+		c.JSON(http.StatusBadRequest, BadRequest("not found deploymentID"))
+		return
+	}
+	err := thegraph.DefaultComposeGraphConnect()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, BadRequest(err.Error()))
+		return
+	}
+	err = thegraph.DefaultComposeGraphStop(deploymentID...)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, BadRequest(err.Error()))
 	} else {

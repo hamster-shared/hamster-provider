@@ -1,9 +1,6 @@
 package event
 
 import (
-	"context"
-	"fmt"
-	"github.com/docker/docker/client"
 	"github.com/hamster-shared/hamster-provider/core/modules/provider/thegraph"
 	"github.com/hamster-shared/hamster-provider/log"
 	"time"
@@ -35,39 +32,52 @@ func (h *TheGraphHandler) HandlerEvent(e *VmRequest) {
 	instanceTimer := time.NewTimer(overdue)
 	h.CoreContext.TimerService.SubTimer(orderNo, instanceTimer)
 
-	cli, err := client.NewClientWithOpts(client.WithVersion("1.38"))
-	inspect, err := cli.ContainerInspect(context.Background(), "index-agent")
-	if err != nil {
-		log.GetLogger().Info("get thegraph cli port fail")
-		thegraph.SetIsServer(false)
-		return
-	}
-	ports := inspect.NetworkSettings.Ports["8500/tcp"]
-	ip := "127.0.0.1"
-	graphCliPort := "8500"
-	if len(ports) > 0 {
-		graphCliPort = ports[0].HostPort
-	} else if val, isKeyExists := inspect.NetworkSettings.Networks["hamster-provider_default"]; isKeyExists {
-		ip = val.IPAddress
-	}
-	targetListen := fmt.Sprintf("/ip4/%s/tcp/%s", ip, graphCliPort)
-	err = h.CoreContext.P2pClient.Listen("/x/graph-cli", targetListen)
+	//cli, err := client.NewClientWithOpts(client.WithVersion("1.38"))
+	//inspect, err := cli.ContainerInspect(context.Background(), "index-agent")
+	//if err != nil {
+	//	log.GetLogger().Info("get thegraph cli port fail")
+	//	thegraph.SetIsServer(false)
+	//	return
+	//}
+	//ports := inspect.NetworkSettings.Ports["8500/tcp"]
+	//ip := "127.0.0.1"
+	//graphCliPort := "8500"
+	//if len(ports) > 0 {
+	//	graphCliPort = ports[0].HostPort
+	//} else if val, isKeyExists := inspect.NetworkSettings.Networks["hamster-provider_default"]; isKeyExists {
+	//	ip = val.IPAddress
+	//}
+	//targetListen := fmt.Sprintf("/ip4/%s/tcp/%s", ip, graphCliPort)
+	//err = h.CoreContext.P2pClient.Listen("/x/graph-cli", targetListen)
 	if err != nil {
 		log.GetLogger().Info("setup thegraph cli p2p fail")
 		thegraph.SetIsServer(false)
 		return
 	}
 
+	agreementIndex := h.CoreContext.GetConfig().ChainRegInfo.AgreementIndex
+	resourceIndex := h.CoreContext.GetConfig().ChainRegInfo.ResourceIndex
 	go func(t *time.Timer) {
 		<-t.C
 		log.GetLogger().Printf("over due time is : %d, now  terminal", overdue)
-		_, _ = h.CoreContext.P2pClient.Close(targetListen)
-		err = thegraph.Uninstall()
-		if err != nil {
-			thegraph.SetIsServer(false)
-		}
-		_ = h.CoreContext.ReportClient.ChangeResourceStatus(orderNo)
+		thegraph.SetIsServer(false)
+		//_, _ = h.CoreContext.P2pClient.Close(targetListen)
+		_ = thegraph.Uninstall()
+		_ = h.CoreContext.ReportClient.ChangeResourceStatus(resourceIndex)
+		h.CoreContext.TimerService.UnSubTicker(agreementIndex)
 	}(instanceTimer)
+
+	go func() {
+		time.Sleep(time.Second * 10)
+		_ = h.CoreContext.ReportClient.Heartbeat(agreementIndex)
+		ticker := time.NewTicker(time.Minute * 10)
+		h.CoreContext.TimerService.SubTicker(agreementIndex, ticker)
+		for {
+			<-ticker.C
+			// report heartbeat
+			_ = h.CoreContext.ReportClient.Heartbeat(agreementIndex)
+		}
+	}()
 }
 
 func (h *TheGraphHandler) Name() string {

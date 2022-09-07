@@ -1,4 +1,4 @@
-VERSION = v1.2.0
+VERSION = v1.3.0
 
 web:
 	cd frontend && npm install
@@ -18,6 +18,10 @@ windows:
 	rm -rf ./hamster-provider-$(VERSION)-windows-amd64.tar.gz
 	CGO_ENABLED=0 GOOS=windows GOARCH=amd64  go build
 	tar -czvf ./hamster-provider-$(VERSION)-windows-amd64.tar.gz ./hamster-provider.exe ./templates ./frontend/dist
+
+docker:
+	docker build -t hamstershare/hamster-provider:$(VERSION) .
+	docker push hamstershare/hamster-provider:$(VERSION)
 
 all: web linux macos windows
 

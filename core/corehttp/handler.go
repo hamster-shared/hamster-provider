@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
 	"github.com/hamster-shared/hamster-provider/core/modules/config"
+	"github.com/hamster-shared/hamster-provider/core/modules/provider/thegraph"
 	"github.com/hamster-shared/hamster-provider/log"
 	"net/http"
 	"strconv"
@@ -499,4 +500,9 @@ func withdrawAmount(gin *MyContext) {
 	} else {
 		gin.JSON(http.StatusOK, Success("Successfully retrieved the pledge amount"))
 	}
+}
+
+func theGraphStatus(gin *MyContext) {
+	result := thegraph.IsServer()
+	gin.JSON(http.StatusOK, Success(result))
 }

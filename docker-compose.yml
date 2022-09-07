@@ -1,19 +1,32 @@
 version: "3.2"
 
 services:
-
-  ttchain_substrate:
-    container_name: ttchain_substrate
-    image: "registry.ttchain.tntlinking.com/ttchain/ttchain_v2:1.0.1"
-    restart: always
+  docker:
+    container_name: docker
+    image: "docker:dind"
+    privileged: true
+    network_mode: host
     environment:
-      TZ: Asia/Shanghai
+      DOCKER_TLS_CERTDIR: /certs
     volumes:
-#      - "./substrate/data/:/tmp/db/"
-      - "/usr/share/zoneinfo/Asia/Shanghai:/etc/localtime"
-      - "/etc/timezone:/etc/timezone"
-    ports:
-      - "9933:9933"
-      - "9944:9944"
-      - "30333:30333"
-    command: "/opt/ttchain/node-template  --dev --ws-external"
+      - "docker-certs:/certs/client"
+
+  provider:
+    container_name: hamster-provider
+    image: "hamstershare/hamster-provider:v1.3.0"
+    restart: always
+    privileged: true
+    network_mode: host
+    environment:
+      DOCKER_HOST: "tcp://127.0.0.1:2376"
+      DOCKER_CERT_PATH: "/certs/client"
+      DOCKER_TLS_VERIFY: "1"
+      LISTEN_ADDR: "0.0.0.0"
+    volumes:
+      - "config:/root/.hamster-provider"
+      - "docker-certs:/certs/client:ro"
+    depends_on:
+      - docker
+volumes:
+  config:
+  docker-certs:

@@ -1,6 +1,6 @@
 # curl RPC_URL -H 'Content-Type: application/json' -X POST --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}'
 #POST https://main-light.eth.linkpool.io
-POST http://164.92.80.238:8545
+POST http://3.110.153.211:8545
 Content-Type: application/json
 
 {"jsonrpc":"2.0","method":"eth_getTransactionReceipt","params":["0x10f2684903be65c453a14b47676bac6138822c67aa27d56d9bd765bca8a9a02b"],"id":1}
@@ -8,7 +8,7 @@ Content-Type: application/json
 ###
 
 # curl -H "Content-Type: application/json" -X POST --data '{"jsonrpc":"2.0","method":"eth_syncing","params":[],"id":1}' http://127.0.0.1:8546
-POST http://164.92.80.238:8545
+POST http://3.110.153.211:8545
 Content-Type: application/json
 
 {"jsonrpc":"2.0","method":"eth_syncing","params":[],"id":1}

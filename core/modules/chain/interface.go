@@ -13,7 +13,7 @@ type ReportClient interface {
 	// ModifyResourcePrice modify resource unit price
 	ModifyResourcePrice(index uint64, unitPrice int64) error
 	// ChangeResourceStatus modify resource status to unused
-	ChangeResourceStatus(index uint64) error
+	ChangeResourceStatus(resourceIndex uint64) error
 
 	// AddResourceDuration add resource rental time
 	AddResourceDuration(index uint64, duration int) error
@@ -50,10 +50,6 @@ type ReportClient interface {
 	ReceiveIncomeJudge() bool
 
 	GetGatewayNodes() ([]string, error)
-
-	CrateMarketAccount() error
-
-	GetMarketUser() (MarketUser, error)
 
 	ProcessApplyFreeResource(index uint64, peerId string) error
 

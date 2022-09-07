@@ -301,7 +301,7 @@ func (cc *ChainClient) RegisterResource(r ResourceInfo) error {
 			}
 		}
 
-		return nil
+		return errors.New("boot failed")
 	}
 
 	return cc.callAndWatch(c, meta, hook)
@@ -315,7 +315,7 @@ func (cc *ChainClient) RemoveResource(index uint64) error {
 		return err
 	}
 
-	c, err := types.NewCall(meta, "Provider.withdraw", types.NewU64(index))
+	c, err := types.NewCall(meta, "Provider.offline", types.NewU64(index))
 
 	if err != nil {
 		return err
@@ -657,12 +657,8 @@ func (cc *ChainClient) ReceiveIncome() error {
 	if err != nil {
 		return err
 	}
-	config, err := cc.cm.GetConfig()
-	if err != nil {
-		return err
-	}
 
-	c, err := types.NewCall(meta, "ResourceOrder.withdraw_rental_amount", types.NewU64(config.ChainRegInfo.AgreementIndex))
+	c, err := types.NewCall(meta, "Market.payout_provider_nodes")
 
 	if err != nil {
 		return err
@@ -738,28 +734,23 @@ func (cc *ChainClient) GetMarketStackInfo() (*StakingAmount, error) {
 	if err != nil {
 		panic(err)
 	}
-	param, err := types.EncodeToBytes(Provider_MarketUserStatus)
 	cf, err := cc.cm.GetConfig()
 	if err != nil {
 		return nil, err
 	}
 	keypair, err := signature.KeyringPairFromSecret(cf.SeedOrPhrase, 42)
-	key, err := types.CreateStorageKey(meta, "Market", "StakerInfo", param, keypair.PublicKey)
+	key, err := types.CreateStorageKey(meta, "Market", "Staking", keypair.PublicKey)
 	if err != nil {
 		return nil, err
 	}
 
-	var data MarketUser
+	var data StakingAmount
 	ok, err := cc.api.RPC.State.GetStorageLatest(key, &data)
 	if !ok || err != nil {
 		return nil, err
 	}
 
-	return &StakingAmount{
-		Amount:       data.StakedAmount,
-		ActiveAmount: types.NewU128(*big.NewInt(0)),
-		LockAmount:   types.NewU128(*big.NewInt(0)),
-	}, nil
+	return &data, err
 }
 
 func (cc *ChainClient) StakingAmount(unitPrice int64) error {
@@ -771,7 +762,7 @@ func (cc *ChainClient) StakingAmount(unitPrice int64) error {
 		return err
 	}
 
-	c, err := types.NewCall(meta, "ResourceOrder.staking_amount", types.NewU128(*big.NewInt(unitPrice)))
+	c, err := types.NewCall(meta, "Market.bond", types.NewU128(*big.NewInt(unitPrice)))
 
 	if err != nil {
 		return err
@@ -787,7 +778,7 @@ func (cc *ChainClient) WithdrawStakingAmount(unitPrice int64) error {
 		return err
 	}
 
-	c, err := types.NewCall(meta, "ResourceOrder.withdraw_amount", types.NewU128(*big.NewInt(unitPrice)))
+	c, err := types.NewCall(meta, "Market.withdraw", types.NewU128(*big.NewInt(unitPrice)))
 
 	if err != nil {
 		return err
@@ -833,51 +824,6 @@ func (cc *ChainClient) ProcessApplyFreeResource(index uint64, peerId string) err
 func hook(header *types.Header) error {
 	log.GetLogger().Info(header.Number)
 	return nil
-}
-
-func (cc *ChainClient) CrateMarketAccount() error {
-	log.GetLogger().Info("call CrateMarketAccount")
-	meta, err := cc.api.RPC.State.GetMetadataLatest()
-	if err != nil {
-		return err
-	}
-
-	c, err := types.NewCall(meta, "Market.crate_market_account", Provider_MarketUserStatus)
-
-	if err != nil {
-		return err
-	}
-
-	return cc.callAndWatch(c, meta, hook)
-}
-
-func (cc *ChainClient) GetMarketUser() (MarketUser, error) {
-
-	meta, err := cc.api.RPC.State.GetMetadataLatest()
-	if err != nil {
-		panic(err)
-	}
-
-	param, err := types.EncodeToBytes(Provider_MarketUserStatus)
-
-	cf, err := cc.cm.GetConfig()
-	if err != nil {
-		return MarketUser{}, err
-	}
-	keypair, err := signature.KeyringPairFromSecret(cf.SeedOrPhrase, 42)
-	if err != nil {
-		return MarketUser{}, err
-	}
-
-	key, err := types.CreateStorageKey(meta, "Market", "StakerInfo", param, keypair.PublicKey)
-	var data MarketUser
-	ok, err := cc.api.RPC.State.GetStorageLatest(key, &data)
-	if !ok {
-		return data, errors.New("cannot find stacking from chain")
-	}
-
-	return data, err
-
 }
 
 func (cc *ChainClient) ReleaseApplyFreeResource(index uint64) error {
