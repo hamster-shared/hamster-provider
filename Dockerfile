@@ -18,7 +18,7 @@ RUN set -eux; \
     go build
 
 
-FROM docker:20
+FROM docker
 
 WORKDIR /root
 
@@ -27,7 +27,8 @@ ENV CHAIN_ADDRESS 183.66.65.207:49944
 ENV CPU 1
 ENV MEMORY 1
 
-COPY --from=go-builder /root/hamster-provider .
 COPY --from=node-builder /root/dist frontend/dist
+COPY --from=go-builder /root/hamster-provider .
+COPY ./templates ./templates/
 
 CMD  ./hamster-provider

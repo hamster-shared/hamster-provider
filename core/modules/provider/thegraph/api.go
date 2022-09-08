@@ -225,5 +225,9 @@ func DefaultComposeGraphStop(deploymentID ...string) error {
 
 func DefaultComposeGraphRules() (result []map[string]interface{}, err error) {
 	composeFilePathName := filepath.Join(config.DefaultConfigDir(), "docker-compose.yml")
+	err = ComposeGraphConnect(composeFilePathName)
+	if err != nil {
+		return
+	}
 	return ComposeGraphRules(composeFilePathName)
 }

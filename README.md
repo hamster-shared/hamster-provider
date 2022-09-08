@@ -102,6 +102,15 @@ cat << EOF > ./docker-compose.yml
 version: "3.2"
 
 services:
+  docker:
+    container_name: docker
+    image: "docker:dind"
+    privileged: true
+    network_mode: host
+    environment:
+      DOCKER_TLS_CERTDIR: /certs
+    volumes:
+      - "docker-certs:/certs/client"
 
   provider:
     container_name: hamster-provider
@@ -109,12 +118,20 @@ services:
     restart: always
     privileged: true
     network_mode: host
+    environment:
+      DOCKER_HOST: "tcp://127.0.0.1:2376"
+      DOCKER_CERT_PATH: "/certs/client"
+      DOCKER_TLS_VERIFY: "1"
+      LISTEN_ADDR: "0.0.0.0"
     volumes:
       - "config:/root/.hamster-provider"
-      - "/var/run/docker.sock:/var/run/docker.sock"
-
+      - "docker-certs:/certs/client:ro"
+    depends_on:
+      - docker
 volumes:
   config:
+  docker-certs:
+
 
 EOF
 

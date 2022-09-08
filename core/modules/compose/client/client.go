@@ -64,11 +64,13 @@ func RunCompose(ctx context.Context, args ...string) (output string, err error) 
 
 	composeCmd, err := newComposeCommand()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to create compose command: %v", err)
 	}
 	composeCmd.SetArgs(args)
 	err = composeCmd.ExecuteContext(ctx)
-
+	if err != nil {
+		return "", fmt.Errorf("failed to execute compose command: %v", err)
+	}
 	outC := make(chan string)
 	go func() {
 		var buf bytes.Buffer
@@ -79,9 +81,9 @@ func RunCompose(ctx context.Context, args ...string) (output string, err error) 
 		}
 		outC <- buf.String()
 	}()
-	w.Close()
+	err = w.Close()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to close pipe: %v", err)
 	}
 	os.Stdout = old
 	out := <-outC

@@ -56,16 +56,14 @@ func (h *TheGraphHandler) HandlerEvent(e *VmRequest) {
 	}
 
 	agreementIndex := h.CoreContext.GetConfig().ChainRegInfo.AgreementIndex
-
+	resourceIndex := h.CoreContext.GetConfig().ChainRegInfo.ResourceIndex
 	go func(t *time.Timer) {
 		<-t.C
 		log.GetLogger().Printf("over due time is : %d, now  terminal", overdue)
+		thegraph.SetIsServer(false)
 		//_, _ = h.CoreContext.P2pClient.Close(targetListen)
-		err = thegraph.Uninstall()
-		if err != nil {
-			thegraph.SetIsServer(false)
-		}
-		_ = h.CoreContext.ReportClient.ChangeResourceStatus(orderNo)
+		_ = thegraph.Uninstall()
+		_ = h.CoreContext.ReportClient.ChangeResourceStatus(resourceIndex)
 		h.CoreContext.TimerService.UnSubTicker(agreementIndex)
 	}(instanceTimer)
 

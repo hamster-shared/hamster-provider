@@ -301,7 +301,7 @@ func (cc *ChainClient) RegisterResource(r ResourceInfo) error {
 			}
 		}
 
-		return nil
+		return errors.New("boot failed")
 	}
 
 	return cc.callAndWatch(c, meta, hook)
@@ -778,7 +778,7 @@ func (cc *ChainClient) WithdrawStakingAmount(unitPrice int64) error {
 		return err
 	}
 
-	c, err := types.NewCall(meta, "ResourceOrder.withdraw_amount", types.NewU128(*big.NewInt(unitPrice)))
+	c, err := types.NewCall(meta, "Market.withdraw", types.NewU128(*big.NewInt(unitPrice)))
 
 	if err != nil {
 		return err
