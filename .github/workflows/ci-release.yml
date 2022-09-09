@@ -30,7 +30,7 @@ jobs:
       - name: build frontend
         run: |
           cd frontend && yarn && yarn build
-          cp -r frontend/dist core/corehttp/
+          cp -r dist ../core/corehttp/
       - name: build binary
         run: go build -o build/bin
       - name: Import Code-Signing Certificates for macOS
