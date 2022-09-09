@@ -1,23 +1,29 @@
 package corehttp
 
 import (
+	"embed"
 	"fmt"
-	"github.com/gin-contrib/static"
+	"github.com/gin-gonic/gin"
 	"github.com/hamster-shared/hamster-provider/core/context"
 	"github.com/hamster-shared/hamster-provider/log"
 	"golang.org/x/sync/errgroup"
+	"io/fs"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 )
 
+//go:embed dist/*
+var content embed.FS
+
 var g errgroup.Group
 
 func StartApi(ctx *context.CoreContext) error {
 	r := NewMyServer(ctx)
 
-	// router
+	//router
 	v1 := r.Group("/api/v1")
 	{
 
@@ -60,7 +66,7 @@ func StartApi(ctx *context.CoreContext) error {
 		}
 		vm := v1.Group("/vm")
 		{
-			vm.POST("/create", createVm)
+			vm.GET("/status", deployStatus)
 		}
 		resource := v1.Group("/resource")
 		{
@@ -72,7 +78,6 @@ func StartApi(ctx *context.CoreContext) error {
 			resource.GET("/receive-income-judge", receiveIncomeJudge)
 		}
 	}
-	//r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	thegraphServer := NewMyServer(ctx)
 	thegraph := thegraphServer.Group("/api/v1/thegraph")
@@ -88,9 +93,10 @@ func StartApi(ctx *context.CoreContext) error {
 		thegraph.GET("/rules", graphRules)
 	}
 
-	path, _ := os.Getwd()
-	fmt.Println("static path: ", filepath.Join(path, "frontend/dist"))
-	r.Use(static.Serve("/", static.LocalFile(filepath.Join(path, "frontend/dist"), true)))
+	fmt.Println("static path: ", filepath.Join(getExecutePath(), "frontend/dist"))
+	fe, _ := fs.Sub(content, "dist")
+	r.NoRoute(gin.WrapH(http.FileServer(http.FS(fe))))
+
 	// listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 	port := ctx.GetConfig().ApiPort
 
@@ -132,4 +138,14 @@ func OpenWeb(port int) error {
 		cmd = exec.Command(run, fmt.Sprintf("http://127.0.0.1:%d", port))
 	}
 	return cmd.Start()
+}
+
+func getExecutePath() string {
+	dir, err := os.Executable()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	exPath := filepath.Dir(dir)
+	return exPath
 }

@@ -13,6 +13,8 @@ ENV GOPROXY https://goproxy.cn
 
 COPY . .
 
+COPY --from=node-builder /root/dist core/corehttp/
+
 RUN set -eux; \
     go mod tidy ; \
     go build
@@ -27,8 +29,6 @@ ENV CHAIN_ADDRESS 183.66.65.207:49944
 ENV CPU 1
 ENV MEMORY 1
 
-COPY --from=node-builder /root/dist frontend/dist
 COPY --from=go-builder /root/hamster-provider .
-COPY ./templates ./templates/
 
 CMD  ./hamster-provider

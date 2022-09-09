@@ -16,3 +16,5 @@ frontend/yarn.lock
 *.out
 
 hamster-provider
+
+core/corehttp/dist

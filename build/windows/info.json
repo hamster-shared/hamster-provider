@@ -1,0 +1,15 @@
+{
+	"fixed": {
+		"file_version": "1.0.0"
+	},
+	"info": {
+		"0000": {
+			"ProductVersion": "1.0.0",
+			"CompanyName": "hamster-client",
+			"FileDescription": "hamster-client",
+			"LegalCopyright": "Copyright.........",
+			"ProductName": "hamster-client",
+			"Comments": "Built using Wails (https://wails.app)"
+		}
+	}
+}
