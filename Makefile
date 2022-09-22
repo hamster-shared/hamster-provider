@@ -6,8 +6,10 @@ web:
 
 linux:
 	rm -rf ./hamster-provider-$(VERSION)-linux-amd64.tar.gz
+	rm -rf core/corehttp/dist
+	cp -r frontend/dist core/corehttp/
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64  go build
-	tar -czvf ./hamster-provider-$(VERSION)-linux-amd64.tar.gz ./hamster-provider ./templates ./frontend/dist
+	tar -czvf ./hamster-provider-$(VERSION)-linux-amd64.tar.gz ./hamster-provider
 
 macos:
 	cd frontend && yarn && yarn build
