@@ -7,11 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_generateRequiredFiles(t *testing.T) {
-	err := generateRequiredFiles()
-	assert.NoError(t, err)
-}
-
 func Test_templateInstance(t *testing.T) {
 	err := templateInstance(DeployParams{})
 	assert.NoError(t, err)
