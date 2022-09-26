@@ -1,0 +1,17 @@
+version: '3'
+services:
+  aptos-fullness:
+    image: aptoslabs/validator:devnet
+    container_name: aptos-fullnode
+    restart: always
+    ports:
+      - '8080:8080'
+      - '9101:9101'
+      - '6180:6180'
+    volumes:
+      - ./aptos:/opt/aptos/etc
+      - aptos-data-volume:/opt/aptos/data
+    working_dir: /opt/aptos/etc
+    command: aptos-node -f /opt/aptos/etc/public_full_node.yaml
+volumes:
+  aptos-data-volume: {}

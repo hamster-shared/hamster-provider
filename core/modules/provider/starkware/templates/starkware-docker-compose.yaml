@@ -1,0 +1,17 @@
+version: "3"
+services:
+  starknet-node:
+    image: eqlabs/pathfinder:latest
+    restart: unless-stopped
+    container_name: starkware-pathfinder
+    environment:
+      - RUST_LOG=debug
+      - PATHFINDER_ETHEREUM_API_URL=http://localhost:8545
+      - PATHFINDER_ETHEREUM_API_PASSWORD=abc
+    volumes:
+      - starkware-pathfinder-data-volume:/usr/share/pathfinder/data
+    ports:
+      - 9545:9545
+
+volumes:
+  starkware-pathfinder-data-volume: {}
