@@ -28,10 +28,13 @@ func (c *LinkClient) RegisterResource(r ResourceInfo) error {
 		}
 
 		req, err := http.NewRequest("POST", c.Config.LinkApi+"/api/resources", bytes.NewBuffer(data))
+		if err != nil {
+			return err
+		}
 
 		req.Header.Set("Content-Type", "application/json")
 
-		client := &http.Client{}
+		client := &http.Client{Timeout: time.Second * 30}
 
 		resp, err := client.Do(req)
 
@@ -47,7 +50,7 @@ func (c *LinkClient) RegisterResource(r ResourceInfo) error {
 }
 
 func (c *LinkClient) RemoveResource(index uint64) error {
-	client := &http.Client{}
+	client := &http.Client{Timeout: time.Second * 30}
 	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/api/resources/%d", c.Config.LinkApi, index), nil)
 	if err != nil {
 		return err
@@ -80,7 +83,7 @@ func (c *LinkClient) Heartbeat(agreementindex uint64) error {
 
 // LoadRegistryInfoFromChain load registration information from the chain
 func (c *LinkClient) LoadRegistryInfoFromChain() (*ResourceInfo, error) {
-	client := &http.Client{}
+	client := &http.Client{Timeout: time.Second * 30}
 	req, err := http.NewRequest("GET", c.Config.LinkApi+"/api/resource/peer?peerId="+c.Config.Identity.PeerID, nil)
 	if err != nil {
 		return nil, err
@@ -92,6 +95,9 @@ func (c *LinkClient) LoadRegistryInfoFromChain() (*ResourceInfo, error) {
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
 
 	//parse body
 	var info ResourceInfo
