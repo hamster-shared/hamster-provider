@@ -3,11 +3,14 @@ package utils
 import (
 	"errors"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func Download(fullURLFile string, destPath string) error {
@@ -23,7 +26,15 @@ func Download(fullURLFile string, destPath string) error {
 		log.Fatal(err)
 		return err
 	}
+	var netTransport = &http.Transport{
+		Dial: (&net.Dialer{
+			Timeout: 30 * time.Second,
+		}).Dial,
+		TLSHandshakeTimeout: 30 * time.Second,
+	}
 	client := http.Client{
+		Timeout:   time.Second * 30, // Maximum of 10 secs
+		Transport: netTransport,
 		CheckRedirect: func(r *http.Request, via []*http.Request) error {
 			r.URL.Opaque = r.URL.Path
 			return nil
@@ -38,6 +49,10 @@ func Download(fullURLFile string, destPath string) error {
 	defer resp.Body.Close()
 
 	size, err := io.Copy(file, resp.Body)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
 
 	defer file.Close()
 

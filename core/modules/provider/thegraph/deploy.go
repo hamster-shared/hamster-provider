@@ -2,6 +2,7 @@ package thegraph
 
 import (
 	"context"
+	"embed"
 	commands "github.com/docker/compose/v2/cmd/compose"
 	"github.com/docker/compose/v2/pkg/api"
 	"github.com/hamster-shared/hamster-provider/core/modules/compose/client"
@@ -11,6 +12,9 @@ import (
 	"path/filepath"
 	"text/template"
 )
+
+//go:embed templates/graph-docker-compose.text
+var templateFile embed.FS
 
 // InstallDocker install docker
 //func InstallDocker() error {
@@ -84,11 +88,9 @@ import (
 //}
 
 // TemplateInstance Docker compose file instantiation
-func templateInstance(data DeployParams) error {
+func templateInstance(deplpyParam DeployParams) error {
 
-	pathExecutable, _ := os.Executable()
-	path := filepath.Join(filepath.Dir(pathExecutable), "templates/graph-docker-compose.text")
-	t, err := template.ParseFiles(path)
+	t, err := template.ParseFS(templateFile, "templates/graph-docker-compose.text")
 	if err != nil {
 		log.GetLogger().Errorf("template failed with %s\n", err)
 		return err
@@ -100,7 +102,7 @@ func templateInstance(data DeployParams) error {
 		log.GetLogger().Errorf("create file failed %s\n", err)
 		return createErr
 	}
-	writeErr := t.Execute(file, data)
+	writeErr := t.Execute(file, deplpyParam)
 	if writeErr != nil {
 		log.GetLogger().Errorf("template write file failed %s\n", err)
 		return writeErr
@@ -109,16 +111,12 @@ func templateInstance(data DeployParams) error {
 }
 
 func pullImages() error {
-	pathExecutable, _ := os.Executable()
 	composeFilePathName := filepath.Join(config.DefaultConfigDir(), "docker-compose.yml")
-	var path string
 	if _, err := os.Stat(composeFilePathName); err != nil {
-		path = filepath.Join(filepath.Dir(pathExecutable), "templates/graph-docker-compose.text")
-	} else {
-		path = composeFilePathName
+		_ = templateInstance(DeployParams{})
 	}
 
-	return client.Compose(context.Background(), []string{"-f", path, "pull"})
+	return client.Compose(context.Background(), []string{"-f", composeFilePathName, "pull"})
 }
 
 // StartDockerCompose exec docker-compose
