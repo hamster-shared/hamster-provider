@@ -81,6 +81,11 @@ func StartApi(ctx *context.CoreContext) error {
 
 	thegraphServer := NewMyServer(ctx)
 	thegraph := thegraphServer.Group("/api/v1/thegraph")
+	thegraphServer.GET("/version", func(c *MyContext) {
+		c.JSON(200, VersionVo{
+			Version: "1.3.1",
+		})
+	})
 	thegraph.Use(SS58AuthMiddleware)
 	{
 		thegraph.POST("/deploy", deployTheGraph)
@@ -148,4 +153,8 @@ func getExecutePath() string {
 
 	exPath := filepath.Dir(dir)
 	return exPath
+}
+
+type VersionVo struct {
+	Version string `json:"version"`
 }
