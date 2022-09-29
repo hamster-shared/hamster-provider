@@ -11,6 +11,5 @@ services:
       - "--http"
       - "--http.addr"
       - "0.0.0.0"
-
 volumes:
   ethereum-data: {}

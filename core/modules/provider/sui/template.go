@@ -1,16 +1,11 @@
-package aptos
+package sui
 
 import (
-	"context"
 	"embed"
-	commands "github.com/docker/compose/v2/cmd/compose"
 	"os"
 	"path/filepath"
 	"text/template"
 
-	"github.com/docker/compose/v2/pkg/api"
-
-	"github.com/hamster-shared/hamster-provider/core/modules/compose/client"
 	"github.com/hamster-shared/hamster-provider/core/modules/config"
 	"github.com/hamster-shared/hamster-provider/log"
 )
@@ -35,7 +30,7 @@ func generateRequiredFiles() error {
 	if err := os.MkdirAll(filepath.Join(config.DefaultConfigDir(), "sui"), os.ModePerm); err != nil {
 		return err
 	}
-	//生成genesis.blob
+	//生成 genesis.blob
 	genesisBlobFile, err := os.Create(filepath.Join(config.DefaultConfigDir(), "sui/genesis.blob"))
 	if err != nil {
 		return err
@@ -44,7 +39,7 @@ func generateRequiredFiles() error {
 	if err != nil {
 		return err
 	}
-	//生成full_node.yaml
+	//生成 full_node.yaml
 	fullNodeFile, err := os.Create(filepath.Join(config.DefaultConfigDir(), "sui/fullnode-template.yaml"))
 	if err != nil {
 		return err
@@ -78,33 +73,3 @@ func templateInstance(deployParam DeployParams) error {
 	return nil
 }
 
-func pullImages() error {
-	composeFilePathName := filepath.Join(config.DefaultConfigDir(), suiComposeFileName)
-	if _, err := os.Stat(composeFilePathName); err != nil {
-		_ = templateInstance(DeployParams{})
-		_ = generateRequiredFiles()
-	}
-	return client.Compose(context.Background(), []string{"-f", composeFilePathName, "pull"})
-}
-
-// StartDockerCompose exec docker-compose
-func startDockerCompose() error {
-	composeFilePathName := filepath.Join(config.DefaultConfigDir(), suiComposeFileName)
-	return client.Compose(context.Background(), []string{"-f", composeFilePathName, "up", "-d"})
-}
-
-// StopDockerCompose  停止docker compose 服务
-func stopDockerCompose() error {
-	composeFilePathName := filepath.Join(config.DefaultConfigDir(), suiComposeFileName)
-	return client.Compose(context.Background(), []string{"-f", composeFilePathName, "down", "-v"})
-}
-
-func getDockerComposeStatus(containerIDs ...string) ([]api.ContainerSummary, error) {
-	composeFilePathName := filepath.Join(config.DefaultConfigDir(), suiComposeFileName)
-	args := append([]string{"-f", composeFilePathName, "ps"}, containerIDs...)
-	err := client.Compose(context.Background(), args)
-	if err != nil {
-		return nil, err
-	}
-	return commands.PsCmdResult, nil
-}

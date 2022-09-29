@@ -12,3 +12,76 @@ SS58AuthData: 5HpGQhD72vZGgAFMMiCDY61mHYtANs6B4kZXrpptGm276KnT:hello:b2146a77334
 ### graphConnect
 GET 127.0.0.1:34003/api/v1/thegraph/connect
 SS58AuthData: 5HpGQhD72vZGgAFMMiCDY61mHYtANs6B4kZXrpptGm276KnT:hello:b2146a773345dce02a4c7c7416a9b215d19157842f427f6ad991e3f40e24271add31cecc28c6d8a610a0c1cb74e24b6218c7139345ee57b5b7fbd1ba96fb6688
+
+
+### aptos
+GET 127.0.0.1:34003/api/v1/chains/pullImage?chainName=aptos
+### aptos
+GET 127.0.0.1:34003/api/v1/chains/start?chainName=aptos
+### aptos
+GET 127.0.0.1:34003/api/v1/chains/stop?chainName=aptos
+### aptos
+GET 127.0.0.1:34003/api/v1/chains/status?chainName=aptos
+
+### avalanche
+GET 127.0.0.1:34003/api/v1/chains/pullImage?chainName=avalanche
+### avalanche
+GET 127.0.0.1:34003/api/v1/chains/start?chainName=avalanche
+### avalanche
+GET 127.0.0.1:34003/api/v1/chains/stop?chainName=avalanche
+### avalanche
+GET 127.0.0.1:34003/api/v1/chains/status?chainName=avalanche
+
+### ethereum
+GET 127.0.0.1:34003/api/v1/chains/pullImage?chainName=ethereum
+### ethereum
+GET 127.0.0.1:34003/api/v1/chains/start?chainName=ethereum
+### ethereum
+GET 127.0.0.1:34003/api/v1/chains/stop?chainName=ethereum
+### ethereum
+GET 127.0.0.1:34003/api/v1/chains/status?chainName=ethereum
+
+### near
+GET 127.0.0.1:34003/api/v1/chains/pullImage?chainName=near
+### near
+GET 127.0.0.1:34003/api/v1/chains/start?chainName=near
+### near
+GET 127.0.0.1:34003/api/v1/chains/stop?chainName=near
+### near
+GET 127.0.0.1:34003/api/v1/chains/status?chainName=near
+
+### starkware
+GET 127.0.0.1:34003/api/v1/chains/pullImage?chainName=starkware
+### starkware
+GET 127.0.0.1:34003/api/v1/chains/start?chainName=starkware
+### starkware
+GET 127.0.0.1:34003/api/v1/chains/stop?chainName=starkware
+### starkware
+GET 127.0.0.1:34003/api/v1/chains/status?chainName=starkware
+
+### sui
+GET 127.0.0.1:34003/api/v1/chains/pullImage?chainName=sui
+### sui
+GET 127.0.0.1:34003/api/v1/chains/start?chainName=sui
+### sui
+GET 127.0.0.1:34003/api/v1/chains/stop?chainName=sui
+### sui
+GET 127.0.0.1:34003/api/v1/chains/status?chainName=sui
+
+### polygon
+GET http://127.0.0.1:34003/api/v1/chains/pullImage?chainName=polygon
+### polygon
+GET http://127.0.0.1:34003/api/v1/chains/start?chainName=polygon
+### polygon
+GET http://127.0.0.1:34003/api/v1/chains/stop?chainName=polygon
+### polygon
+GET http://127.0.0.1:34003/api/v1/chains/status?chainName=polygon
+
+### optimism
+GET http://127.0.0.1:34003/api/v1/chains/pullImage?chainName=optimism
+### optimism
+GET http://127.0.0.1:34003/api/v1/chains/start?chainName=optimism
+### optimism
+GET http://127.0.0.1:34003/api/v1/chains/stop?chainName=optimism
+### optimism
+GET http://127.0.0.1:34003/api/v1/chains/status?chainName=optimism

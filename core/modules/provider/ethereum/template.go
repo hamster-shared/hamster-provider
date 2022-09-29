@@ -1,4 +1,4 @@
-package near
+package ethereum
 
 import (
 	"embed"
@@ -11,23 +11,23 @@ import (
 )
 
 var (
-	nearComposeFileName = "near-docker-compose.yml"
+	ethereumComposeFileName = "ethereum-docker-compose.yml"
 )
 
 type DeployParams struct{}
 
-//go:embed templates/near-docker-compose.yaml
+//go:embed templates/docker-compose.yml
 var templateFile embed.FS
 
 // TemplateInstance Docker compose file instantiation
 func templateInstance(deployParam DeployParams) error {
-	t, err := template.ParseFS(templateFile, "templates/near-docker-compose.yaml")
+	t, err := template.ParseFS(templateFile, "templates/docker-compose.yml")
 	if err != nil {
 		log.GetLogger().Errorf("template failed with %s\n", err)
 		return err
 	}
 	//create file in .hamster-provider
-	url := filepath.Join(config.DefaultConfigDir(), nearComposeFileName)
+	url := filepath.Join(config.DefaultConfigDir(), ethereumComposeFileName)
 	file, createErr := os.Create(url)
 	if createErr != nil {
 		log.GetLogger().Errorf("create file failed %s\n", err)
@@ -40,4 +40,3 @@ func templateInstance(deployParam DeployParams) error {
 	}
 	return nil
 }
-

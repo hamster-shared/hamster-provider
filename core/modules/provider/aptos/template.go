@@ -1,16 +1,11 @@
 package aptos
 
 import (
-	"context"
 	"embed"
-	commands "github.com/docker/compose/v2/cmd/compose"
 	"os"
 	"path/filepath"
 	"text/template"
 
-	"github.com/docker/compose/v2/pkg/api"
-
-	"github.com/hamster-shared/hamster-provider/core/modules/compose/client"
 	"github.com/hamster-shared/hamster-provider/core/modules/config"
 	"github.com/hamster-shared/hamster-provider/log"
 )
@@ -38,7 +33,7 @@ func generateRequiredFiles() error {
 	if err := os.MkdirAll(filepath.Join(config.DefaultConfigDir(), "aptos"), os.ModePerm); err != nil {
 		return err
 	}
-	//生成genesis.blob
+	//生成 genesis.blob
 	genesisBlobFile, err := os.Create(filepath.Join(config.DefaultConfigDir(), "aptos/genesis.blob"))
 	if err != nil {
 		return err
@@ -47,7 +42,7 @@ func generateRequiredFiles() error {
 	if err != nil {
 		return err
 	}
-	//生成waypoint.txt
+	//生成 waypoint.txt
 	waypointFile, err := os.Create(filepath.Join(config.DefaultConfigDir(), "aptos/waypoint.txt"))
 	if err != nil {
 		return err
@@ -56,7 +51,7 @@ func generateRequiredFiles() error {
 	if err != nil {
 		return err
 	}
-	//生成public_full_node.yaml
+	//生成 public_full_node.yaml
 	publicFullNodeFile, err := os.Create(filepath.Join(config.DefaultConfigDir(), "aptos/public_full_node.yaml"))
 	if err != nil {
 		return err
@@ -88,35 +83,4 @@ func templateInstance(deployParam DeployParams) error {
 		return writeErr
 	}
 	return nil
-}
-
-func pullImages() error {
-	composeFilePathName := filepath.Join(config.DefaultConfigDir(), aptosComposeFileName)
-	if _, err := os.Stat(composeFilePathName); err != nil {
-		_ = templateInstance(DeployParams{})
-		_ = generateRequiredFiles()
-	}
-	return client.Compose(context.Background(), []string{"-f", composeFilePathName, "pull"})
-}
-
-// StartDockerCompose exec docker-compose
-func startDockerCompose() error {
-	composeFilePathName := filepath.Join(config.DefaultConfigDir(), aptosComposeFileName)
-	return client.Compose(context.Background(), []string{"-f", composeFilePathName, "up", "-d"})
-}
-
-// StopDockerCompose  停止docker compose 服务
-func stopDockerCompose() error {
-	composeFilePathName := filepath.Join(config.DefaultConfigDir(), aptosComposeFileName)
-	return client.Compose(context.Background(), []string{"-f", composeFilePathName, "down", "-v"})
-}
-
-func getDockerComposeStatus(containerIDs ...string) ([]api.ContainerSummary, error) {
-	composeFilePathName := filepath.Join(config.DefaultConfigDir(), aptosComposeFileName)
-	args := append([]string{"-f", composeFilePathName, "ps"}, containerIDs...)
-	err := client.Compose(context.Background(), args)
-	if err != nil {
-		return nil, err
-	}
-	return commands.PsCmdResult, nil
 }

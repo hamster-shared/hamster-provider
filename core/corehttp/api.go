@@ -79,9 +79,10 @@ func StartApi(ctx *context.CoreContext) error {
 		}
 	}
 
-	thegraphServer := NewMyServer(ctx)
-	thegraph := thegraphServer.Group("/api/v1/thegraph")
-	thegraphServer.GET("/version", func(c *MyContext) {
+	chainServer := NewMyServer(ctx)
+
+	thegraph := chainServer.Group("/api/v1/thegraph")
+	chainServer.GET("/version", func(c *MyContext) {
 		c.JSON(200, VersionVo{
 			Version: "1.3.1",
 		})
@@ -96,6 +97,14 @@ func StartApi(ctx *context.CoreContext) error {
 		thegraph.GET("/start", graphStart)
 		thegraph.GET("/stop", graphStop)
 		thegraph.GET("/rules", graphRules)
+	}
+
+	chains := chainServer.Group("/api/v1/chains")
+	{
+		chains.GET("/pullImage", pullImageChain)
+		chains.GET("/start", startChain)
+		chains.GET("/stop", stopChain)
+		chains.GET("/status", getChainStatus)
 	}
 
 	fmt.Println("static path: ", filepath.Join(getExecutePath(), "frontend/dist"))
@@ -117,7 +126,7 @@ func StartApi(ctx *context.CoreContext) error {
 		return r.Run(fmt.Sprintf("%s:%d", listen_addr, port))
 	})
 	g.Go(func() error {
-		return thegraphServer.Run(fmt.Sprintf("%s:%d", listen_addr, port+1))
+		return chainServer.Run(fmt.Sprintf("%s:%d", listen_addr, port+1))
 	})
 
 	return g.Wait()
