@@ -1,0 +1,16 @@
+version: "3"
+services:
+  ethereum:
+    image: ethereum/client-go
+    ports:
+      - "8545:8545"
+      - "30303:30303"
+    volumes:
+      - "ethereum-data:/root"
+    command:
+      - "--http"
+      - "--http.addr"
+      - "0.0.0.0"
+
+volumes:
+  ethereum-data: {}

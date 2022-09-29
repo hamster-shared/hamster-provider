@@ -1,0 +1,14 @@
+version: "3"
+services:
+  avalanche:
+    image: avaplatform/avalanchego
+    ports:
+      - "9650:9650"
+      - "9651:9651"
+    volumes:
+      - "avalanche-data:/root"
+    command:
+      - "/avalanchego/build/avalanchego"
+
+volumes:
+  avalanche-data: {}
