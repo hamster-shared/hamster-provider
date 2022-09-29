@@ -183,16 +183,18 @@ func (l *ChainListener) dealCreateOrderSuccess(e chain2.EventResourceOrderCreate
 		// record the id of the processed order
 		cfg.ChainRegInfo.OrderIndex = uint64(e.OrderIndex)
 		cfg.ChainRegInfo.AccountAddress = utils.AccountIdToAddress(e.AccountId)
+		cfg.ChainRegInfo.DeployType = uint32(e.DeployType)
 		_ = l.cm.Save(cfg)
 		evt := &event.VmRequest{
-			Tag:       event.OPCreatedVm,
-			Cpu:       cfg.Vm.Cpu,
-			Mem:       cfg.Vm.Mem,
-			Disk:      cfg.Vm.Disk,
-			OrderNo:   uint64(e.OrderIndex),
-			System:    cfg.Vm.System,
-			PublicKey: e.PublicKey,
-			Image:     cfg.Vm.Image,
+			Tag:        event.OPCreatedVm,
+			Cpu:        cfg.Vm.Cpu,
+			Mem:        cfg.Vm.Mem,
+			Disk:       cfg.Vm.Disk,
+			OrderNo:    uint64(e.OrderIndex),
+			System:     cfg.Vm.System,
+			PublicKey:  e.PublicKey,
+			Image:      cfg.Vm.Image,
+			DeployType: uint32(e.DeployType),
 		}
 		l.eventService.Create(evt)
 
