@@ -89,10 +89,13 @@ func StartApi(ctx *context.CoreContext) error {
 	})
 	thegraph.Use(SS58AuthMiddleware)
 	{
+		// deploy process
 		thegraph.POST("/deploy", deployTheGraph)
+		// deploy process
 		thegraph.POST("/pullImage", pullImage)
 		thegraph.GET("/ws", execHandler)
 		thegraph.GET("/wslog", logHandler)
+		// deploy process
 		thegraph.GET("/status", deployStatus)
 		thegraph.GET("/start", graphStart)
 		thegraph.GET("/stop", graphStop)

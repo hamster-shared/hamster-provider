@@ -76,6 +76,7 @@ type ChainRegInfo struct {
 	Working         string `json:"working"`
 	Price           uint64 `json:"price"`
 	AccountAddress  string `json:"accountAddress"`
+	DeployType      uint32 `json:"deployType"`
 }
 
 func NewConfigManager() *ConfigManager {

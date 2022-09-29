@@ -385,8 +385,10 @@ func getAccountInfo(gin *MyContext) {
 	}
 
 	info, err := gin.CoreContext.ReportClient.GetAccountInfo()
+
 	if err != nil {
-		gin.JSON(http.StatusBadRequest, BadRequest(fmt.Sprintf("Failed to get account information: %s", err)))
+		log.GetLogger().Error(fmt.Sprintf("Failed to get account information: %s", err))
+		gin.JSON(http.StatusOK, Success(info))
 	} else {
 		gin.JSON(http.StatusOK, Success(info))
 	}

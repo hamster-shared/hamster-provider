@@ -669,6 +669,7 @@ func (cc *ChainClient) ReceiveIncome() error {
 
 func (cc *ChainClient) GetAccountInfo() (*AccountInfo, error) {
 	cf, err := cc.cm.GetConfig()
+
 	if err != nil {
 		return nil, err
 	}
@@ -676,29 +677,32 @@ func (cc *ChainClient) GetAccountInfo() (*AccountInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+	var accountInfo = &AccountInfo{
+		Address: keypair.Address,
+		Amount:  types.NewU128(*big.NewInt(0)),
+	}
+
 	meta, err := cc.api.RPC.State.GetMetadataLatest()
 	if err != nil {
-		return nil, err
+		return accountInfo, err
 	}
 
 	// Get the nonce for Account
 	key, err := types.CreateStorageKey(meta, "System", "Account", keypair.PublicKey)
 	if err != nil {
-		return nil, err
+		return accountInfo, err
 	}
 
 	var account AccountInfoCustom
 	ok, err := cc.api.RPC.State.GetStorageLatest(key, &account)
 	if err != nil {
-		return nil, err
+		return accountInfo, err
 	}
 	if !ok {
-		return nil, errors.New("failed to get account information")
+		return accountInfo, errors.New("failed to get account information")
 	}
-	var accountInfo AccountInfo
-	accountInfo.Address = keypair.Address
 	accountInfo.Amount = account.Data.Free
-	return &accountInfo, nil
+	return accountInfo, nil
 }
 
 func (cc *ChainClient) GetStakingInfo() (*StakingAmount, error) {

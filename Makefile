@@ -3,6 +3,8 @@ VERSION = v1.3.0
 web:
 	cd frontend && npm install
 	cd frontend && npm run build
+	rm -rf core/corehttp/dist
+	cp -r frontend/dist core/corehttp/
 
 linux:
 	rm -rf ./hamster-provider-$(VERSION)-linux-amd64.tar.gz
@@ -12,9 +14,6 @@ linux:
 	tar -czvf ./hamster-provider-$(VERSION)-linux-amd64.tar.gz ./hamster-provider
 
 macos:
-	cd frontend && yarn && yarn build
-	rm -rf core/corehttp/dist
-	cp -r frontend/dist core/corehttp/
 	rm -rf ./hamster-provider-$(VERSION)-darwin-amd64.tar.gz
 	CGO_ENABLED=0 GOOS=darwin GOARCH=amd64  go build -o build/bin
  	# gon -log-level=info ./build/darwin/gon-sign.json

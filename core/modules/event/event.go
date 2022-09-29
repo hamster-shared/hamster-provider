@@ -15,6 +15,7 @@ type VmRequest struct {
 	OrderNo     uint64
 	AgreementNo uint64
 	Duration    uint64
+	DeployType  uint32
 }
 
 func (req *VmRequest) getName() string {

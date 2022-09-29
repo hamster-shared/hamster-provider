@@ -1,6 +1,7 @@
 package event
 
 import (
+	"fmt"
 	"github.com/hamster-shared/hamster-provider/core/modules/provider/thegraph"
 	"github.com/hamster-shared/hamster-provider/log"
 	"time"
@@ -12,6 +13,8 @@ type TheGraphHandler struct {
 }
 
 func (h *TheGraphHandler) HandlerEvent(e *VmRequest) {
+
+	fmt.Println("deployType: ", e.DeployType)
 
 	log.GetLogger().Info("the graph register")
 
@@ -57,6 +60,7 @@ func (h *TheGraphHandler) HandlerEvent(e *VmRequest) {
 
 	agreementIndex := h.CoreContext.GetConfig().ChainRegInfo.AgreementIndex
 	resourceIndex := h.CoreContext.GetConfig().ChainRegInfo.ResourceIndex
+
 	go func(t *time.Timer) {
 		<-t.C
 		log.GetLogger().Printf("over due time is : %d, now  terminal", overdue)
