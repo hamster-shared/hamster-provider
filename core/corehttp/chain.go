@@ -17,12 +17,7 @@ import (
 )
 
 func pullImageChain(c *MyContext) {
-	chainName := c.Query("chainName")
-	if chainName == "" {
-		c.JSON(http.StatusBadRequest, BadRequest("not found chainName"))
-		return
-	}
-	chain, err := getChain(chainName)
+	chain, err := getChain(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, BadRequest(err.Error()))
 		return
@@ -36,12 +31,7 @@ func pullImageChain(c *MyContext) {
 }
 
 func startChain(c *MyContext) {
-	chainName := c.Query("chainName")
-	if chainName == "" {
-		c.JSON(http.StatusBadRequest, BadRequest("not found chainName"))
-		return
-	}
-	chain, err := getChain(chainName)
+	chain, err := getChain(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, BadRequest(err.Error()))
 		return
@@ -55,12 +45,7 @@ func startChain(c *MyContext) {
 }
 
 func stopChain(c *MyContext) {
-	chainName := c.Query("chainName")
-	if chainName == "" {
-		c.JSON(http.StatusBadRequest, BadRequest("not found chainName"))
-		return
-	}
-	chain, err := getChain(chainName)
+	chain, err := getChain(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, BadRequest(err.Error()))
 		return
@@ -74,12 +59,7 @@ func stopChain(c *MyContext) {
 }
 
 func getChainStatus(c *MyContext) {
-	chainName := c.Query("chainName")
-	if chainName == "" {
-		c.JSON(http.StatusBadRequest, BadRequest("not found chainName"))
-		return
-	}
-	chain, err := getChain(chainName)
+	chain, err := getChain(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, BadRequest(err.Error()))
 		return
@@ -92,25 +72,33 @@ func getChainStatus(c *MyContext) {
 	}
 }
 
-func getChain(name string) (provider.Chain, error) {
-	switch name {
-	case "aptos":
+func getChain(c *MyContext) (provider.Chain, error) {
+	deployType := c.CoreContext.GetConfig().ChainRegInfo.DeployType
+
+	switch deployType {
+	case 1:
 		return aptos.New(), nil
-	case "avalanche":
-		return avalanche.New(), nil
-	case "ethereum":
-		return ethereum.New(), nil
-	case "near":
-		return near.New(), nil
-	case "starkware":
-		return starkware.New(), nil
-	case "sui":
+	case 2:
 		return sui.New(), nil
-	case "polygon":
+	case 3:
+		return ethereum.New(), nil
+	case 4:
+		return nil, fmt.Errorf("not support deployType %d", deployType)
+	case 5:
 		return polygon.New(), nil
-	case "optimism":
+	case 6:
+		return avalanche.New(), nil
+	case 7:
 		return optimism.New(), nil
+	case 8:
+		return nil, fmt.Errorf("not support deployType %d", deployType)
+	case 9:
+		return starkware.New(), nil
+	case 10:
+		return near.New(), nil
+	case 11:
+		return nil, fmt.Errorf("not support deployType %d", deployType)
 	default:
-		return nil, fmt.Errorf("not found chain %s", name)
+		return nil, fmt.Errorf("not support deployType %d", deployType)
 	}
 }
