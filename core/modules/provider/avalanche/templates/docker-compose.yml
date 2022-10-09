@@ -9,6 +9,5 @@ services:
       - "avalanche-data:/root"
     command:
       - "/avalanchego/build/avalanchego"
-
 volumes:
   avalanche-data: {}

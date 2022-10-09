@@ -75,7 +75,7 @@ services:
     image: grafana/grafana:${IMAGE_TAG__GRAFANA:-7.5.5}
     restart: ${RESTART}
     env_file:
-      -  ./envs/${NETWORK_NAME}/grafana.env
+      - ./envs/${NETWORK_NAME}/grafana.env
     ports:
       - ${PORT__GRAFANA:-3000}:3000
     volumes:

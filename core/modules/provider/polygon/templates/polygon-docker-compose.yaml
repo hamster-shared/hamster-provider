@@ -1,0 +1,132 @@
+version: "3"
+services:
+  heimdall-init:
+    image: 0xpolygon/heimdall:0.2.11
+    volumes:
+      - ./polygon/heimdall:/heimdall-home:rw
+    entrypoint: /usr/local/bin/heimdalld
+    command:
+      - init
+      - --home=/heimdall-home
+  heimdall-need:
+    image: archlinux
+    depends_on:
+      - heimdall-init
+    volumes:
+      - ./polygon/heimdall:/heimdall-home:rw
+    command:
+      - bash
+      - -c
+      - |
+        pacman -Sy --noconfirm
+        pacman -S --noconfirm sd curl
+        sd 'moniker = "[a-zA-Z0-9]{12}"' 'moniker="examplenode01"' /heimdall-home/config/config.toml
+        sd 'laddr = "tcp://127.0.0.1:26657"' 'laddr = "tcp://0.0.0.0:26657"' /heimdall-home/config/config.toml
+        sd 'seeds = ""' 'seeds="f4f605d60b8ffaaf15240564e58a81103510631c@159.203.9.164:26656,4fb1bc820088764a564d4f66bba1963d47d82329@44.232.55.71:26656,2eadba4be3ce47ac8db0a3538cb923b57b41c927@35.199.4.13:26656,3b23b20017a6f348d329c102ddc0088f0a10a444@35.221.13.28:26656,25f5f65a09c56e9f1d2d90618aa70cd358aa68da@35.230.116.151:26656"' /heimdall-home/config/config.toml
+        sd 'eth_rpc_url = "http://localhost:9545"' 'eth_rpc_url = "https://eth-mainnet.g.alchemy.com/v2/ydmGjsREDACTED_DONT_USE9t7FSf"' /heimdall-home/config/heimdall-config.toml
+        sd 'bor_rpc_url = "http://localhost:8545"' 'bor_rpc_url = "http://bor:8545"' /heimdall-home/config/heimdall-config.toml
+        curl -o /heimdall-home/config/genesis.json https://raw.githubusercontent.com/maticnetwork/heimdall/develop/builder/files/genesis-mainnet-v1.json
+  heimdall:
+    image: 0xpolygon/heimdall:0.2.11
+    depends_on:
+      - heimdall-need
+    ports:
+      - "26657:26657"
+      - "26656:26656"
+    volumes:
+      - ./polygon/heimdall:/heimdall-home:rw
+    entrypoint: /usr/local/bin/heimdalld
+    restart: unless-stopped
+    networks:
+      - polygon
+    command:
+      - start
+      - --home=/heimdall-home
+  heimdallrest:
+    image: 0xpolygon/heimdall:0.2.11
+    depends_on:
+      - heimdall-need
+    ports:
+      - "1317:1317"
+    volumes:
+      - ./polygon/heimdall:/heimdall-home:rw
+    entrypoint: /usr/local/bin/heimdalld
+    restart: unless-stopped
+    networks:
+      - polygon
+    command:
+      - rest-server
+      - --home=/heimdall-home
+  bor-need:
+    image: archlinux
+    volumes:
+      - ./polygon/bor:/bor-home:rw
+    command:
+      - bash
+      - -c
+      - |
+        pacman -Sy --noconfirm
+        pacman -S --noconfirm sd curl
+        curl -o /bor-home/genesis.json 'https://raw.githubusercontent.com/maticnetwork/bor/develop/builder/files/genesis-mainnet-v1.json'
+  bor-init:
+    image: 0xpolygon/bor:0.2.16
+    depends_on:
+      - bor-need
+    restart: on-failure
+    volumes:
+      - ./polygon/bor:/bor-home:rw
+    command:
+      - --datadir=/bor-home
+      - init
+      - /bor-home/genesis.json
+  bor:
+    image: 0xpolygon/bor:0.2.16
+    depends_on:
+      - bor-init
+    volumes:
+      - ./polygon/bor:/bor-home:rw
+    ports:
+      - "30303:30303"
+      - "8545:8545"
+    restart: unless-stopped
+    networks:
+      - polygon
+    command:
+      - --datadir=/bor-home
+      - --port=30303
+      - --bor.heimdall='http://heimdallrest:1317'
+      - --http
+      - --http.addr
+      - '0.0.0.0'
+      - --http.vhosts
+      - '*'
+      - --http.corsdomain
+      - '*'
+      - --http.port=8545
+      - --ipcpath
+      - /bor-home/bor.ipc
+      - --http.api
+      - 'eth,net,web3,txpool,bor'
+      - --syncmode
+      - 'full'
+      - --bor-mainnet
+      - --miner.gasprice
+      - '30000000000'
+      - --miner.gaslimit
+      - '20000000'
+      - --miner.gastarget
+      - '20000000'
+      - --txpool.nolocals
+      - --txpool.accountslots=16
+      - --txpool.globalslots=32768
+      - --txpool.accountqueue=16
+      - --txpool.globalqueue=32768
+      - --txpool.pricelimit
+      - '30000000000'
+      - --txpool.lifetime
+      - '1h30m0s'
+      - --maxpeers=200
+      - --bootnodes
+      - "enode://0cb82b395094ee4a2915e9714894627de9ed8498fb881cec6db7c65e8b9a5bd7f2f25cc84e71e89d0947e51c76e85d0847de848c7782b13c0255247a6758178c@44.232.55.71:30303,enode://88116f4295f5a31538ae409e4d44ad40d22e44ee9342869e7d68bdec55b0f83c1530355ce8b41fbec0928a7d75a5745d528450d30aec92066ab6ba1ee351d710@159.203.9.164:30303"
+networks:
+  polygon:

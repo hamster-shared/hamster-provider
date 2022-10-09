@@ -1,14 +1,24 @@
 ### SS58Auth - Error Empty "not found SS58AuthData"
-GET http://localhost:34003/api/v1/thegraph/status?serviceName=123
+GET http://localhost:35003/api/v1/thegraph/status?serviceName=123
 
 ### SS58Auth - Error Format "parse SS58AuthData error"
-GET http://localhost:34003/api/v1/thegraph/status?serviceName=123
+GET http://localhost:35003/api/v1/thegraph/status?serviceName=123
 SS58AuthData: Error Format
 
 ### SS58Auth - Right
-GET http://localhost:34003/api/v1/thegraph/status?serviceName=123
+GET http://localhost:35003/api/v1/thegraph/status?serviceName=123
 SS58AuthData: 5HpGQhD72vZGgAFMMiCDY61mHYtANs6B4kZXrpptGm276KnT:hello:b2146a773345dce02a4c7c7416a9b215d19157842f427f6ad991e3f40e24271add31cecc28c6d8a610a0c1cb74e24b6218c7139345ee57b5b7fbd1ba96fb6688
 
 ### graphConnect
-GET 127.0.0.1:34003/api/v1/thegraph/connect
+GET 127.0.0.1:35003/api/v1/thegraph/connect
 SS58AuthData: 5HpGQhD72vZGgAFMMiCDY61mHYtANs6B4kZXrpptGm276KnT:hello:b2146a773345dce02a4c7c7416a9b215d19157842f427f6ad991e3f40e24271add31cecc28c6d8a610a0c1cb74e24b6218c7139345ee57b5b7fbd1ba96fb6688
+
+
+### pullImage
+GET 127.0.0.1:35003/api/v1/chains/pullImage
+### start
+GET 127.0.0.1:35003/api/v1/chains/start
+### stop
+GET 127.0.0.1:35003/api/v1/chains/stop
+### status
+GET 127.0.0.1:35003/api/v1/chains/status
