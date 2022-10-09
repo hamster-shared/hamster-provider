@@ -80,13 +80,12 @@ func StartApi(ctx *context.CoreContext) error {
 	}
 
 	chainServer := NewMyServer(ctx)
-
-	thegraph := chainServer.Group("/api/v1/thegraph")
 	chainServer.GET("/version", func(c *MyContext) {
 		c.JSON(200, VersionVo{
 			Version: "1.3.1",
 		})
 	})
+	thegraph := chainServer.Group("/api/v1/thegraph")
 	thegraph.Use(SS58AuthMiddleware)
 	{
 		// deploy process
@@ -104,9 +103,9 @@ func StartApi(ctx *context.CoreContext) error {
 
 	chains := chainServer.Group("/api/v1/chains")
 	{
-		chains.GET("/pullImage", pullImageChain)
-		chains.GET("/start", startChain)
-		chains.GET("/stop", stopChain)
+		chains.POST("/pullImage", pullImageChain)
+		chains.POST("/start", startChain)
+		chains.POST("/stop", stopChain)
 		chains.GET("/status", getChainStatus)
 	}
 

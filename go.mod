@@ -3,7 +3,7 @@ module github.com/hamster-shared/hamster-provider
 go 1.17
 
 require (
-	github.com/centrifuge/go-substrate-rpc-client/v4 v4.0.0
+	github.com/centrifuge/go-substrate-rpc-client/v4 v4.0.7
 	github.com/docker/docker v20.10.17+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/gin-contrib/static v0.0.1
@@ -32,7 +32,7 @@ require (
 	github.com/docker/cli v20.10.17+incompatible
 	github.com/docker/compose/v2 v2.6.1
 	github.com/ethereum/go-ethereum v1.10.20
-	github.com/gorilla/websocket v1.4.2
+	github.com/gorilla/websocket v1.5.0
 	github.com/ipfs/go-log/v2 v2.3.0
 	github.com/libvirt/libvirt-go v7.4.0+incompatible
 	github.com/minio/blake2b-simd v0.0.0-20160723061019-3f5f724cb5b1
@@ -206,7 +206,7 @@ require (
 	github.com/prometheus/procfs v0.7.3 // indirect
 	github.com/qri-io/jsonpointer v0.1.1 // indirect
 	github.com/qri-io/jsonschema v0.2.2-0.20210831022256-780655b2ba0e // indirect
-	github.com/rs/cors v1.8.0 // indirect
+	github.com/rs/cors v1.8.2 // indirect
 	github.com/sanathkr/go-yaml v0.0.0-20170819195128-ed9d249f429b // indirect
 	github.com/spacemonkeygo/spacelog v0.0.0-20180420211403-2296661a0572 // indirect
 	github.com/spf13/afero v1.6.0 // indirect

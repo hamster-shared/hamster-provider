@@ -7,17 +7,21 @@ import (
 type Ethereum struct {
 	composeFileName string
 	base            *provider.DockerComposeBase
+	network         string
 }
 
-func New() *Ethereum {
+func New(network string) *Ethereum {
 	return &Ethereum{
 		composeFileName: ethereumComposeFileName,
 		base:            &provider.DockerComposeBase{},
+		network:         network,
 	}
 }
 
 func (s *Ethereum) PullImage() error {
-	if err := templateInstance(DeployParams{}); err != nil {
+	if err := templateInstance(DeployParams{
+		Network: s.network,
+	}); err != nil {
 		return err
 	}
 	return s.base.PullImage(s.composeFileName)

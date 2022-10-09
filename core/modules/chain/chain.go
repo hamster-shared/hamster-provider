@@ -6,6 +6,7 @@ import (
 	gsrpc "github.com/centrifuge/go-substrate-rpc-client/v4"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/types"
+	"github.com/centrifuge/go-substrate-rpc-client/v4/types/codec"
 	"github.com/hamster-shared/hamster-provider/core/modules/config"
 	"github.com/hamster-shared/hamster-provider/log"
 	"math/big"
@@ -539,7 +540,7 @@ func (cc *ChainClient) GetResource(resourceIndex uint64) (*ComputingResource, er
 		log.GetLogger().Info(err)
 		return nil, err
 	}
-	bytes, err := types.EncodeToBytes(types.NewU64(resourceIndex))
+	bytes, err := codec.Encode(resourceIndex)
 	if err != nil {
 		return nil, err
 	}
@@ -582,7 +583,7 @@ func (cc *ChainClient) getRentalAgreement(agreementIndex uint64) (*RentalAgreeme
 	if err != nil {
 		return nil, err
 	}
-	param, _ := types.EncodeToBytes(types.NewU64(agreementIndex))
+	param, _ := codec.Encode(types.NewU64(agreementIndex))
 	key, err := types.CreateStorageKey(meta, "ResourceOrder", "RentalAgreements", param)
 	var data RentalAgreement
 	ok, err := cc.api.RPC.State.GetStorageLatest(key, &data)
@@ -614,7 +615,7 @@ func (cc *ChainClient) GetOrder(orderIndex uint64) (*ComputingOrder, error) {
 		log.GetLogger().Info(err)
 		return nil, err
 	}
-	bytes, err := types.EncodeToBytes(types.NewU64(orderIndex))
+	bytes, err := codec.Encode(types.NewU64(orderIndex))
 	if err != nil {
 		return nil, err
 	}

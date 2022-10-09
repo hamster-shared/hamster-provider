@@ -14,7 +14,9 @@ var (
 	ethereumComposeFileName = "ethereum-docker-compose.yml"
 )
 
-type DeployParams struct{}
+type DeployParams struct {
+	Network string
+}
 
 //go:embed templates/docker-compose.yml
 var templateFile embed.FS

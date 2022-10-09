@@ -5,6 +5,7 @@ import (
 	"fmt"
 	gsrpc "github.com/centrifuge/go-substrate-rpc-client/v4"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/types"
+	"github.com/centrifuge/go-substrate-rpc-client/v4/types/codec"
 	chain2 "github.com/hamster-shared/hamster-provider/core/modules/chain"
 	"github.com/hamster-shared/hamster-provider/core/modules/config"
 	"github.com/hamster-shared/hamster-provider/core/modules/event"
@@ -135,7 +136,7 @@ func (l *ChainListener) watchEvent(ctx context.Context, channel chan bool) {
 		case set := <-sub.Chan():
 			log.GetLogger().Info("watch ：", set.Block.Hex())
 			for _, chng := range set.Changes {
-				if !types.Eq(chng.StorageKey, key) || !chng.HasStorageData {
+				if !codec.Eq(chng.StorageKey, key) || !chng.HasStorageData {
 					// skip, we are only interested in events with content
 					continue
 				}

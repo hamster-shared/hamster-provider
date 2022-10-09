@@ -81,7 +81,13 @@ func getChain(c *MyContext) (provider.Chain, error) {
 	case 2:
 		return sui.New(), nil
 	case 3:
-		return ethereum.New(), nil
+		var param EthereumDeployParam
+		err := c.BindJSON(&param)
+
+		if err != nil {
+			return nil, err
+		}
+		return ethereum.New(param.Network), nil
 	case 4:
 		return nil, fmt.Errorf("not support deployType %d", deployType)
 	case 5:
