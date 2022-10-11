@@ -2,6 +2,7 @@ package event
 
 import (
 	"fmt"
+	"github.com/hamster-shared/hamster-provider/core/modules/factory"
 	"github.com/hamster-shared/hamster-provider/core/modules/provider/thegraph"
 	"github.com/hamster-shared/hamster-provider/log"
 	"time"
@@ -66,7 +67,11 @@ func (h *TheGraphHandler) HandlerEvent(e *VmRequest) {
 		log.GetLogger().Printf("over due time is : %d, now  terminal", overdue)
 		thegraph.SetIsServer(false)
 		//_, _ = h.CoreContext.P2pClient.Close(targetListen)
-		_ = thegraph.Uninstall()
+		deployType := h.CoreContext.GetConfig().ChainRegInfo.DeployType
+		chain, err := factory.GetChain(deployType)
+		if err == nil {
+			_ = chain.Stop()
+		}
 		_ = h.CoreContext.ReportClient.ChangeResourceStatus(resourceIndex)
 		h.CoreContext.TimerService.UnSubTicker(agreementIndex)
 	}(instanceTimer)

@@ -1,6 +1,7 @@
 package sui
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/hamster-shared/hamster-provider/core/modules/provider"
 )
 
@@ -14,6 +15,11 @@ func New() *Sui {
 		composeFileName: suiComposeFileName,
 		base:            &provider.DockerComposeBase{},
 	}
+}
+
+func (s *Sui) InitParam(c *gin.Context) error {
+
+	return nil
 }
 
 func (s *Sui) PullImage() error {

@@ -1,12 +1,15 @@
 package near
 
 import (
+	"github.com/gin-gonic/gin"
+	"github.com/hamster-shared/hamster-provider/core/model"
 	"github.com/hamster-shared/hamster-provider/core/modules/provider"
 )
 
 type Near struct {
 	composeFileName string
 	base            *provider.DockerComposeBase
+	network         string
 }
 
 func New() *Near {
@@ -16,8 +19,20 @@ func New() *Near {
 	}
 }
 
+func (s *Near) InitParam(c *gin.Context) error {
+	var param model.CommonDeployParam
+	err := c.BindJSON(&param)
+	if err != nil {
+		return err
+	}
+	s.network = param.Network
+	return nil
+}
+
 func (s *Near) PullImage() error {
-	if err := templateInstance(DeployParams{}); err != nil {
+	if err := templateInstance(DeployParams{
+		Network: s.network,
+	}); err != nil {
 		return err
 	}
 	return s.base.PullImage(s.composeFileName)

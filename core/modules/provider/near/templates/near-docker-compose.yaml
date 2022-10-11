@@ -7,6 +7,9 @@ services:
       - near-data-volume:/root/.near
     ports:
       - "3030:3030"
-    command: ["run", "testnet"]
+    command: ["run", "{{ .Network }}"]
 volumes:
   near-data-volume:
+
+#    Network:
+#    shardnet|guildnet|testnet|betanet|mainnet|localnet

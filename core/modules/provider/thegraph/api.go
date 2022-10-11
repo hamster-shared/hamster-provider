@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/hamster-shared/hamster-provider/core/modules/compose/client"
 	"github.com/hamster-shared/hamster-provider/core/modules/config"
+	"github.com/hamster-shared/hamster-provider/core/modules/provider"
 	log "github.com/sirupsen/logrus"
 	"path/filepath"
 	"strings"
@@ -22,6 +24,37 @@ func IsServer() bool {
 
 func SetIsServer(status bool) {
 	isServe = status
+}
+
+type Thegraph struct {
+	composeFileName string
+	base            *provider.DockerComposeBase
+}
+
+var (
+	ThegraphComposeFileName = "docker-compose.yml"
+)
+
+func New() *Thegraph {
+	return &Thegraph{
+		composeFileName: ThegraphComposeFileName,
+		base:            &provider.DockerComposeBase{},
+	}
+}
+
+func (t *Thegraph) InitParam(c *gin.Context) error {
+
+	return nil
+}
+func (t *Thegraph) PullImage() error {
+	return pullImages()
+}
+func (s *Thegraph) Start() error { return s.base.Start(s.composeFileName) }
+
+func (s *Thegraph) Stop() error { return s.base.Stop(s.composeFileName) }
+
+func (s *Thegraph) GetStatus(containerIDs ...string) (provider.ComposeStatus, error) {
+	return s.base.GetStatus(s.composeFileName, containerIDs...)
 }
 
 func Deploy(data DeployParams) error {

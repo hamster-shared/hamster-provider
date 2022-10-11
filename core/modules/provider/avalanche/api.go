@@ -1,6 +1,7 @@
 package avalanche
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/hamster-shared/hamster-provider/core/modules/provider"
 )
 
@@ -14,6 +15,11 @@ func New() *Avalanche {
 		composeFileName: avalancheComposeFileName,
 		base:            &provider.DockerComposeBase{},
 	}
+}
+
+func (s *Avalanche) InitParam(c *gin.Context) error {
+
+	return nil
 }
 
 func (s *Avalanche) PullImage() error {

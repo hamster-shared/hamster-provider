@@ -1,6 +1,7 @@
 package aptos
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/hamster-shared/hamster-provider/core/modules/provider"
 )
 
@@ -14,6 +15,11 @@ func New() *Aptos {
 		composeFileName: aptosComposeFileName,
 		base:            &provider.DockerComposeBase{},
 	}
+}
+
+func (a *Aptos) InitParam(c *gin.Context) error {
+
+	return nil
 }
 
 func (a *Aptos) PullImage() error {

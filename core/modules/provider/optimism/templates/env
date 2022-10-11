@@ -39,7 +39,7 @@ PORT__DTL=
 PORT__HEALTHCHECK_METRICS=
 PORT__FAULT_DETECTOR_METRICS=
 PORT__PROMETHEUS=
-PORT__GRAFANA=
+PORT__GRAFANA=9000
 PORT__INFLUXDB=
 
 ###############################################################################

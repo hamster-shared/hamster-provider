@@ -1,6 +1,8 @@
 package ethereum
 
 import (
+	"github.com/gin-gonic/gin"
+	"github.com/hamster-shared/hamster-provider/core/model"
 	"github.com/hamster-shared/hamster-provider/core/modules/provider"
 )
 
@@ -10,12 +12,21 @@ type Ethereum struct {
 	network         string
 }
 
-func New(network string) *Ethereum {
+func New() *Ethereum {
 	return &Ethereum{
 		composeFileName: ethereumComposeFileName,
 		base:            &provider.DockerComposeBase{},
-		network:         network,
 	}
+}
+
+func (e *Ethereum) InitParam(c *gin.Context) error {
+	var param model.CommonDeployParam
+	err := c.BindJSON(&param)
+	if err != nil {
+		return err
+	}
+	e.network = param.Network
+	return nil
 }
 
 func (s *Ethereum) PullImage() error {

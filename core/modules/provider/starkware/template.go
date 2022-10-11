@@ -14,7 +14,9 @@ var (
 	starkwareComposeFileName = "starkware-docker-compose.yml"
 )
 
-type DeployParams struct{}
+type DeployParams struct {
+	EthereumApiUrl string
+}
 
 //go:embed templates/starkware-docker-compose.yaml
 var templateFile embed.FS
@@ -40,4 +42,3 @@ func templateInstance(deployParam DeployParams) error {
 	}
 	return nil
 }
-

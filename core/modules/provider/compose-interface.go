@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"os"
 	"path/filepath"
 
@@ -18,6 +19,7 @@ type Chain interface {
 }
 
 type DockerCompose interface {
+	InitParam(c *gin.Context) error
 	PullImage() error
 	Start() error
 	Stop() error

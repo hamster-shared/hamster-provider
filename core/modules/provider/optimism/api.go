@@ -1,6 +1,7 @@
 package optimism
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/hamster-shared/hamster-provider/core/modules/provider"
 )
 
@@ -14,6 +15,11 @@ func New() *Optimism {
 		composeFileName: optimismComposeFileName,
 		base:            &provider.DockerComposeBase{},
 	}
+}
+
+func (s *Optimism) InitParam(c *gin.Context) error {
+
+	return nil
 }
 
 func (s *Optimism) PullImage() error {

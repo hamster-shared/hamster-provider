@@ -1,6 +1,7 @@
 package event
 
 import (
+	"github.com/hamster-shared/hamster-provider/core/modules/factory"
 	"github.com/hamster-shared/hamster-provider/core/modules/provider/thegraph"
 	"github.com/hamster-shared/hamster-provider/log"
 )
@@ -20,12 +21,18 @@ func (h *DestroyVmHandler) HandlerEvent(e *VmRequest) {
 		agreementNo = h.CoreContext.GetConfig().ChainRegInfo.AgreementIndex
 	}
 
-	_ = thegraph.Uninstall()
+	//_ = thegraph.Uninstall()
+	deployType := h.CoreContext.GetConfig().ChainRegInfo.DeployType
+	chain, err := factory.GetChain(deployType)
+	if err == nil {
+		_ = chain.Stop()
+	}
 	thegraph.SetIsServer(false)
 	h.CoreContext.TimerService.UnSubTimer(agreementNo)
 	h.CoreContext.TimerService.UnSubTicker(agreementNo)
 	cfg := h.CoreContext.GetConfig()
 	cfg.ChainRegInfo.AccountAddress = ""
+	cfg.ChainRegInfo.DeployType = 0
 	_ = h.CoreContext.Cm.Save(cfg)
 }
 

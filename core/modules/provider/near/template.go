@@ -14,7 +14,9 @@ var (
 	nearComposeFileName = "near-docker-compose.yml"
 )
 
-type DeployParams struct{}
+type DeployParams struct {
+	Network string
+}
 
 //go:embed templates/near-docker-compose.yaml
 var templateFile embed.FS
@@ -40,4 +42,3 @@ func templateInstance(deployParam DeployParams) error {
 	}
 	return nil
 }
-

@@ -1,6 +1,7 @@
 package polygon
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/hamster-shared/hamster-provider/core/modules/provider"
 )
 
@@ -14,6 +15,11 @@ func New() *Polygon {
 		composeFileName: polygonComposeFileName,
 		base:            &provider.DockerComposeBase{},
 	}
+}
+
+func (a *Polygon) InitParam(c *gin.Context) error {
+
+	return nil
 }
 
 func (s *Polygon) PullImage() error {

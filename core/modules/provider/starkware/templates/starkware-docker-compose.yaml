@@ -6,8 +6,8 @@ services:
     container_name: starkware-pathfinder
     environment:
       - RUST_LOG=debug
-      - PATHFINDER_ETHEREUM_API_URL=http://localhost:8545
-      - PATHFINDER_ETHEREUM_API_PASSWORD=abc
+      - PATHFINDER_ETHEREUM_API_URL={{ .EthereumApiUrl }}
+      - PATHFINDER_ETHEREUM_API_PASSWORD=
     volumes:
       - starkware-pathfinder-data-volume:/usr/share/pathfinder/data
     ports:

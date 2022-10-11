@@ -1,12 +1,15 @@
 package starkware
 
 import (
+	"github.com/gin-gonic/gin"
+	"github.com/hamster-shared/hamster-provider/core/model"
 	"github.com/hamster-shared/hamster-provider/core/modules/provider"
 )
 
 type Starkware struct {
 	composeFileName string
 	base            *provider.DockerComposeBase
+	ethereumApiUrl  string
 }
 
 func New() *Starkware {
@@ -16,8 +19,21 @@ func New() *Starkware {
 	}
 }
 
+func (s *Starkware) InitParam(c *gin.Context) error {
+
+	var param model.StarkwareDeployParam
+	err := c.BindJSON(&param)
+	if err != nil {
+		return err
+	}
+	s.ethereumApiUrl = param.EthereumApiUrl
+	return nil
+}
+
 func (s *Starkware) PullImage() error {
-	if err := templateInstance(DeployParams{}); err != nil {
+	if err := templateInstance(DeployParams{
+		s.ethereumApiUrl,
+	}); err != nil {
 		return err
 	}
 	return s.base.PullImage(s.composeFileName)
