@@ -7,17 +7,17 @@
             {{ t('resourceDetail.detail.increaseDuration') }}
           </a-button>
           <a-button type="primary" @click="rentAgain" :disabled="state.disabled">
-            {{ t('resourceDetail.detail.rentAgain') }}</a-button
-          >
+            {{ t('resourceDetail.detail.rentAgain') }}
+          </a-button>
           <a-button type="primary" @click="deleteResource" :disabled="state.disabled">
-            {{ t('resourceDetail.detail.deleteResource') }}</a-button
-          >
+            {{ t('resourceDetail.detail.deleteResource') }}
+          </a-button>
         </template>
         <div class="pt-4 m-4 desc-wrap">
           <a-descriptions
             :title="t('resourceDetail.detail.resourceInformation')"
             size="small"
-            :column="2"
+            layout="vertical"
           >
             <a-descriptions-item :label="t('resourceDetail.detail.resourceID')">
               {{ resourceData.index }}
@@ -261,6 +261,9 @@
   }
 </script>
 <style lang="less" scoped>
+  :deep(.vben-page-wrapper .vben-page-wrapper-content) {
+    border-radius: 6px;
+  }
   .desc-wrap {
     padding: 16px;
     background-color: @component-background;
@@ -295,6 +298,30 @@
     .staking-btn-ok {
       background-color: rgb(24, 144, 255);
       color: white;
+    }
+  }
+
+  :deep(.ant-descriptions-header) {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 20px;
+    margin-bottom: 10px;
+    .ant-descriptions-title {
+      margin-top: -12px;
+    }
+  }
+  :deep(.ant-descriptions-item-container) {
+    .ant-descriptions-item-label {
+      color: #2e3c43;
+      margin-top: 28px;
+      &::after {
+        content: '';
+      }
+    }
+    .ant-descriptions-item-content {
+      color: #222;
+      line-height: 1;
+      font-size: 16px;
+      font-weight: 500;
     }
   }
 </style>
