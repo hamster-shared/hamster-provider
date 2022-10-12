@@ -1,5 +1,5 @@
 export default {
-  incomeInfo: 'income information',
-  income: 'income',
+  incomeInfo: 'Income information',
+  income: 'Income',
   withdraw: 'withdraw',
-}
+};

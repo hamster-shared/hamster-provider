@@ -6,7 +6,7 @@ export const chainSchemas: FormSchema[] = [
   {
     field: 'address',
     component: 'Select',
-    label: 'chainAddress',
+    label: 'ChainAddress:',
     colProps: { span: 12 },
     componentProps: {
       options: [
@@ -19,22 +19,23 @@ export const chainSchemas: FormSchema[] = [
   {
     field: 'account',
     component: 'Input',
-    label: 'account',
+    label: 'Account:',
     colProps: { span: 12 },
     componentProps: {
       placeholder: t('initialization.initialization.seedTip'),
     },
     rules: [{ required: true }],
   },
-]
+];
 
 // 基础设置 form
 export const vmSchemas: FormSchema[] = [
   {
     field: 'cpu',
     component: 'InputNumber',
-    label: 'cpu',
+    label: 'CPU:',
     colProps: { span: 12 },
+    labelWidth: '65px',
     rules: [{ required: true }],
   },
   {
@@ -44,45 +45,45 @@ export const vmSchemas: FormSchema[] = [
     colProps: { span: 12 },
     rules: [{ required: true }],
   },
-  {
-    field: 'disk',
-    component: 'InputNumber',
-    label: t('initialization.initialization.disk'),
-    colProps: { span: 12 },
-    rules: [{ required: true }],
-  },
-  {
-    field: 'system',
-    component: 'Input',
-    label: t('initialization.initialization.system'),
-    colProps: { span: 12 },
-    rules: [{ required: true }],
-  },
-  {
-    field: 'image',
-    component: 'Input',
-    label: t('initialization.initialization.image'),
-    colProps: { span: 12 },
-    rules: [{ required: true }],
-  },
-  {
-    field: 'accessPort',
-    component: 'InputNumber',
-    label: t('initialization.initialization.accessPort'),
-    colProps: { span: 12 },
-    rules: [{ required: true }],
-  },
-  {
-    field: 'type',
-    component: 'Select',
-    componentProps: {
-      options: [
-        { label: 'kvm', value: 'kvm' },
-        { label: 'docker', value: 'docker' },
-      ],
-    },
-    label: t('initialization.initialization.type'),
-    colProps: { span: 12 },
-    rules: [{ required: true }],
-  },
+  // {
+  //   field: 'disk',
+  //   component: 'InputNumber',
+  //   label: t('initialization.initialization.disk'),
+  //   colProps: { span: 12 },
+  //   rules: [{ required: true }],
+  // },
+  // {
+  //   field: 'system',
+  //   component: 'Input',
+  //   label: t('initialization.initialization.system'),
+  //   colProps: { span: 12 },
+  //   rules: [{ required: true }],
+  // },
+  // {
+  //   field: 'image',
+  //   component: 'Input',
+  //   label: t('initialization.initialization.image'),
+  //   colProps: { span: 12 },
+  //   rules: [{ required: true }],
+  // },
+  // {
+  //   field: 'accessPort',
+  //   component: 'InputNumber',
+  //   label: t('initialization.initialization.accessPort'),
+  //   colProps: { span: 12 },
+  //   rules: [{ required: true }],
+  // },
+  // {
+  //   field: 'type',
+  //   component: 'Select',
+  //   componentProps: {
+  //     options: [
+  //       { label: 'kvm', value: 'kvm' },
+  //       { label: 'docker', value: 'docker' },
+  //     ],
+  //   },
+  //   label: t('initialization.initialization.type'),
+  //   colProps: { span: 12 },
+  //   rules: [{ required: true }],
+  // },
 ];

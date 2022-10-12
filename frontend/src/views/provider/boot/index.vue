@@ -1,5 +1,5 @@
 <template>
-  <PageWrapper title="boot">
+  <PageWrapper title="Boot">
     <template #headerContent>
       <div class="flex justify-between items-center">
         <span class="flex-1">
@@ -9,7 +9,7 @@
       </div>
     </template>
 
-    <div class="py-8 bg-white flex flex-col justify-center items-center">
+    <div class="py-8 bg-white flex flex-col justify-center items-center rounded-md">
       <div class="flex justify-center">
         <Switch
           v-model:checked="option"
@@ -18,11 +18,11 @@
           :un-checked-children="t('layout.setting.off')"
           @change="onChange"
         />
-        <label>{{ t('routes.provider.start_or_stop') }}</label>
+        <label class="ml-1">{{ t('routes.provider.start_or_stop') }}</label>
       </div>
     </div>
 
-    <Description @register="register" class="mt-4" v-show="false"/>
+    <Description @register="register" class="mt-4" v-show="false" />
   </PageWrapper>
 </template>
 
@@ -42,16 +42,16 @@
   const { t } = useI18n();
   const option = ref(true);
   const loading = ref(false);
-  const {createMessage} = useMessage();
+  const { createMessage } = useMessage();
   const { error } = createMessage;
 
   const onChange = function (checked) {
     loading.value = true;
     setBootStateApi(checked)
       .then(() => {})
-      .catch(err => {
-        option.value = !checked
-        error(err.response.data.message)
+      .catch((err) => {
+        option.value = !checked;
+        error(err.response.data.message);
       })
       .finally(() => {
         loading.value = false;
