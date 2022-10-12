@@ -88,7 +88,7 @@
           <a-button class="staking-btn-close" @click="close">{{
             t('accountInfo.info.cancel')
           }}</a-button>
-          <a-button class="staking-btn-ok" @click="">{{
+          <a-button class="staking-btn-ok" @click="ok">{{
             t('accountInfo.info.determine')
           }}</a-button>
         </div>
@@ -251,10 +251,13 @@
       }
       function getRewardInfo() {
         getRewardInfoApi().then((data) => {
-          state.reward = new BigNumber(data.TotalIncome)
-            .div(new BigNumber(Math.pow(10, 12)))
-            .toNumber()
-            .toFixed(4);
+          console.log(data);
+          if (data) {
+            state.reward = new BigNumber(data.TotalIncome)
+              .div(new BigNumber(Math.pow(10, 12)))
+              .toNumber()
+              .toFixed(4);
+          }
         });
       }
       function payoutReward() {
@@ -278,7 +281,6 @@
         payoutReward,
         t,
         ...toRefs(state),
-        ok,
       };
     },
   });
