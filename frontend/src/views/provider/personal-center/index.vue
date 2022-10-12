@@ -9,37 +9,60 @@
           {{ t('accountInfo.info.reclaimPledge') }}
         </a-button>
       </template>
-      <div class="pt-4 m-4 desc-wrap">
-        <a-descriptions :title="t('accountInfo.info.accountInfo')" size="small" :column="2">
-          <a-descriptions-item :label="t('accountInfo.info.accountAddress')">
-            {{ address }}
-          </a-descriptions-item>
-          <a-descriptions-item :label="t('accountInfo.info.accountBalance')">
-            {{ amount }} Unit
-          </a-descriptions-item>
-        </a-descriptions>
-        <a-divider />
-        <a-descriptions :title="t('accountInfo.info.pledgeInformation')" :column="2">
-          <a-descriptions-item :label="t('accountInfo.info.totalPledgeAmount')">
-            {{ pledgeAmount }} Unit
-          </a-descriptions-item>
-          <a-descriptions-item :label="t('accountInfo.info.activePledgeAmount')">
-            {{ activeAmount }} Unit
-          </a-descriptions-item>
-          <a-descriptions-item :label="t('accountInfo.info.lockedPledgeAmount')">
-            {{ lockAmount }} Unit
-          </a-descriptions-item>
-        </a-descriptions>
+      <a-descriptions
+        :title="t('accountInfo.info.accountInfo')"
+        size="small"
+        :column="2"
+        class="py-4 px-8 rounded-md bg-[#fff]"
+      >
+        <a-descriptions-item :label="t('accountInfo.info.accountAddress')">
+          {{ address }}
+        </a-descriptions-item>
+        <a-descriptions-item :label="t('accountInfo.info.accountBalance')">
+          <span class="mr-1 text-[#376AED]">{{ amount }}</span> Unit
+        </a-descriptions-item>
+      </a-descriptions>
 
-        <a-divider />
+      <div class="h-4 bg-[#f0f2f5]"></div>
 
-        <a-descriptions :title="t('accountInfo.income.incomeInfo')" size="small" :column="2">
-          <a-descriptions-item :label="t('accountInfo.income.income')">
-            {{ reward }} Unit   <AButton style="margin-left: 1rem;" type="primary" size="small" shape="round" :loading="rewardLoading" @click="payoutReward"> {{t('accountInfo.income.withdraw')}} </AButton>
-          </a-descriptions-item>
-        </a-descriptions>
+      <a-descriptions
+        :title="t('accountInfo.info.pledgeInformation')"
+        :column="2"
+        class="py-4 px-8 rounded-md bg-[#fff]"
+      >
+        <a-descriptions-item :label="t('accountInfo.info.totalPledgeAmount')">
+          <span class="mr-1 text-[#376AED]">{{ pledgeAmount }}</span> Unit
+        </a-descriptions-item>
+        <a-descriptions-item :label="t('accountInfo.info.activePledgeAmount')">
+          <span class="mr-1 text-[#376AED]">{{ activeAmount }}</span> Unit
+        </a-descriptions-item>
+        <a-descriptions-item :label="t('accountInfo.info.lockedPledgeAmount')">
+          <span class="mr-1 text-[#376AED]">{{ lockAmount }}</span> Unit
+        </a-descriptions-item>
+      </a-descriptions>
 
-      </div>
+      <div class="h-4 bg-[#f0f2f5]"></div>
+
+      <a-descriptions
+        :title="t('accountInfo.income.incomeInfo')"
+        size="small"
+        :column="2"
+        class="py-4 px-8 rounded-md bg-[#fff]"
+      >
+        <a-descriptions-item :label="t('accountInfo.income.income')">
+          <span class="mr-1 text-[#376AED]">{{ reward }}</span> Unit
+          <AButton
+            style="margin-left: 1rem"
+            type="primary"
+            size="small"
+            shape="round"
+            :loading="rewardLoading"
+            @click="payoutReward"
+          >
+            {{ t('accountInfo.income.withdraw') }}
+          </AButton>
+        </a-descriptions-item>
+      </a-descriptions>
     </PageWrapper>
     <a-modal
       v-model:visible="visible"
@@ -75,17 +98,24 @@
 </template>
 
 <script lang="ts">
-  import { getAccountInfoApi, getStakingInfoApi, stakingAmountApi, withdrawAmountApi,getRewardInfoApi,payoutRewardApi} from '/@/api/provider/account';
+  import {
+    getAccountInfoApi,
+    getStakingInfoApi,
+    stakingAmountApi,
+    withdrawAmountApi,
+    getRewardInfoApi,
+    payoutRewardApi,
+  } from '/@/api/provider/account';
   import { PageWrapper } from '/@/components/Page';
   import BalanceInput from '../../../components/BalanceInput/index.vue';
   import { useI18n } from '/@/hooks/web/useI18n';
   import { defineComponent, getCurrentInstance, onMounted, reactive, toRefs } from 'vue';
   import BigNumber from 'bignumber.js';
   import { useMessage } from '/@/hooks/web/useMessage';
-  import AButton from "/@/components/Button/src/BasicButton.vue";
+  import AButton from '/@/components/Button/src/BasicButton.vue';
   // eslint-disable-next-line vue/no-export-in-script-setup
   export default defineComponent({
-    name: 'center',
+    name: 'Center',
     components: {
       AButton,
       BalanceInput,
@@ -219,27 +249,28 @@
           state.activeModal = 'withdraw';
         }
       }
-      function getRewardInfo(){
-        getRewardInfoApi().then(data => {
-          console.log(data)
-          if(data) {
+      function getRewardInfo() {
+        getRewardInfoApi().then((data) => {
+          console.log(data);
+          if (data) {
             state.reward = new BigNumber(data.TotalIncome)
               .div(new BigNumber(Math.pow(10, 12)))
               .toNumber()
               .toFixed(4);
           }
-        })
+        });
       }
-      function payoutReward(){
-        state.rewardLoading = true
-        payoutRewardApi().then(() => {
-          getRewardInfo()
-        }).finally(() => {
-          state.rewardLoading = false
-          getAccountInfo()
-          getRewardInfo()
-
-        })
+      function payoutReward() {
+        state.rewardLoading = true;
+        payoutRewardApi()
+          .then(() => {
+            getRewardInfo();
+          })
+          .finally(() => {
+            state.rewardLoading = false;
+            getAccountInfo();
+            getRewardInfo();
+          });
       }
       return {
         BalanceInput,
@@ -256,6 +287,9 @@
 </script>
 
 <style lang="less" scoped>
+  :deep(.vben-page-wrapper-content-bg) {
+    background-color: unset !important;
+  }
   .staking-content {
     display: flex;
     align-items: center;
@@ -286,6 +320,22 @@
     .staking-btn-ok {
       background-color: rgb(24, 144, 255);
       color: white;
+    }
+  }
+
+  :deep(.ant-descriptions-header) {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 20px;
+    margin-bottom: 24px;
+  }
+  :deep(.ant-descriptions-item-container) {
+    .ant-descriptions-item-label {
+      color: #2e3c43;
+    }
+    .ant-descriptions-item-content {
+      color: #222;
+      line-height: 1.4;
+      font-size: 16px;
     }
   }
 </style>
