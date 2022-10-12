@@ -358,7 +358,7 @@
     width: 100%;
     border-radius: 8px;
     .ant-input-number-handler-wrap {
-      border-radius: 8px;
+      border-radius: 8px !important;
     }
   }
 </style>
