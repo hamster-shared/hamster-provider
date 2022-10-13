@@ -324,4 +324,9 @@
       font-weight: 500;
     }
   }
+  :deep(.ant-input-wrapper) {
+    .ant-input {
+      width: 220px;
+    }
+  }
 </style>
