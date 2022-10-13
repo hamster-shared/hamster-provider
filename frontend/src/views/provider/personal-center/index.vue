@@ -12,7 +12,7 @@
       <a-descriptions
         :title="t('accountInfo.info.accountInfo')"
         size="small"
-        :column="2"
+        :column="{ md: 1, xxl: 2 }"
         class="py-4 px-8 rounded-md bg-[#fff]"
       >
         <a-descriptions-item :label="t('accountInfo.info.accountAddress')">
@@ -47,7 +47,7 @@
         :title="t('accountInfo.income.incomeInfo')"
         size="small"
         :column="2"
-        class="py-4 px-8 rounded-md bg-[#fff]"
+        class="py-4 px-8 rounded-md bg-[#fff] mb-8"
       >
         <a-descriptions-item :label="t('accountInfo.income.income')">
           <span class="mr-1 text-[#376AED]">{{ reward }}</span> Unit

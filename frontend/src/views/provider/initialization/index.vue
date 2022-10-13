@@ -62,7 +62,12 @@
       <!--        :schema="imageSchema"-->
       <!--      />-->
       <div class="text-center">
-        <Button class="mt-8 submit-button" type="primary" @click="handleSubmit">
+        <Button
+          class="mt-8 submit-button"
+          type="primary"
+          @click="handleSubmit"
+          :loading="submitLoading"
+        >
           {{ t('initialization.initialization.updateInformation') }}
         </Button>
       </div>
@@ -132,6 +137,7 @@
       const { createMessage } = useMessage();
       const userStore = useUserStore();
       const { t } = useI18n();
+      const submitLoading = ref(false);
       const mockData = reactive<Recordable>({
         windows: false,
         ubuntu: false,
@@ -263,6 +269,7 @@
           //   createMessage.error(t('initialization.initialization.gatewayNodeTip'));
           //   return;
           // }
+          submitLoading.value = true;
           Promise.all([validateFields(), chainValidateFields()])
             .then((data) => {
               let values = data[0];
@@ -283,8 +290,12 @@
             })
             .catch((err) => {
               createMessage.error(t('initialization.initialization.verificationFailed'), err);
+            })
+            .finally(() => {
+              submitLoading.value = false;
             });
         },
+        submitLoading,
       };
     },
   });
