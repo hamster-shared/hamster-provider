@@ -161,8 +161,14 @@ func (l *ChainListener) watchEvent(ctx context.Context, channel chan bool) {
 
 				for _, e := range evt.ResourceOrder_WithdrawLockedOrderPriceSuccess {
 					// order cancelled successfully
-					log.GetLogger().Info("deal ResourceOrder_WithdrawLockedOrderPriceSuccess")
-					l.dealCancelOrderSuccess(e)
+					log.GetLogger().Info("deal cancelOrder")
+					l.dealCancelOrderSuccess(e.OrderIndex)
+				}
+
+				for _, e := range evt.ResourceOrder_CancelAgreementSuccess {
+					// order cancelled successfully
+					log.GetLogger().Info("deal agreement order")
+					l.dealCancelOrderSuccess(e.OrderIndex)
 				}
 
 			}
@@ -218,18 +224,18 @@ func (l *ChainListener) dealReNewOrderSuccess(e chain2.EventResourceOrderReNewOr
 	}
 }
 
-func (l *ChainListener) dealCancelOrderSuccess(e chain2.EventResourceOrderWithdrawLockedOrderPriceSuccess) {
+func (l *ChainListener) dealCancelOrderSuccess(orderIndex types.U64) {
 	cfg, err := l.cm.GetConfig()
 	if err != nil {
 		panic(err)
 	}
-	if e.OrderIndex == types.NewU64(cfg.ChainRegInfo.OrderIndex) {
+	if orderIndex == types.NewU64(cfg.ChainRegInfo.OrderIndex) {
 		evt := &event.VmRequest{
 			Tag:     event.OPDestroyVm,
 			Cpu:     cfg.Vm.Cpu,
 			Mem:     cfg.Vm.Mem,
 			Disk:    cfg.Vm.Disk,
-			OrderNo: uint64(e.OrderIndex),
+			OrderNo: uint64(orderIndex),
 			System:  cfg.Vm.System,
 			Image:   cfg.Vm.Image,
 		}

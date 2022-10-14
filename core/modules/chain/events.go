@@ -60,6 +60,14 @@ type EventMarketMoney struct {
 	Topics []types.Hash
 }
 
+type EventCancelAgreementSuccess struct {
+	Phase          types.Phase
+	AccountId      types.AccountID
+	AgreementIndex types.U64
+	OrderIndex     types.U64
+	Topics         []types.Hash
+}
+
 type MyEventRecords struct {
 	types.EventRecords
 	Provider_RegisterResourceSuccess              []EventProviderRegisterResourceSuccess //nolint:stylecheck,golint
@@ -67,4 +75,5 @@ type MyEventRecords struct {
 	ResourceOrder_OrderExecSuccess                []EventResourceOrderOrderExecSuccess
 	ResourceOrder_ReNewOrderSuccess               []EventResourceOrderReNewOrderSuccess
 	ResourceOrder_WithdrawLockedOrderPriceSuccess []EventResourceOrderWithdrawLockedOrderPriceSuccess
+	ResourceOrder_CancelAgreementSuccess          []EventCancelAgreementSuccess
 }

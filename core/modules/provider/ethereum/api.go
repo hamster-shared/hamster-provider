@@ -1,9 +1,12 @@
 package ethereum
 
 import (
+	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/hamster-shared/hamster-provider/core/model"
 	"github.com/hamster-shared/hamster-provider/core/modules/provider"
+	log "github.com/sirupsen/logrus"
+	"io"
 )
 
 type Ethereum struct {
@@ -20,8 +23,14 @@ func New() *Ethereum {
 }
 
 func (e *Ethereum) InitParam(c *gin.Context) error {
+	data, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		return err
+	}
+	jsonString := string(data)
+	log.Info("pull Image Job json: ", jsonString)
 	var param model.CommonDeployParam
-	err := c.BindJSON(&param)
+	err = json.Unmarshal(data, &param)
 	if err != nil {
 		return err
 	}
