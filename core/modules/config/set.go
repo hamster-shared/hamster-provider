@@ -6,7 +6,6 @@ import (
 
 // ConfigVM Configure
 func (cm *ConfigManager) ConfigVM(vmOption VmOption) error {
-
 	config, err := cm.GetConfig()
 	if err != nil {
 		return err
@@ -41,6 +40,17 @@ func (cm *ConfigManager) RemoveBootstrap(bootstrap string) error {
 	}
 
 	config.Bootstraps = utils.Remove(config.Bootstraps, bootstrap)
+
+	return cm.Save(config)
+}
+
+func (cm *ConfigManager) SetPublicIP(publicIP string) error {
+	config, err := cm.GetConfig()
+	if err != nil {
+		return err
+	}
+
+	config.PublicIP = publicIP
 
 	return cm.Save(config)
 }

@@ -2,12 +2,14 @@ package corehttp
 
 import (
 	"fmt"
+	"net/http"
+	"strconv"
+
 	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
 	"github.com/hamster-shared/hamster-provider/core/modules/config"
 	"github.com/hamster-shared/hamster-provider/core/modules/provider/thegraph"
+	"github.com/hamster-shared/hamster-provider/core/modules/utils"
 	"github.com/hamster-shared/hamster-provider/log"
-	"net/http"
-	"strconv"
 )
 
 type Keys struct {
@@ -30,7 +32,6 @@ type AddDuration struct {
 // @Success 200 {string} startContainer
 // @Router /container/start [get]
 func startContainer(c *MyContext) {
-
 	name := c.Query("name")
 	if err := c.CoreContext.VmManager.Start(name); err != nil {
 		c.String(http.StatusBadRequest, "err:%v", err)
@@ -47,7 +48,6 @@ func startContainer(c *MyContext) {
 // @Success 200 {string} deleteContainer
 // @Router /container/delete [get]
 func deleteContainer(c *MyContext) {
-
 	name := c.Query("name")
 	if err := c.CoreContext.VmManager.Destroy(name); err != nil {
 		c.String(http.StatusBadRequest, "err:%v", err)
@@ -65,7 +65,6 @@ func deleteContainer(c *MyContext) {
 // @Success 200 {string} listenP2p
 // @Router /p2p/listen [POST]
 func listenP2p(gin *MyContext) {
-
 	portStr := gin.Query("port")
 	port, err := strconv.Atoi(portStr)
 	if err != nil {
@@ -101,7 +100,6 @@ func listenP2p(gin *MyContext) {
 // @Success 200 {string} forwardP2p
 // @Router /p2p/forward [POST]
 func forwardP2p(gin *MyContext) {
-
 	portStr := gin.Query("port")
 	port, err := strconv.Atoi(portStr)
 	if err != nil {
@@ -154,7 +152,6 @@ func closeP2p(gin *MyContext) {
 	target := gin.Query("target")
 
 	done, err := gin.CoreContext.P2pClient.Close(target)
-
 	if err != nil {
 		gin.String(http.StatusBadRequest, "", err.Error())
 		return
@@ -198,7 +195,7 @@ func createVm(gin *MyContext) {
 
 func modifyPrice(gin *MyContext) {
 	reportClient := gin.CoreContext.ReportClient
-	var json = ChangePrice{}
+	json := ChangePrice{}
 	err := gin.BindJSON(&json)
 	if err != nil {
 		gin.JSON(http.StatusBadRequest, BadRequest(fmt.Sprintf("Incorrect parameter format: %d", json.Price)))
@@ -214,7 +211,7 @@ func modifyPrice(gin *MyContext) {
 }
 
 func addDuration(gin *MyContext) {
-	var duration = AddDuration{}
+	duration := AddDuration{}
 	err := gin.BindJSON(&duration)
 	if err != nil {
 		gin.JSON(http.StatusBadRequest, BadRequest(fmt.Sprintf("Incorrect parameter format: %d", duration.Duration)))
@@ -266,6 +263,18 @@ func setConfig(gin *MyContext) {
 	cfg.SeedOrPhrase = reqBody.SeedOrPhrase
 	cfg.ConfigFlag = config.DONE
 	bootstraps := reqBody.Bootstraps
+	if reqBody.PublicIP != "" {
+		log.GetLogger().Infof("frontend set public ip: %s", reqBody.PublicIP)
+		cfg.PublicIP = reqBody.PublicIP
+	} else {
+		ip, err := utils.GetPublicIP()
+		if err == nil {
+			log.GetLogger().Infof("get public ip: %s", ip)
+			cfg.PublicIP = ip
+		} else {
+			log.GetLogger().Warnf("user did not provide the public network ip, and the automatic acquisition of the public network ip failed: %s", err.Error())
+		}
+	}
 
 	err = gin.CoreContext.Cm.Save(cfg)
 
@@ -294,17 +303,19 @@ func setConfig(gin *MyContext) {
 }
 
 func setBootState(gin *MyContext) {
-
 	var op BootParam
 
 	if err := gin.BindJSON(&op); err != nil {
+		log.GetLogger().Errorf("gin bind json fail: %s", err.Error())
 		gin.JSON(http.StatusBadRequest, BadRequest())
 		return
 	}
+	log.GetLogger().Infof("boot param: %v", op)
 
 	if gin.CoreContext.ReportClient == nil {
 		err := gin.CoreContext.InitSubstrate()
 		if err != nil {
+			log.GetLogger().Errorf("init substrate fail: %s", err.Error())
 			gin.JSON(http.StatusBadRequest, BadRequest(err.Error()))
 			return
 		}
@@ -313,12 +324,15 @@ func setBootState(gin *MyContext) {
 	if gin.CoreContext.P2pClient == nil {
 		err := gin.CoreContext.InitP2p()
 		if err != nil {
+			log.GetLogger().Errorf("init p2p fail: %s", err.Error())
 			gin.JSON(http.StatusBadRequest, BadRequest(err.Error()))
 			return
 		}
 	}
 
+	log.GetLogger().Infof("set boot state option: %v", op.Option)
 	if err := gin.CoreContext.ChainListener.SetState(op.Option); err != nil {
+		log.GetLogger().Errorf("set boot state fail: %s", err.Error())
 		gin.JSON(http.StatusBadRequest, BadRequest(err.Error()))
 		return
 	}
@@ -392,7 +406,6 @@ func getAccountInfo(gin *MyContext) {
 	} else {
 		gin.JSON(http.StatusOK, Success(info))
 	}
-
 }
 
 func getStakingInfo(gin *MyContext) {
@@ -424,7 +437,6 @@ func rentAgain(gin *MyContext) {
 }
 
 func queryReward(gin *MyContext) {
-
 	if gin.CoreContext.ReportClient == nil {
 		_ = gin.CoreContext.InitSubstrate()
 	}
@@ -437,7 +449,6 @@ func queryReward(gin *MyContext) {
 }
 
 func payoutReward(gin *MyContext) {
-
 	if gin.CoreContext.ReportClient == nil {
 		_ = gin.CoreContext.InitSubstrate()
 	}
@@ -475,7 +486,7 @@ func receiveIncomeJudge(gin *MyContext) {
 }
 
 func stakingAmount(gin *MyContext) {
-	var json = ChangePrice{}
+	json := ChangePrice{}
 	err := gin.BindJSON(&json)
 	if err != nil {
 		gin.JSON(http.StatusBadRequest, BadRequest(fmt.Sprintf("Incorrect parameter format: %d", json.Price)))
@@ -490,7 +501,7 @@ func stakingAmount(gin *MyContext) {
 }
 
 func withdrawAmount(gin *MyContext) {
-	var json = ChangePrice{}
+	json := ChangePrice{}
 	err := gin.BindJSON(&json)
 	if err != nil {
 		gin.JSON(http.StatusBadRequest, BadRequest(fmt.Sprintf("Incorrect parameter format: %d", json.Price)))

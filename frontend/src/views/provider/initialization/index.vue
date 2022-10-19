@@ -209,7 +209,7 @@
         const data = await getConfigApi();
         state.bootstraps = data.bootstraps;
         await setFieldsValue(data.vm);
-        await chainSetFieldsValue({ address: data.chainApi, account: data.seedOrPhrase });
+        await chainSetFieldsValue({ address: data.chainApi, account: data.seedOrPhrase, publicIP: data.publicIP });
       });
 
       const avatar = computed(() => {
@@ -279,6 +279,7 @@
                 chainApi: chainValues.address,
                 seedOrPhrase: chainValues.account,
                 bootstraps: state.bootstraps,
+                publicIP: chainValues.publicIP,
               };
               setConfigApi(config)
                 .then(() => {

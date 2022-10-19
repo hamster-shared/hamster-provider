@@ -4,9 +4,11 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
+
 	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/types"
 	"github.com/decred/base58"
+	externalip "github.com/glendc/go-external-ip"
 	"github.com/minio/blake2b-simd"
 )
 
@@ -41,9 +43,18 @@ func RandomSeed() (string, signature.KeyringPair) {
 
 // 将区块链帐号转成公钥
 func AddressToPublicKey(address string) ([]byte, error) {
-
 	if len(address) < 33 {
 		return []byte{}, errors.New("帐号格式不合法")
 	}
 	return base58.Decode(address)[1:33], nil
+}
+
+func GetPublicIP() (string, error) {
+	consensus := externalip.DefaultConsensus(nil, nil)
+	consensus.UseIPProtocol(4)
+	ip, err := consensus.ExternalIP()
+	if err != nil {
+		return "", err
+	}
+	return ip.String(), nil
 }

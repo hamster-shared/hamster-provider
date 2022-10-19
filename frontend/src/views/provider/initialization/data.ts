@@ -27,6 +27,15 @@ export const chainSchemas: FormSchema[] = [
     },
     rules: [{ required: true }],
   },
+  {
+    field: 'publicIP',
+    component: 'Input',
+    label: 'PublicIP:',
+    colProps: { span: 12 },
+    componentProps: {
+    },
+    rules: [{ required: false }],
+  },
 ];
 
 // 基础设置 form

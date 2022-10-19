@@ -5,12 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/hamster-shared/hamster-provider/log"
-	"github.com/libp2p/go-libp2p-core/crypto"
-	"github.com/libp2p/go-libp2p-core/peer"
 	"os"
 	"strings"
 	"sync"
+
+	"github.com/libp2p/go-libp2p-core/crypto"
+	"github.com/libp2p/go-libp2p-core/peer"
+
+	"github.com/hamster-shared/hamster-provider/log"
 )
 
 var packageLock sync.Mutex
@@ -33,12 +35,15 @@ type Config struct {
 	Vm           VmOption     `json:"vm"`           // theoretical environment config
 	ChainRegInfo ChainRegInfo `json:"chainRegInfo"` // chain registration information
 	ConfigFlag   ConfigFlag   `json:"configFlag"`
+	PublicIP     string       `json:"publicIP"`
 }
 
 type ConfigFlag string
 
-const DONE ConfigFlag = "done"
-const NONE ConfigFlag = "none"
+const (
+	DONE ConfigFlag = "done"
+	NONE ConfigFlag = "none"
+)
 
 // VmOption vm configuration information
 type VmOption struct {
@@ -92,21 +97,19 @@ func NewConfigManagerWithPath(path string) *ConfigManager {
 }
 
 func DefaultConfigPath() string {
-	return strings.Join([]string{DefaultConfigDir(), CONFIG_DEFAULT_FILENAME}, string(os.PathSeparator))
+	return strings.Join(
+		[]string{DefaultConfigDir(), CONFIG_DEFAULT_FILENAME},
+		string(os.PathSeparator),
+	)
 }
 
 func DefaultConfigDir() string {
 	userHomeDir, err := os.UserHomeDir()
 	if err != nil {
+		log.GetLogger().Error(err)
 		return CONFIG_DIR_NAME + "."
 	}
-	if err != nil {
-		log.GetLogger().Error(err)
-	}
 	dir := strings.Join([]string{userHomeDir, CONFIG_DIR_NAME}, string(os.PathSeparator))
-	if err != nil {
-		log.GetLogger().Error(err)
-	}
 	return dir
 }
 
@@ -116,10 +119,12 @@ func (cm *ConfigManager) GetConfig() (*Config, error) {
 
 	var cfg Config
 	f, err := os.Open(cm.configPath)
-	defer f.Close()
 	if err != nil {
-		return nil, errors.New("hamster-provider not initialized, please run `hamster-provider config init`")
+		return nil, errors.New(
+			"hamster-provider not initialized, please run `hamster-provider config init`",
+		)
 	}
+	defer f.Close()
 	if err := json.NewDecoder(f).Decode(&cfg); err != nil {
 		return nil, fmt.Errorf("failure to decode config: %s", err)
 	}
@@ -131,10 +136,12 @@ func (cm *ConfigManager) Save(config *Config) error {
 	packageLock.Lock()
 	defer packageLock.Unlock()
 	f, err := os.OpenFile(cm.configPath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0766)
-	defer f.Close()
 	if err != nil {
-		return errors.New("hamster-provider not initialized, please run `hamster-provider config init`")
+		return errors.New(
+			"hamster-provider not initialized, please run `hamster-provider config init`",
+		)
 	}
+	defer f.Close()
 	err = json.NewEncoder(f).Encode(config)
 	if err != nil {
 		return err
