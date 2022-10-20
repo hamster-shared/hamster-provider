@@ -50,6 +50,7 @@ func (l *ChainListener) SetState(option bool) error {
 }
 
 func (l *ChainListener) start() error {
+	log.GetLogger().Debug("chain listener start")
 	if l.cancel != nil {
 		l.cancel()
 	}
@@ -69,10 +70,12 @@ func (l *ChainListener) start() error {
 		ExpireTime:    time.Now().AddDate(0, 0, 10),
 		ResourceIndex: cfg.ChainRegInfo.ResourceIndex,
 		PublicIP:      cfg.PublicIP,
+		Specification: cfg.Specification,
 	}
 	err = l.reportClient.RegisterResource(resource)
 
 	if err != nil {
+		log.GetLogger().Errorf("register resource error: ", err)
 		return err
 	}
 

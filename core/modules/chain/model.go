@@ -24,6 +24,7 @@ type ResourceInfo struct {
 	Price         uint64    `json:"price"`
 	ResourceIndex uint64    `json:"resource_index"`
 	PublicIP      string    `json:"publicIP"`
+	Specification uint32    `json:"specification"`
 }
 
 type RentalAgreement struct {

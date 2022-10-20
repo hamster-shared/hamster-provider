@@ -250,18 +250,22 @@ func (cc *ChainClient) GetEvent(blockNumber uint64) (*MyEventRecords, error) {
 
 // Register chain
 func (cc *ChainClient) RegisterResource(r ResourceInfo) error {
-	log.GetLogger().Info("call RegisterResource")
+	log.GetLogger().Debugf("call RegisterResource with info: %v", r)
 
 	meta, err := cc.api.RPC.State.GetMetadataLatest()
 	if err != nil {
+		log.GetLogger().Errorf("get metadata latest error: %s", err)
 		return err
 	}
+	log.GetLogger().Debugf("get metadata latest success")
 
 	if r.ResourceIndex > 0 {
+		log.GetLogger().Debugf("resource index: %d", r.ResourceIndex)
 		resource, err := cc.GetResource(r.ResourceIndex)
 		if err != nil {
-			log.GetLogger().Info(err)
+			log.GetLogger().Errorf("get resource error: %s", err)
 		}
+		log.GetLogger().Debugf("get resource success: %v", resource)
 		if resource != nil {
 			return nil
 		}
@@ -277,17 +281,22 @@ func (cc *ChainClient) RegisterResource(r ResourceInfo) error {
 	rentDurationHour := types.NewU32(uint32(hours))
 	resourceIndex := types.U64(r.ResourceIndex)
 	publicIP := r.PublicIP
+	specification := r.Specification
 
-	c, err := types.NewCall(meta, "Provider.register_resource", peerId, cpu, memory, system, cpuModel, price, rentDurationHour, resourceIndex, publicIP)
+	c, err := types.NewCall(meta, "Provider.register_resource", peerId, cpu, memory, system, cpuModel, price, rentDurationHour, resourceIndex, publicIP, specification)
 	if err != nil {
+		log.GetLogger().Errorf("new call error: %s", err)
 		return err
 	}
+	log.GetLogger().Debugf("new call success")
 
 	hook := func(header *types.Header) error {
 		events, err := cc.GetEvent(uint64(header.Number))
 		if err != nil {
+			log.GetLogger().Errorf("get event error: %s", err)
 			return err
 		}
+		log.GetLogger().Debugf("get event success")
 		if len(events.Provider_RegisterResourceSuccess) > 0 {
 			for _, e := range events.Provider_RegisterResourceSuccess {
 				if e.PeerId == cc.getPeerId() {
@@ -296,11 +305,12 @@ func (cc *ChainClient) RegisterResource(r ResourceInfo) error {
 						return err
 					}
 					cf.ChainRegInfo.ResourceIndex = uint64(e.Index)
+					log.GetLogger().Infof("register resource success, resource index: %d", e.Index)
 					return cc.cm.Save(cf)
 				}
 			}
 		}
-
+		log.GetLogger().Error("non Provider_RegisterResourceSuccess event, boot failed")
 		return errors.New("boot failed")
 	}
 

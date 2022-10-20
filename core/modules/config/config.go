@@ -4,10 +4,11 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"gopkg.in/yaml.v3"
 	"os"
 	"path/filepath"
 	"sync"
+
+	"gopkg.in/yaml.v3"
 
 	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -25,17 +26,18 @@ const (
 
 // Config  config parameter
 type Config struct {
-	ApiPort      int          `json:"apiPort" yaml:"apiPort"`           // API port number
-	Identity     Identity     `json:"identity" yaml:"identity"`         // p2p id
-	Keys         []PublicKey  `json:"keys" yaml:"keys"`                 // public key list
-	Bootstraps   []string     `json:"bootstraps" yaml:"bootstraps"`     // local nodes's bootstrap peer addresses
-	LinkApi      string       `json:"linkApi" yaml:"linkApi"`           // centralized reporting address
-	ChainApi     string       `json:"chainApi" yaml:"chainApi"`         // blockchain address
-	SeedOrPhrase string       `json:"seedOrPhrase" yaml:"seedOrPhrase"` // blockchain account seed or mnemonic
-	Vm           VmOption     `json:"vm" yaml:"vm"`                     // theoretical environment config
-	ChainRegInfo ChainRegInfo `json:"chainRegInfo" yaml:"chainRegInfo"` // chain registration information
-	ConfigFlag   ConfigFlag   `json:"configFlag" yaml:"configFlag"`
-	PublicIP     string       `json:"publicIP" yaml:"publicIP"`
+	ApiPort       int           `json:"apiPort" yaml:"apiPort"`           // API port number
+	Identity      Identity      `json:"identity" yaml:"identity"`         // p2p id
+	Keys          []PublicKey   `json:"keys" yaml:"keys"`                 // public key list
+	Bootstraps    []string      `json:"bootstraps" yaml:"bootstraps"`     // local nodes's bootstrap peer addresses
+	LinkApi       string        `json:"linkApi" yaml:"linkApi"`           // centralized reporting address
+	ChainApi      string        `json:"chainApi" yaml:"chainApi"`         // blockchain address
+	SeedOrPhrase  string        `json:"seedOrPhrase" yaml:"seedOrPhrase"` // blockchain account seed or mnemonic
+	Vm            VmOption      `json:"vm" yaml:"vm"`                     // theoretical environment config
+	ChainRegInfo  ChainRegInfo  `json:"chainRegInfo" yaml:"chainRegInfo"` // chain registration information
+	ConfigFlag    ConfigFlag    `json:"configFlag" yaml:"configFlag"`
+	PublicIP      string        `json:"publicIP" yaml:"publicIP"`
+	Specification Specification `json:"specification" yaml:"specification"`
 }
 
 type ConfigFlag string
@@ -56,6 +58,14 @@ type VmOption struct {
 	// virtualization type,docker/kvm
 	Type string `json:"type" yaml:"type"`
 }
+
+type Specification = uint32
+
+const (
+	General     Specification = 0
+	Enhanced    Specification = 1
+	HighRanking Specification = 2
+)
 
 // Identity p2p identity token structure
 type Identity struct {

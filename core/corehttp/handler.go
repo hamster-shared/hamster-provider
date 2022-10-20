@@ -250,13 +250,19 @@ func setConfig(gin *MyContext) {
 		gin.JSON(http.StatusBadRequest, BadRequest())
 		return
 	}
-
+	specifiction, err := config.GetSpecifiction(reqBody.Vm.Cpu, reqBody.Vm.Mem)
+	if err != nil {
+		log.GetLogger().Infof("user vm specification is not enough, cpu: %d, mem: %d, err: %s", reqBody.Vm.Cpu, reqBody.Vm.Mem, err)
+		gin.JSON(http.StatusOK, BadRequest(err.Error()))
+		return
+	}
+	cfg.Specification = specifiction
 	cfg.Vm = reqBody.Vm
 	cfg.ChainApi = reqBody.ChainApi
 	// 校验seed 是否合法
-	_, err := signature.KeyringPairFromSecret(reqBody.SeedOrPhrase, 42)
+	_, err = signature.KeyringPairFromSecret(reqBody.SeedOrPhrase, 42)
 	if err != nil {
-		gin.JSON(http.StatusBadRequest, BadRequest("seed not invalid"))
+		gin.JSON(http.StatusOK, BadRequest("seed not invalid"))
 		return
 	}
 
