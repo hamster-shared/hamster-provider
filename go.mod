@@ -80,6 +80,7 @@ require (
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/fvbommel/sortorder v1.0.2 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
+	github.com/glendc/go-external-ip v0.1.0 // indirect
 	github.com/go-logr/logr v1.2.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.2.1 // indirect

@@ -3,14 +3,15 @@ package chain
 import (
 	"errors"
 	"fmt"
+	"math/big"
+	"time"
+
 	gsrpc "github.com/centrifuge/go-substrate-rpc-client/v4"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/types"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/types/codec"
 	"github.com/hamster-shared/hamster-provider/core/modules/config"
 	"github.com/hamster-shared/hamster-provider/log"
-	"math/big"
-	"time"
 )
 
 // ChainClient blockchain chain connection
@@ -104,7 +105,6 @@ func (cc *ChainClient) getPeerId() string {
 //}
 
 func (cc *ChainClient) callAndWatch(c types.Call, meta *types.Metadata, hook func(header *types.Header) error) error {
-
 	cf, err := cc.cm.GetConfig()
 
 	// Create the extrinsic
@@ -204,7 +204,7 @@ func (cc *ChainClient) getBlock(blockNumber uint64) {
 	}
 	log.GetLogger().Info("blocknumber", block.Block.Header.Number)
 	for _, ext := range block.Block.Extrinsics {
-		//callIndex, err := meta.FindCallIndex("ResourceOrder.order_exec")
+		// callIndex, err := meta.FindCallIndex("ResourceOrder.order_exec")
 		callIndex, err := meta.FindCallIndex("ResourceOrder.staking_amount")
 		if err != nil {
 			log.GetLogger().Info(err)
@@ -250,19 +250,22 @@ func (cc *ChainClient) GetEvent(blockNumber uint64) (*MyEventRecords, error) {
 
 // Register chain
 func (cc *ChainClient) RegisterResource(r ResourceInfo) error {
-
-	log.GetLogger().Info("call RegisterResource")
+	log.GetLogger().Debugf("call RegisterResource with info: %v", r)
 
 	meta, err := cc.api.RPC.State.GetMetadataLatest()
 	if err != nil {
+		log.GetLogger().Errorf("get metadata latest error: %s", err)
 		return err
 	}
+	log.GetLogger().Debugf("get metadata latest success")
 
 	if r.ResourceIndex > 0 {
+		log.GetLogger().Debugf("resource index: %d", r.ResourceIndex)
 		resource, err := cc.GetResource(r.ResourceIndex)
 		if err != nil {
-			log.GetLogger().Info(err)
+			log.GetLogger().Errorf("get resource error: %s", err)
 		}
+		log.GetLogger().Debugf("get resource success: %v", resource)
 		if resource != nil {
 			return nil
 		}
@@ -277,18 +280,23 @@ func (cc *ChainClient) RegisterResource(r ResourceInfo) error {
 	hours := r.ExpireTime.Sub(time.Now()).Hours()
 	rentDurationHour := types.NewU32(uint32(hours))
 	resourceIndex := types.U64(r.ResourceIndex)
+	publicIP := r.PublicIP
+	specification := r.Specification
 
-	c, err := types.NewCall(meta, "Provider.register_resource", peerId, cpu, memory, system, cpuModel, price, rentDurationHour, resourceIndex)
-
+	c, err := types.NewCall(meta, "Provider.register_resource", peerId, cpu, memory, system, cpuModel, price, rentDurationHour, resourceIndex, publicIP, specification)
 	if err != nil {
+		log.GetLogger().Errorf("new call error: %s", err)
 		return err
 	}
+	log.GetLogger().Debugf("new call success")
 
 	hook := func(header *types.Header) error {
 		events, err := cc.GetEvent(uint64(header.Number))
 		if err != nil {
+			log.GetLogger().Errorf("get event error: %s", err)
 			return err
 		}
+		log.GetLogger().Debugf("get event success")
 		if len(events.Provider_RegisterResourceSuccess) > 0 {
 			for _, e := range events.Provider_RegisterResourceSuccess {
 				if e.PeerId == cc.getPeerId() {
@@ -297,11 +305,12 @@ func (cc *ChainClient) RegisterResource(r ResourceInfo) error {
 						return err
 					}
 					cf.ChainRegInfo.ResourceIndex = uint64(e.Index)
+					log.GetLogger().Infof("register resource success, resource index: %d", e.Index)
 					return cc.cm.Save(cf)
 				}
 			}
 		}
-
+		log.GetLogger().Error("non Provider_RegisterResourceSuccess event, boot failed")
 		return errors.New("boot failed")
 	}
 
@@ -317,7 +326,6 @@ func (cc *ChainClient) RemoveResource(index uint64) error {
 	}
 
 	c, err := types.NewCall(meta, "Provider.offline", types.NewU64(index))
-
 	if err != nil {
 		return err
 	}
@@ -326,7 +334,6 @@ func (cc *ChainClient) RemoveResource(index uint64) error {
 }
 
 func (cc *ChainClient) ChangeResourceStatus(index uint64) error {
-
 	log.GetLogger().Info("call ChangeResourceStatus")
 
 	meta, err := cc.api.RPC.State.GetMetadataLatest()
@@ -334,7 +341,6 @@ func (cc *ChainClient) ChangeResourceStatus(index uint64) error {
 		return err
 	}
 	c, err := types.NewCall(meta, "Provider.change_resource_status", types.NewU64(index))
-
 	if err != nil {
 		return err
 	}
@@ -343,7 +349,6 @@ func (cc *ChainClient) ChangeResourceStatus(index uint64) error {
 }
 
 func (cc *ChainClient) ModifyResourcePrice(index uint64, unitPrice int64) error {
-
 	log.GetLogger().Info("call ModifyResourcePrice")
 
 	meta, err := cc.api.RPC.State.GetMetadataLatest()
@@ -352,7 +357,6 @@ func (cc *ChainClient) ModifyResourcePrice(index uint64, unitPrice int64) error 
 	}
 
 	c, err := types.NewCall(meta, "Provider.modify_resource_price", types.NewU64(index), types.NewU128(*big.NewInt(unitPrice)))
-
 	if err != nil {
 		return err
 	}
@@ -361,7 +365,6 @@ func (cc *ChainClient) ModifyResourcePrice(index uint64, unitPrice int64) error 
 }
 
 func (cc *ChainClient) AddResourceDuration(index uint64, duration int) error {
-
 	log.GetLogger().Info("call AddResourceDuration")
 
 	meta, err := cc.api.RPC.State.GetMetadataLatest()
@@ -370,7 +373,6 @@ func (cc *ChainClient) AddResourceDuration(index uint64, duration int) error {
 	}
 
 	c, err := types.NewCall(meta, "Provider.add_resource_duration", types.NewU64(index), types.NewU32(uint32(duration)))
-
 	if err != nil {
 		return err
 	}
@@ -379,7 +381,6 @@ func (cc *ChainClient) AddResourceDuration(index uint64, duration int) error {
 }
 
 func (cc *ChainClient) Heartbeat(agreementindex uint64) error {
-
 	log.GetLogger().Info("call Heartbeat")
 
 	meta, err := cc.api.RPC.State.GetMetadataLatest()
@@ -388,7 +389,6 @@ func (cc *ChainClient) Heartbeat(agreementindex uint64) error {
 	}
 
 	c, err := types.NewCall(meta, "ResourceOrder.heartbeat", types.NewU64(agreementindex))
-
 	if err != nil {
 		return err
 	}
@@ -408,7 +408,6 @@ func (cc *ChainClient) ReportStatus() error {
 
 // OrderExec order execution
 func (cc *ChainClient) OrderExec(orderIndex uint64) error {
-
 	log.GetLogger().Infof("orderExec : %d\n", orderIndex)
 
 	meta, err := cc.api.RPC.State.GetMetadataLatest()
@@ -419,7 +418,6 @@ func (cc *ChainClient) OrderExec(orderIndex uint64) error {
 	callName := "ResourceOrder.order_exec"
 
 	c, err := types.NewCall(meta, callName, types.NewU64(orderIndex))
-
 	if err != nil {
 		return err
 	}
@@ -459,7 +457,6 @@ func (cc *ChainClient) OrderExec(orderIndex uint64) error {
 
 // CheckExtrinsicSuccess verify that the transaction is successful
 func (cc *ChainClient) CheckExtrinsicSuccess(header *types.Header, call string) error {
-
 	log.GetLogger().Infof("check tx exec Success, blockNumber : %d\n", header.Number)
 
 	cf, _ := cc.cm.GetConfig()
@@ -488,7 +485,7 @@ func (cc *ChainClient) CheckExtrinsicSuccess(header *types.Header, call string) 
 		extrinsicIndex := e.Phase.AsApplyExtrinsic
 
 		extrinsic := extrinsics[extrinsicIndex]
-		//who := extrinsic.Signature.Signer.AsID
+		// who := extrinsic.Signature.Signer.AsID
 		if extrinsic.Method.CallIndex == callIndex && string(extrinsic.Signature.Signer.AsID[:]) == string(kp.PublicKey) {
 			return err
 		}
@@ -534,7 +531,6 @@ func (cc *ChainClient) CalculateInstanceOverdue(orderIndex uint64) time.Duration
 }
 
 func (cc *ChainClient) GetResource(resourceIndex uint64) (*ComputingResource, error) {
-
 	meta, err := cc.api.RPC.State.GetMetadataLatest()
 	if err != nil {
 		log.GetLogger().Info(err)
@@ -545,7 +541,6 @@ func (cc *ChainClient) GetResource(resourceIndex uint64) (*ComputingResource, er
 		return nil, err
 	}
 	key, err := types.CreateStorageKey(meta, "Provider", "Resources", bytes)
-
 	if err != nil {
 		log.GetLogger().Info(err)
 		return nil, err
@@ -609,7 +604,6 @@ func (cc *ChainClient) GetGatewayNodes() ([]string, error) {
 }
 
 func (cc *ChainClient) GetOrder(orderIndex uint64) (*ComputingOrder, error) {
-
 	meta, err := cc.api.RPC.State.GetMetadataLatest()
 	if err != nil {
 		log.GetLogger().Info(err)
@@ -620,7 +614,6 @@ func (cc *ChainClient) GetOrder(orderIndex uint64) (*ComputingOrder, error) {
 		return nil, err
 	}
 	key, err := types.CreateStorageKey(meta, "ResourceOrder", "ResourceOrders", bytes)
-
 	if err != nil {
 		log.GetLogger().Info(err)
 		return nil, err
@@ -651,7 +644,6 @@ func (cc *ChainClient) GetAgreementIndex(orderIndex uint64) (uint64, error) {
 }
 
 func (cc *ChainClient) ReceiveIncome() error {
-
 	log.GetLogger().Info("call ReceiveIncome")
 
 	meta, err := cc.api.RPC.State.GetMetadataLatest()
@@ -660,7 +652,6 @@ func (cc *ChainClient) ReceiveIncome() error {
 	}
 
 	c, err := types.NewCall(meta, "Market.payout_provider_nodes")
-
 	if err != nil {
 		return err
 	}
@@ -670,7 +661,6 @@ func (cc *ChainClient) ReceiveIncome() error {
 
 func (cc *ChainClient) GetAccountInfo() (*AccountInfo, error) {
 	cf, err := cc.cm.GetConfig()
-
 	if err != nil {
 		return nil, err
 	}
@@ -678,7 +668,7 @@ func (cc *ChainClient) GetAccountInfo() (*AccountInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	var accountInfo = &AccountInfo{
+	accountInfo := &AccountInfo{
 		Address: keypair.Address,
 		Amount:  types.NewU128(*big.NewInt(0)),
 	}
@@ -759,7 +749,6 @@ func (cc *ChainClient) GetMarketStackInfo() (*StakingAmount, error) {
 }
 
 func (cc *ChainClient) StakingAmount(unitPrice int64) error {
-
 	log.GetLogger().Info("call StakingAmount")
 
 	meta, err := cc.api.RPC.State.GetMetadataLatest()
@@ -768,7 +757,6 @@ func (cc *ChainClient) StakingAmount(unitPrice int64) error {
 	}
 
 	c, err := types.NewCall(meta, "Market.bond", types.NewU128(*big.NewInt(unitPrice)))
-
 	if err != nil {
 		return err
 	}
@@ -784,7 +772,6 @@ func (cc *ChainClient) WithdrawStakingAmount(unitPrice int64) error {
 	}
 
 	c, err := types.NewCall(meta, "Market.withdraw", types.NewU128(*big.NewInt(unitPrice)))
-
 	if err != nil {
 		return err
 	}
@@ -809,7 +796,6 @@ func (cc *ChainClient) ReceiveIncomeJudge() bool {
 }
 
 func (cc *ChainClient) ProcessApplyFreeResource(index uint64, peerId string) error {
-
 	log.GetLogger().Info("call ProcessApplyFreeResource")
 
 	meta, err := cc.api.RPC.State.GetMetadataLatest()
@@ -818,7 +804,6 @@ func (cc *ChainClient) ProcessApplyFreeResource(index uint64, peerId string) err
 	}
 
 	c, err := types.NewCall(meta, "ResourceOrder.process_apply_free_resource", types.NewU64(index), peerId)
-
 	if err != nil {
 		return err
 	}
@@ -839,7 +824,6 @@ func (cc *ChainClient) ReleaseApplyFreeResource(index uint64) error {
 	}
 
 	c, err := types.NewCall(meta, "ResourceOrder.release_apply_free_resource", types.NewU64(index))
-
 	if err != nil {
 		return err
 	}
@@ -881,7 +865,6 @@ func (cc *ChainClient) PayoutReward() error {
 	}
 
 	c, err := types.NewCall(meta, "Market.payout_provider_nodes")
-
 	if err != nil {
 		return err
 	}

@@ -1,12 +1,13 @@
 package config
 
 import (
+	"fmt"
+
 	"github.com/hamster-shared/hamster-provider/core/modules/utils"
 )
 
 // ConfigVM Configure
 func (cm *ConfigManager) ConfigVM(vmOption VmOption) error {
-
 	config, err := cm.GetConfig()
 	if err != nil {
 		return err
@@ -43,4 +44,27 @@ func (cm *ConfigManager) RemoveBootstrap(bootstrap string) error {
 	config.Bootstraps = utils.Remove(config.Bootstraps, bootstrap)
 
 	return cm.Save(config)
+}
+
+func (cm *ConfigManager) SetPublicIP(publicIP string) error {
+	config, err := cm.GetConfig()
+	if err != nil {
+		return err
+	}
+
+	config.PublicIP = publicIP
+
+	return cm.Save(config)
+}
+
+func GetSpecifiction(cpu uint64, mem uint64) (Specification, error) {
+	if cpu >= 8 && mem >= 64 {
+		return HighRanking, nil
+	} else if cpu >= 4 && mem >= 32 {
+		return Enhanced, nil
+	} else if cpu >= 2 && mem >= 8 {
+		return General, nil
+	} else {
+		return 0, fmt.Errorf("cpu and mem is not enough, minimum cpu: 2, minimum mem: 8")
+	}
 }

@@ -5,7 +5,7 @@ export interface VmConfig {
   system: string;
   image: string;
   accessPort: number;
-  // 虚拟化类型,docker/kvm
+  // 虚拟化类型，docker/kvm
   type: string;
 }
 
@@ -14,4 +14,5 @@ export interface ProviderConfig {
   seedOrPhrase: string;
   vm: VmConfig | Recordable;
   bootstraps: string[];
+  publicIP: string;
 }

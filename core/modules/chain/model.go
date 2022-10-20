@@ -2,9 +2,10 @@ package chain
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/centrifuge/go-substrate-rpc-client/v4/scale"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/types"
-	"time"
 )
 
 // ResourceInfo 资源信息
@@ -22,6 +23,8 @@ type ResourceInfo struct {
 	Status        int       `json:"status"`
 	Price         uint64    `json:"price"`
 	ResourceIndex uint64    `json:"resource_index"`
+	PublicIP      string    `json:"publicIP"`
+	Specification uint32    `json:"specification"`
 }
 
 type RentalAgreement struct {

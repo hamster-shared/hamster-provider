@@ -15,6 +15,8 @@ type EventProviderRegisterResourceSuccess struct {
 	CpuModel         string
 	PriceHour        types.U128
 	RentDurationHour types.U32
+	PublicIP         string
+	Specification    types.U32
 	Topics           []types.Hash
 }
 

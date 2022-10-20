@@ -3,6 +3,8 @@ package listener
 import (
 	"context"
 	"fmt"
+	"time"
+
 	gsrpc "github.com/centrifuge/go-substrate-rpc-client/v4"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/types"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/types/codec"
@@ -12,7 +14,6 @@ import (
 	"github.com/hamster-shared/hamster-provider/core/modules/provider/thegraph"
 	"github.com/hamster-shared/hamster-provider/core/modules/utils"
 	"github.com/hamster-shared/hamster-provider/log"
-	"time"
 )
 
 type ChainListener struct {
@@ -49,6 +50,7 @@ func (l *ChainListener) SetState(option bool) error {
 }
 
 func (l *ChainListener) start() error {
+	log.GetLogger().Debug("chain listener start")
 	if l.cancel != nil {
 		l.cancel()
 	}
@@ -67,10 +69,13 @@ func (l *ChainListener) start() error {
 		Price:         cfg.ChainRegInfo.Price,
 		ExpireTime:    time.Now().AddDate(0, 0, 10),
 		ResourceIndex: cfg.ChainRegInfo.ResourceIndex,
+		PublicIP:      cfg.PublicIP,
+		Specification: cfg.Specification,
 	}
 	err = l.reportClient.RegisterResource(resource)
 
 	if err != nil {
+		log.GetLogger().Errorf("register resource error: ", err)
 		return err
 	}
 
@@ -174,7 +179,6 @@ func (l *ChainListener) watchEvent(ctx context.Context, channel chan bool) {
 			}
 		}
 	}
-
 }
 
 func (l *ChainListener) dealCreateOrderSuccess(e chain2.EventResourceOrderCreateOrderSuccess) {
