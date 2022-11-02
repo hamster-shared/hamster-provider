@@ -5,6 +5,7 @@ import (
 	"github.com/hamster-shared/hamster-provider/core/modules/provider"
 	"github.com/hamster-shared/hamster-provider/core/modules/provider/aptos"
 	"github.com/hamster-shared/hamster-provider/core/modules/provider/avalanche"
+	"github.com/hamster-shared/hamster-provider/core/modules/provider/bsc"
 	"github.com/hamster-shared/hamster-provider/core/modules/provider/ethereum"
 	"github.com/hamster-shared/hamster-provider/core/modules/provider/near"
 	"github.com/hamster-shared/hamster-provider/core/modules/provider/optimism"
@@ -25,7 +26,7 @@ func GetChain(deployType uint32) (provider.Chain, error) {
 	case 3:
 		return ethereum.New(), nil
 	case 4:
-		return nil, fmt.Errorf("not support deployType %d", deployType)
+		return bsc.New(), nil
 	case 5:
 		return polygon.New(), nil
 	case 6:
