@@ -288,12 +288,12 @@ type EventSomethingStored struct {
 	Topics    []types.Hash
 }
 
-type EventBalancesWithdraw struct {
-	Phase   types.Phase
-	Who     types.AccountID
-	Balance types.U128
-	Topics  []types.Hash
-}
+// type EventBalancesWithdraw struct {
+// 	Phase   types.Phase
+// 	Who     types.AccountID
+// 	Balance types.U128
+// 	Topics  []types.Hash
+// }
 
 func TestDisplaySystemEvents(t *testing.T) {
 	// Create our API with a default connection to the local node

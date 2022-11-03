@@ -15,6 +15,7 @@ func init() {
 	logger = logrus.New()
 	logger.SetOutput(os.Stdout)
 	logger.SetFormatter(formatter(true))
+	logger.SetLevel(logrus.DebugLevel)
 }
 
 func GetLogger() *logrus.Logger {

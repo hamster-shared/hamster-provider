@@ -277,11 +277,14 @@ func (cc *ChainClient) RegisterResource(r ResourceInfo) error {
 	rentDurationHour := types.NewU32(uint32(hours))
 	resourceIndex := types.U64(r.ResourceIndex)
 
+	log.GetLogger().Debugf("Provider.register_resource args: %v, %v, %v, %v, %v, %v, %v, %v", peerId, cpu, memory, system, cpuModel, price, rentDurationHour, resourceIndex)
 	c, err := types.NewCall(meta, "Provider.register_resource", peerId, cpu, memory, system, cpuModel, price, rentDurationHour, resourceIndex)
 
 	if err != nil {
+		log.GetLogger().Errorf("types.NewCall error: %s", err)
 		return err
 	}
+	log.GetLogger().Info("types.NewCall success")
 
 	hook := func(header *types.Header) error {
 		events, err := cc.GetEvent(uint64(header.Number))
@@ -300,6 +303,7 @@ func (cc *ChainClient) RegisterResource(r ResourceInfo) error {
 				}
 			}
 		}
+		log.GetLogger().Error("non register resource success event")
 
 		return errors.New("boot failed")
 	}
