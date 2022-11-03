@@ -24,7 +24,8 @@ type EventResourceOrderCreateOrderSuccess struct {
 	OrderIndex    types.U64
 	ResourceIndex types.U64
 	Duration      types.U32
-	PublicKey     string
+	DeployType	  types.U32
+	PublicKey     string 
 	Topics        []types.Hash
 }
 
@@ -66,4 +67,11 @@ type MyEventRecords struct {
 	ResourceOrder_OrderExecSuccess                []EventResourceOrderOrderExecSuccess
 	ResourceOrder_ReNewOrderSuccess               []EventResourceOrderReNewOrderSuccess
 	ResourceOrder_WithdrawLockedOrderPriceSuccess []EventResourceOrderWithdrawLockedOrderPriceSuccess
+	Balances_Withdraw                             []EventBalancesWithdraw
+}
+type EventBalancesWithdraw struct {
+	Phase   types.Phase
+	Who     types.AccountID
+	Balance types.U128
+	Topics  []types.Hash
 }
