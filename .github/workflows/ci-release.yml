@@ -32,11 +32,7 @@ jobs:
       - name: build frontend
         run: |
           cd frontend && yarn && yarn build
-      - name: copy file
-        uses: canastro/copy-file-action@master
-        with:
-          source: "frontend/dist"
-          target: "core/corehttp/"
+
       - name: build binary
         run: go build -o build/bin
       - name: MacOS download gon for code signing and app notarization
