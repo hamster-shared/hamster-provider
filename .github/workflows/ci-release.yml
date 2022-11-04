@@ -4,12 +4,14 @@ on:
     branches:
       - develop
       - main
+      - feature/version
 jobs:
   release-build:
     strategy:
       matrix:
         platform: [ windows-latest, macos-latest,ubuntu-latest ]
-        go-version: [ 1.17 ]
+        go-version: [ 1.19 ]
+        node-version: [18]
     runs-on: ${{ matrix.platform }}
     steps:
       - name: Check out repository code
@@ -26,19 +28,15 @@ jobs:
       - name: setup node
         uses: actions/setup-node@v2
         with:
-          node-version: 16
+          node-version: ${{ matrix.node-version }}
       - name: build frontend
-        if: matrix.platform == 'macos-latest' || matrix.platform == 'ubuntu-latest'
         run: |
           cd frontend && yarn && yarn build
-          cp -r dist ../core/corehttp/
-
-      - name: build frontend
-        if: matrix.platform == 'windows-latest'
-        run: |
-          cd frontend && yarn && yarn build
-          Xcopy /E /I dist ..\core\corehttp\
-
+      - name: copy file
+        uses: canastro/copy-file-action@master
+        with:
+          source: "frontend/dist"
+          target: "core/corehttp/"
       - name: build binary
         run: go build -o build/bin
       - name: MacOS download gon for code signing and app notarization
