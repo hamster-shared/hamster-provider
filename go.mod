@@ -1,6 +1,6 @@
 module github.com/hamster-shared/hamster-provider
 
-go 1.17
+go 1.19
 
 require (
 	github.com/centrifuge/go-substrate-rpc-client/v4 v4.0.0
