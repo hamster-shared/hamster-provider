@@ -19,8 +19,10 @@ macos:
 	#tar -czvf ./hamster-provider-$(VERSION)-darwin-amd64.tar.gz ./hamster-provider ./templates ./frontend/dist
 
 windows:
+	go get github.com/akavel/rsrc
 	rm -rf ./hamster-provider-$(VERSION)-windows-amd64.zip
-	CGO_ENABLED=0 GOOS=windows GOARCH=amd64  go build
+	rsrc -arch amd64 -manifest build/windows/hamster-provider.exe.manifest -ico build/windows/icon.ico -o main.syso
+	CGO_ENABLED=0 GOOS=windows GOARCH=amd64  go build  -ldflags "-s -w" -o hamster-provider.exe
 	zip -r ./hamster-provider-$(VERSION)-windows-amd64.zip ./hamster-provider.exe ./templates ./frontend/dist
 
 docker:
