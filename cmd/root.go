@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,6 +25,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
+	"strings"
 )
 
 var cfgFile string
@@ -64,8 +65,12 @@ to quickly create a Cobra application.`,
 		go func() {
 			err := thegraph.PullImage()
 			if err != nil {
-				panic("The Hamster Provider need docker environment. Please make sure your OS has docker installed and started !! " +
-					"You can get help from `https://docs.docker.com/get-docker/` ")
+				if strings.Contains(err.Error(), "net/http") {
+					log.GetLogger().Warning("Poor network ")
+				} else {
+					panic("The Hamster Provider need docker environment. Please make sure your OS has docker installed and started !! " +
+						"You can get help from `https://docs.docker.com/get-docker/` ")
+				}
 			}
 		}()
 
