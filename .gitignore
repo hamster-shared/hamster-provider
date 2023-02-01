@@ -20,3 +20,5 @@ hamster-provider
 core/corehttp/dist
 
 build/bin
+
+main.syso

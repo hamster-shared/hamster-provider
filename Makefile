@@ -23,7 +23,7 @@ windows:
 	rm -rf ./hamster-provider-$(VERSION)-windows-amd64.zip
 	rsrc -arch amd64 -manifest build/windows/hamster-provider.exe.manifest -ico build/windows/icon.ico -o main.syso
 	CGO_ENABLED=0 GOOS=windows GOARCH=amd64  go build  -ldflags "-s -w" -o hamster-provider.exe
-	zip -r ./hamster-provider-$(VERSION)-windows-amd64.zip ./hamster-provider.exe ./templates ./frontend/dist
+	zip -r ./hamster-provider-$(VERSION)-windows-amd64.zip ./hamster-provider.exe
 
 docker:
 	docker build -t hamstershare/hamster-provider:$(VERSION) .
