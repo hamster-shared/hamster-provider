@@ -19,6 +19,10 @@ sudo systemctl is-active libvirtd
 sudo usermod -aG libvirt $USER
 sudo usermod -aG kvm $USER
 
+sudo usermod -aG $USER libvirt 
+sudo usermod -aG $USER kvm
+
+
 ```
 
 3. make a virtual machine image
@@ -134,4 +138,91 @@ virsh destroy centos
 
 ## undefine a virtual machine
 virsh undefine centos
+```
+
+
+## cloud-init 镜像制作
+https://waynerv.com/posts/create-out-of-box-ubuntu-qcow2-image/
+
+1: 下载基础镜像
+```shell
+wget https://cloud-images.ubuntu.com/releases/focal/release-20211129/ubuntu-20.04-server-cloudimg-amd64.img
+```
+
+2: 创建模板镜像并配置磁盘大小
+```shell
+## 基于初始镜像创建模板镜像，并命名为 root-disk.qcow2：
+qemu-img convert -f qcow2 -O qcow2 ubuntu-20.04-server-cloudimg-amd64.img root-disk.qcow2
+## 根据需要，设置基于该模板镜像所创建的虚拟机磁盘大小，示例设置为 50G：
+qemu-img resize root-disk.qcow2 50G
+
+```
+
+3: 准备 cloud-init 配置
+
+```shell
+$ VM_NAME="ubuntu-vm"
+$ PASSWORD="thisIsMyPassword"
+
+$ echo "#cloud-config
+system_info:
+  default_user:
+    name: ubuntu
+    home: /home/ubuntu
+
+password: $PASSWORD
+chpasswd: { expire: False }
+hostname: $VM_NAME
+
+# 配置 sshd 允许使用密码登录
+ssh_pwauth: True
+
+ssh_authorized_keys:
+  - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC2mLWYddGeahdk6i3muy72XDbppnG4LIDhyj/rSuzLstdVLI7mF7efkwCZgyYcYRJoIjNI5mnb17o7/qVWdgGSiMnSgiPcw4r0Dp1pghWXBEog3o7pI3gicY6//Y4+liqypBEDmBSJnDsMJqVARzFV0rjJLhYSCbYk99LPB1ZLj0mDvIY/1SjRR9bfPuW9Ht6QjkS9DEWIdTrJ0dAaGwJkc+a5pCVzcopq4ycvBVLEnEq4xCrhbNx/LrpYxytA7WXg6kUcN+4Me63QVPxUExcn14qXr5uYxo+ePkoBCNdbqFsm0Z1rxrEX8oGDHvAfsoCpQr/OV8J5WwO7i/QIOyK7 mohaijiang110@163.com
+" | tee cloud-init.cfg
+```
+
+使用 cloud-localds 基于配置文件创建 ISO 镜像
+
+```shell
+cloud-localds cloud-init.iso cloud-init.cfg
+```
+
+4: 基于模板镜像以及配置镜像安装虚拟机：
+```shell
+virt-install \
+  --name $VM_NAME \
+  --memory 1024 \
+  --disk root-disk.qcow2,device=disk,bus=virtio \
+  --disk cloud-init.iso,device=cdrom \
+  --os-type linux \
+  --os-variant ubuntu20.04 \
+  --virt-type kvm \
+  --graphics none \
+  --network network=default,model=virtio \
+  --import
+  
+  
+  
+virt-install \
+  --name $VM_NAME \
+  --memory 1024 \
+  --disk ubuntu-20.04.qcow2,device=disk,bus=virtio \
+  --disk cloud-init.iso,device=cdrom \
+  --os-type linux \
+  --os-variant ubuntu20.04 \
+  --virt-type kvm \
+  --graphics vnc,listen=0.0.0.0 \
+  --network network=default,model=virtio \
+  --noautoconsole \
+  --import  
+  
+  
+
+```
+
+```shell
+virsh net-start default
+
+qemu-img convert -f qcow2 -O qcow2 -c root-disk.qcow2 ubuntu-20.04.qcow2
 ```
